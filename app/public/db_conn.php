@@ -4,7 +4,7 @@
 $servername = "localhost";
 $username = "root";
 $password = "";
-$dbase = "schema_vote";
+$dbase = "db_project";
 
 $conn = new mysqli($servername, $username, $password, $dbase);
 
