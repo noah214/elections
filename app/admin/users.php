@@ -9,6 +9,8 @@
         body {
             min-height: 100vh;
         }
+
+
         .sidebar {
             height: 100vh;
             background-color: #000;
@@ -139,16 +141,16 @@
                             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button>
                         </div>
 
-                        <table class="table table-hover table-secondary" id="userTable">
+                        <table class="table table-hover" id="userTable">
                             <thead>
                                 <tr>
-                                    <th>User Id</th>
-                                    <th>Full Name</th>
-                                    <th>Role</th>
-                                    <th>Username</th>
-                                    <th>Email</th>
-                                    <th>Password</th>
-                                    <th>Actions</th>
+                                    <th class="text-secondary">USER ID</th>
+                                    <th class="text-secondary">FULL NAME</th>
+                                    <th class="text-secondary">ROLE</th>
+                                    <th class="text-secondary">USERNAME</th>
+                                    <th class="text-secondary">EMAIL</th>
+                                    <th class="text-secondary">PASSWORD</th>
+                                    <th class="text-secondary">ACTIONS</th>
                                 </tr>
                             </thead>
                             <tbody>
