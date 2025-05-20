@@ -1,3 +1,12 @@
 .block{
     height: 10px;
 }
+
+.login-banner{
+    background-image: url('../images/ust-bg.png');
+    min-height: 95vh; 
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+

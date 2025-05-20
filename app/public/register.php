@@ -11,6 +11,28 @@
     
   </head>
   <body >
+    <nav class="navbar navbar-expand-lg custom-navbar">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">
+                    <img src="your-logo.svg" width="30" height="30" class="d-inline-block align-top" alt="SSC Logo">
+                    UST Supreme Student Council
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                    <div class="navbar-nav ms-auto">
+                        <a class="nav-item nav-link" href="home.php">Home</a>
+                        <div class="vr mx-2 d-none d-lg-block"></div>
+                        <a class="nav-item nav-link" href="candidate.php">Candidates</a>
+                        <div class="vr mx-2 d-none d-lg-block"></div>
+                        <a class="nav-item nav-link" href="vote.php">Vote</a>
+                        <div class="vr mx-2 d-none d-lg-block"></div>
+                        <a class="nav-item nav-link active" href="#" aria-current="page">Account</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
 
     <div class="container-fluid">
         <div class="row">
@@ -44,7 +66,7 @@
                     <div class="row mx-5 mt-3">
                         <div class="col-8">
                             <div class="form-floating">
-                                <input type="text" name="fname" id="fname" class="form-control" placeholder=" ">
+                                <input type="text" name="fname" id="fname" class="form-control" placeholder=" " required>
                                 <label for="fname" class="form-label">First Name</label>
                             </div>
                         </div>
@@ -58,7 +80,7 @@
                     <div class="row mx-5 mt-3">
                         <div class="col">
                             <div class="form-floating">
-                                <input type="text" name="lname" id="lname" class="form-control" placeholder=" ">
+                                <input type="text" name="lname" id="lname" class="form-control" placeholder=" " required>
                                 <label for="lname" class="form-label">Last Name</label>
                             </div>
                         </div>
@@ -76,14 +98,14 @@
                     <div class="row mx-5 mt-3">
                         <div class="col">
                             <div class="form-floating">
-                                <input type="date" name="date_birth" id="date_birth" class="form-control" placeholder=" ">
+                                <input type="date" name="date_birth" id="date_birth" class="form-control" placeholder=" " required>
                                 <label for="date_birth" class="form-label">Date of Birth</label>
                             </div>
                         </div>
                     </div>
                     <div class="row mx-5 mt-3">
                         <div class="col-6">
-                            <select name="gender" class="form-select" id="gender">
+                            <select name="gender" class="form-select" id="gender" required>
                                 <option disabled selected>Gender</option>
                                 <option value="male">Male</option>
                                 <option value="female">Female</option>
@@ -101,7 +123,7 @@
                     <div class="row mx-5 mt-3">
                         <div class="col">
                             <div class="form-floating">
-                                <input type="text" name="username" id="username" class="form-control" placeholder=" ">
+                                <input type="text" name="username" id="username" class="form-control" placeholder=" " required>
                                 <label for="username" class="form-label">Username</label>
                             </div>
                         </div>
@@ -109,7 +131,7 @@
                     <div class="row mx-5 mt-3 mb-5">
                         <div class="col">
                             <div class="form-floating">
-                                <input type="password" name="pass" id="pass" class="form-control" placeholder=" ">
+                                <input type="password" name="pass" id="pass" class="form-control" placeholder=" " required>
                                 <label for="pass" class="form-label">Password</label>
                             </div>
                         </div>
@@ -196,6 +218,9 @@ if (isset($_POST['sub'])) {
                 title: "Your work has been saved.",
                 showConfirmButton: false,
                 timer: 1500
+
+            }).then(function() {
+            window.location = "login.php"; 
             });
         </script>
 <?php

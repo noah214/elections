@@ -1,3 +1,8 @@
+<?php
+session_start();
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,7 +14,6 @@
         body {
             min-height: 100vh;
         }
-
 
         .sidebar {
             height: 100vh;
