@@ -23,16 +23,28 @@ session_start();
             color: #ffc107;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
             padding-top: 1rem;
         }
+
+        .sidebar-header {
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid #ffc107;
+            margin-bottom: 1rem;
+        }
+
+        .sidebar-header h4 {
+            color: #ffc107;
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
         .sidebar a {
             color: #ffc107;
             text-decoration: none;
             display: block;
             padding: 0.75rem 1rem;
-            text-align: center;
+            text-align: left;
         }
         .sidebar a i {
             margin-right: 8px;
@@ -65,30 +77,162 @@ session_start();
             color: #efb409;
             margin-right: 10px;
         }
+
+        .action-buttons .btn {
+            margin: 0 2px;
+        }
+
+        .user-row {
+            cursor: pointer;
+        }
+
+        .user-row:hover {
+            background-color: #f8f9fa;
+        }
+
+        .search-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            gap: 1rem;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            max-width: 600px;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.8rem 1rem 0.8rem 3rem;
+            border: 2px solid #e9ecef;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .search-box input:focus {
+            border-color: #001f3f;
+            box-shadow: 0 0 0 4px rgba(0, 31, 63, 0.1);
+            outline: none;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1.2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6c757d;
+        }
+
+        .search-btn {
+            background: #001f3f;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 31, 63, 0.2);
+            white-space: nowrap;
+        }
+
+        .search-btn:hover {
+            background: #003366;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 31, 63, 0.3);
+        }
+
+        .search-btn i {
+            position: static;
+            transform: none;
+        }
+
+        .add-user-btn {
+            background: linear-gradient(45deg, #001f3f, #003366);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 31, 63, 0.2);
+        }
+
+        .add-user-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 31, 63, 0.3);
+            background: linear-gradient(45deg, #003366, #001f3f);
+        }
+
+        .add-user-btn i {
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .search-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                max-width: 100%;
+            }
+            
+            .add-user-btn {
+                justify-content: center;
+            }
+        }
+
+        .sidebar-category {
+            color: #6c757d;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            padding: 1rem 1rem 0.5rem;
+            margin-top: 1rem;
+            border-bottom: 1px solid #2c3034;
+        }
+
+        .sidebar-category:first-child {
+            margin-top: 0;
+        }
     </style>
 </head>
 <body>
-
-<header>
-    <nav class="navbar navbar-expand-lg navbar-custom px-5">
-        <a class="navbar-brand" href="#">BOTOmasino Elections</a>
-    </nav>
-</header>
 
 <div class="container-fluid">
     <div class="row">
         <!-- Sidebar -->
         <nav class="col-md-3 col-lg-2 d-md-block sidebar">
-            <h4 class="px-3">Menu</h4>
+            <div class="sidebar-header">
+                <h4>BOTOmasino Elections</h4>
+            </div>
+            
+            <div class="sidebar-category">User Management</div>
             <a href="admin_dashboard.php" class="sidebar-item active">
                 <i class="bi bi-people-fill"></i> Users
             </a>
-            <a href="#"><i class="bi bi-journal-text"></i> Logs</a>
             <a href="#"><i class="bi bi-person-check-fill"></i> Voters</a>
-            <a href="#"><i class="bi bi-box-seam"></i> Votes</a>
+            
+            <div class="sidebar-category">Election Management</div>
             <a href="#"><i class="bi bi-person-badge-fill"></i> Candidates</a>
             <a href="#"><i class="bi bi-briefcase-fill"></i> Positions</a>
+            <a href="#"><i class="bi bi-box-seam"></i> Votes</a>
+            
+            <div class="sidebar-category">Reports</div>
             <a href="#"><i class="bi bi-bar-chart-line-fill"></i> Vote Count</a>
+            <a href="#"><i class="bi bi-journal-text"></i> Logs</a>
         </nav>
 
         <!-- Main Content -->
@@ -98,6 +242,17 @@ session_start();
 
             if (!$conn) {
                 die("Connection failed: " . mysqli_connect_error());
+            }
+
+            // Handle Delete User
+            if (isset($_POST['delete_user'])) {
+                $id = $_POST['delete_user_id'];
+                $deleteQuery = "DELETE FROM user_table WHERE user_id = $id";
+                if (mysqli_query($conn, $deleteQuery)) {
+                    echo "<script>alert('User deleted successfully!'); window.location.href=window.location.href;</script>";
+                } else {
+                    echo "Error deleting record: " . mysqli_error($conn);
+                }
             }
 
             // Handle Add User
@@ -151,26 +306,28 @@ session_start();
             <h1>Welcome</h1>
             <p>This is the table for users.</p>
 
-            <!-- Search Form -->
-            <form action="" method="post">
-                <div class="row g-5">
-                    <div class="col-auto">
-                        <input type="search" name="searchinput" placeholder="Search any keyword" class="form-control">
+            <!-- Search Section -->
+            <div class="search-section">
+                <form action="" method="post" class="search-box">
+                    <div style="position: relative; flex: 1;">
+                        <i class="bi bi-search"></i>
+                        <input type="search" name="searchinput" placeholder="Search users by name, username, role, or email...">
                     </div>
-                    <div class="col-auto">
-                        <input type="submit" name="search" value="Apply" class="btn border border-danger text-danger bg-white">
-                    </div>
-                </div>
-
-                <div class="d-flex justify-content-end mb-3">
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button>
-                </div>
-            </form>
+                    <button type="submit" name="search" class="search-btn">
+                        <i class="bi bi-search"></i>
+                        Search
+                    </button>
+                </form>
+                <button type="button" class="add-user-btn" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                    <i class="bi bi-person-plus-fill"></i>
+                    Add New User
+                </button>
+            </div>
 
             <div class="row">
                 <!-- Users Table -->
                 <div class="col-md">
-                    <div class="container p-3 bg-light border rounded d-flex justify-content-center">
+                    <div class="container p-3 bg-light border rounded d-flex justify-content-center position-relative">
                         <table class="table table-hover" id="userTable">
                             <thead>
                                 <tr>
@@ -184,21 +341,34 @@ session_start();
                             </thead>
                             <tbody>
                                 <?php while ($row = mysqli_fetch_assoc($result)) : ?>
-                                    <tr>
+                                    <tr class="user-row" data-bs-toggle="modal" data-bs-target="#userDetailsModal"
+                                        data-id="<?= $row['user_id']; ?>"
+                                        data-name="<?= $row['full_name']; ?>"
+                                        data-role="<?= $row['role']; ?>"
+                                        data-username="<?= $row['username']; ?>"
+                                        data-email="<?= $row['email']; ?>">
                                         <td><?= $row['user_id']; ?></td>
                                         <td><?= $row['full_name']; ?></td>
-                                        <td><?= $row['role']; ?></td>
+                                        <td><span class="badge bg-primary"><?= $row['role']; ?></span></td>
                                         <td><?= $row['username']; ?></td>
                                         <td><?= $row['email']; ?></td>
-                                        <td>
-                                            <button 
-                                                class="btn btn-warning edit-btn"
+                                        <td class="action-buttons">
+                                            <button class="btn btn-warning btn-sm" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#editUserModal"
                                                 data-id="<?= $row['user_id']; ?>"
                                                 data-name="<?= $row['full_name']; ?>"
                                                 data-role="<?= $row['role']; ?>"
                                                 data-username="<?= $row['username']; ?>"
-                                                data-email="<?= $row['email']; ?>"
-                                            >Edit
+                                                data-email="<?= $row['email']; ?>">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteUserModal"
+                                                data-id="<?= $row['user_id']; ?>"
+                                                data-name="<?= $row['full_name']; ?>">
+                                                <i class="bi bi-trash"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -303,6 +473,62 @@ session_start();
                 </div>
             </div>
 
+            <!-- User Details Modal -->
+            <div class="modal fade" id="userDetailsModal" tabindex="-1" aria-labelledby="userDetailsModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="userDetailsModalLabel">User Details</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Full Name</label>
+                                <p id="detailName" class="form-control-plaintext"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Role</label>
+                                <p id="detailRole" class="form-control-plaintext"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Username</label>
+                                <p id="detailUsername" class="form-control-plaintext"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Email</label>
+                                <p id="detailEmail" class="form-control-plaintext"></p>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delete Confirmation Modal -->
+            <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="deleteUserModalLabel">Confirm Delete</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Are you sure you want to delete user: <span id="deleteUserName" class="fw-bold"></span>?</p>
+                            <p class="text-danger">This action cannot be undone.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <form action="" method="POST">
+                                <input type="hidden" name="delete_user_id" id="deleteUserId">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" name="delete_user" class="btn btn-danger">Delete User</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </main>
     </div>
 </div>
@@ -312,34 +538,61 @@ session_start();
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const editButtons = document.querySelectorAll('.edit-btn');
+        // Handle edit modal data
+        const editUserModal = document.getElementById('editUserModal');
+        editUserModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const id = button.getAttribute('data-id');
+            const name = button.getAttribute('data-name');
+            const role = button.getAttribute('data-role');
+            const username = button.getAttribute('data-username');
+            const email = button.getAttribute('data-email');
 
-        editButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                // Populate the modal fields
-                document.getElementById('editUserId').value = button.dataset.id;
-                document.getElementById('editName').value = button.dataset.name;
-                document.getElementById('editUsername').value = button.dataset.username;
-                document.getElementById('editEmail').value = button.dataset.email;
-                
-                // Fix role selection - handle case conversion
-                const roleSelect = document.getElementById('editRole');
-                const roleValue = button.dataset.role.toLowerCase();
-                
-                // Clear any previous selection
-                roleSelect.selectedIndex = 0;
-                
-                // Find and select the matching option
-                for (let i = 0; i < roleSelect.options.length; i++) {
-                    if (roleSelect.options[i].value === roleValue) {
-                        roleSelect.selectedIndex = i;
-                        break;
-                    }
+            document.getElementById('editUserId').value = id;
+            document.getElementById('editName').value = name;
+            document.getElementById('editUsername').value = username;
+            document.getElementById('editEmail').value = email;
+            
+            const roleSelect = document.getElementById('editRole');
+            const roleValue = role.toLowerCase();
+            roleSelect.selectedIndex = 0;
+            
+            for (let i = 0; i < roleSelect.options.length; i++) {
+                if (roleSelect.options[i].value === roleValue) {
+                    roleSelect.selectedIndex = i;
+                    break;
                 }
-                
-                // Show the modal
-                const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
-                editModal.show();
+            }
+        });
+
+        // Handle delete modal data
+        const deleteUserModal = document.getElementById('deleteUserModal');
+        deleteUserModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const id = button.getAttribute('data-id');
+            const name = button.getAttribute('data-name');
+
+            document.getElementById('deleteUserId').value = id;
+            document.getElementById('deleteUserName').textContent = name;
+        });
+
+        // Handle user details modal data
+        const userDetailsModal = document.getElementById('userDetailsModal');
+        userDetailsModal.addEventListener('show.bs.modal', function (event) {
+            const row = event.relatedTarget;
+            document.getElementById('detailName').textContent = row.getAttribute('data-name');
+            document.getElementById('detailRole').textContent = row.getAttribute('data-role');
+            document.getElementById('detailUsername').textContent = row.getAttribute('data-username');
+            document.getElementById('detailEmail').textContent = row.getAttribute('data-email');
+        });
+
+        // Handle modal closing
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            modal.addEventListener('hidden.bs.modal', function () {
+                // Reset any form fields if needed
+                const forms = this.querySelectorAll('form');
+                forms.forEach(form => form.reset());
             });
         });
     });
