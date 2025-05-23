@@ -94,7 +94,7 @@ session_start();
         <!-- Main Content -->
         <main class="col-md-9 col-lg-10 px-4 py-4">
             <?php
-            require_once "dbaseconnection.php";
+            require_once "db_conn.php";
 
             if (!$conn) {
                 die("Connection failed: " . mysqli_connect_error());
