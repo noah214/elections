@@ -10,6 +10,8 @@ session_start();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
     <style>
         body {
             min-height: 100vh;
@@ -32,6 +34,9 @@ session_start();
             padding: 0.75rem 1rem;
             text-align: center;
         }
+        .sidebar a i {
+            margin-right: 8px;
+        }
         .sidebar a:hover {
             background-color: #212529;
         }
@@ -42,9 +47,28 @@ session_start();
         .navbar-custom .nav-link {
             color: #ffc107 !important;
         }
+
+        .sidebar .sidebar-item {
+            color: #efb409;
+            background: transparent;
+            transition: background 0.2s, color 0.2s;
+        }
+        .sidebar .sidebar-item.active {
+            background: #efb409;
+            color: #212529;
+            font-weight: bold;
+        }
+        .sidebar .sidebar-item.active i {
+            color: #212529;
+        }
+        .sidebar .sidebar-item i {
+            color: #efb409;
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
+
 <header>
     <nav class="navbar navbar-expand-lg navbar-custom px-5">
         <a class="navbar-brand" href="#">BOTOmasino Elections</a>
@@ -56,13 +80,15 @@ session_start();
         <!-- Sidebar -->
         <nav class="col-md-3 col-lg-2 d-md-block sidebar">
             <h4 class="px-3">Menu</h4>
-            <a href="#">Users</a>
-            <a href="#">Logs</a>
-            <a href="#">Voters</a>
-            <a href="#">Votes</a>
-            <a href="#">Candidates</a>
-            <a href="#">Positions</a>
-            <a href="#">Vote Count</a>
+            <a href="admin_dashboard.php" class="sidebar-item active">
+                <i class="bi bi-people-fill"></i> Users
+            </a>
+            <a href="#"><i class="bi bi-journal-text"></i> Logs</a>
+            <a href="#"><i class="bi bi-person-check-fill"></i> Voters</a>
+            <a href="#"><i class="bi bi-box-seam"></i> Votes</a>
+            <a href="#"><i class="bi bi-person-badge-fill"></i> Candidates</a>
+            <a href="#"><i class="bi bi-briefcase-fill"></i> Positions</a>
+            <a href="#"><i class="bi bi-bar-chart-line-fill"></i> Vote Count</a>
         </nav>
 
         <!-- Main Content -->
@@ -79,7 +105,7 @@ session_start();
                 $name = mysqli_real_escape_string($conn, $_POST['add_name']);
                 $role = mysqli_real_escape_string($conn, $_POST['add_role']);
                 $username = mysqli_real_escape_string($conn, $_POST['add_username']);
-                $password = mysqli_real_escape_string($conn, $_POST['add_password']);
+                $password = md5(mysqli_real_escape_string($conn, $_POST['add_password']));
                 $email = mysqli_real_escape_string($conn, $_POST['add_email']);
 
                 $insertQuery = "INSERT INTO user_table (full_name, role, username, password, email) 
@@ -98,7 +124,7 @@ session_start();
                 $role = mysqli_real_escape_string($conn, $_POST['edit_role']);
                 $username = mysqli_real_escape_string($conn, $_POST['edit_username']);
                 $email = mysqli_real_escape_string($conn, $_POST['edit_email']);
-                $password = mysqli_real_escape_string($conn, $_POST['edit_password']);
+                $password = md5(mysqli_real_escape_string($conn, $_POST['edit_password']));
 
                 $updateQuery = "UPDATE user_table 
                                 SET full_name='$name', role='$role', username='$username', email='$email', password='$password'
@@ -135,16 +161,16 @@ session_start();
                         <input type="submit" name="search" value="Apply" class="btn border border-danger text-danger bg-white">
                     </div>
                 </div>
+
+                <div class="d-flex justify-content-end mb-3">
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button>
+                </div>
             </form>
 
             <div class="row">
                 <!-- Users Table -->
-                <div class="col-md-8">
-                    <div class="container p-3 bg-light border rounded">
-                        <div class="d-flex justify-content-end mb-3">
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">Add User</button>
-                        </div>
-
+                <div class="col-md">
+                    <div class="container p-3 bg-light border rounded d-flex justify-content-center">
                         <table class="table table-hover" id="userTable">
                             <thead>
                                 <tr>
@@ -153,7 +179,6 @@ session_start();
                                     <th class="text-secondary">ROLE</th>
                                     <th class="text-secondary">USERNAME</th>
                                     <th class="text-secondary">EMAIL</th>
-                                    <th class="text-secondary">PASSWORD</th>
                                     <th class="text-secondary">ACTIONS</th>
                                 </tr>
                             </thead>
@@ -165,7 +190,6 @@ session_start();
                                         <td><?= $row['role']; ?></td>
                                         <td><?= $row['username']; ?></td>
                                         <td><?= $row['email']; ?></td>
-                                        <td><?= $row['password']; ?></td>
                                         <td>
                                             <button 
                                                 class="btn btn-warning edit-btn"
@@ -174,9 +198,7 @@ session_start();
                                                 data-role="<?= $row['role']; ?>"
                                                 data-username="<?= $row['username']; ?>"
                                                 data-email="<?= $row['email']; ?>"
-                                                data-password="<?= $row['password']; ?>"
-                                            >
-                                                Edit
+                                            >Edit
                                             </button>
                                         </td>
                                     </tr>
@@ -185,35 +207,56 @@ session_start();
                         </table>
                     </div>
                 </div>
+            </div>
 
-                <!-- Edit User Form -->
-                <div class="col-md-4">
-                    <div class="card bg-white border shadow p-3">
-                        <h4>Edit User</h4>
-                        <form action="" method="POST">
-                            <input type="hidden" name="edit_user_id" id="editUserId">
-                            <div class="mb-2">
-                                <label for="editName" class="form-label">Name</label>
-                                <input type="text" name="edit_name" id="editName" class="form-control">
-                            </div>
-                            <div class="mb-2">
-                                <label for="editRole" class="form-label">Role</label>
-                                <input type="text" name="edit_role" id="editRole" class="form-control">
-                            </div>
-                            <div class="mb-2">
-                                <label for="editUsername" class="form-label">Username</label>
-                                <input type="text" name="edit_username" id="editUsername" class="form-control">
-                            </div>
-                            <div class="mb-2">
-                                <label for="editEmail" class="form-label">Email</label>
-                                <input type="email" name="edit_email" id="editEmail" class="form-control">
-                            </div>
-                            <div class="mb-2">
-                                <label for="editPassword" class="form-label">Password</label>
-                                <input type="text" name="edit_password" id="editPassword" class="form-control">
-                            </div>
-                            <button type="submit" name="apply_edit" class="btn btn-success mt-2">Apply</button>
-                        </form>
+            <!-- Edit User Modal -->
+            <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form action="" method="POST">
+                                <input type="hidden" name="edit_user_id" id="editUserId">
+                                
+                                <div class="mb-3">
+                                    <label for="editName" class="form-label">Full Name</label>
+                                    <input type="text" name="edit_name" id="editName" class="form-control" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="editRole" class="form-label">Role</label>
+                                    <select name="edit_role" class="form-select" id="editRole" required>
+                                        <option disabled>Select Role</option>
+                                        <option value="admin">Admin</option>
+                                        <option value="organizer">Organizer</option>
+                                        <option value="voter">Voter</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="editUsername" class="form-label">Username</label>
+                                    <input type="text" name="edit_username" id="editUsername" class="form-control" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="editEmail" class="form-label">Email</label>
+                                    <input type="email" name="edit_email" id="editEmail" class="form-control" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="editPassword" class="form-label">Password</label>
+                                    <input type="password" name="edit_password" id="editPassword" class="form-control" required>
+                                </div>
+                                
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" name="apply_edit" class="btn btn-success">Update User</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -234,7 +277,12 @@ session_start();
                                 </div>
                                 <div class="mb-3">
                                     <label for="addRole" class="form-label">Role</label>
-                                    <input type="text" name="add_role" id="addRole" class="form-control" required>
+                                    <select name="add_role" class="form-select" id="addRole" required>
+                                        <option disabled selected>Choose Role</option>
+                                        <option value="Admin">Admin</option>
+                                        <option value="Organizer">Organizer</option>
+                                        <option value="Voter">Voter</option>
+                                    </select>
                                 </div>
                                 <div class="mb-3">
                                     <label for="addUsername" class="form-label">Username</label>
@@ -268,12 +316,30 @@ session_start();
 
         editButtons.forEach(button => {
             button.addEventListener('click', () => {
+                // Populate the modal fields
                 document.getElementById('editUserId').value = button.dataset.id;
                 document.getElementById('editName').value = button.dataset.name;
-                document.getElementById('editRole').value = button.dataset.role;
                 document.getElementById('editUsername').value = button.dataset.username;
                 document.getElementById('editEmail').value = button.dataset.email;
-                document.getElementById('editPassword').value = button.dataset.password;
+                
+                // Fix role selection - handle case conversion
+                const roleSelect = document.getElementById('editRole');
+                const roleValue = button.dataset.role.toLowerCase();
+                
+                // Clear any previous selection
+                roleSelect.selectedIndex = 0;
+                
+                // Find and select the matching option
+                for (let i = 0; i < roleSelect.options.length; i++) {
+                    if (roleSelect.options[i].value === roleValue) {
+                        roleSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+                
+                // Show the modal
+                const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+                editModal.show();
             });
         });
     });

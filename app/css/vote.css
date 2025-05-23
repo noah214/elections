@@ -1,0 +1,140 @@
+.vote-section {
+  padding: 4rem 0;
+  background-color: #f8f9fa;
+  min-height: calc(100vh - 56px);
+}
+
+.vote-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.vote-card {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.position-header {
+  color: #060841;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 3px solid #efb409;
+}
+
+.candidate-option {
+  border: 2px solid #dee2e6;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.candidate-option:hover {
+  border-color: #efb409;
+  background-color: #fff9e6;
+}
+
+.candidate-option.selected {
+  border-color: #060841;
+  background-color: #f0f0f7;
+}
+
+.candidate-option input[type="radio"] {
+  display: none;
+}
+
+.candidate-option .candidate-image {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid #efb409;
+  margin-right: 1rem;
+}
+
+.candidate-option .candidate-info {
+  flex: 1;
+}
+
+.candidate-option .candidate-name {
+  color: #060841;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.candidate-option .candidate-position {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.candidate-option .candidate-platform {
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.navigation-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+}
+
+.navigation-buttons .btn {
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+}
+
+.progress-container {
+  margin-bottom: 2rem;
+}
+
+.progress {
+  height: 8px;
+  border-radius: 4px;
+}
+
+.progress-bar {
+  background-color: #efb409;
+}
+
+.step-indicator {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+}
+
+.step {
+  color: #6c757d;
+  font-size: 0.9rem;
+  text-align: center;
+  flex: 1;
+}
+
+.step.active {
+  color: #060841;
+  font-weight: 600;
+}
+
+.step.completed {
+  color: #198754;
+}
+
+@media (max-width: 768px) {
+  .vote-card {
+    padding: 1rem;
+  }
+
+  .candidate-option {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .candidate-option .candidate-image {
+    margin: 0 auto 1rem auto;
+  }
+}

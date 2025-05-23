@@ -1,0 +1,214 @@
+/* UST SSC Election Landing Page Styles */
+:root {
+  --ust-blue: #060841;
+  --ust-yellow: #efb409;
+  --ust-light-blue: #0a0d6b;
+  --ust-light-yellow: #ffd700;
+  --ust-white: #fff;
+  --ust-dark: #222;
+}
+
+body {
+  background: #f8f9fa;
+  color: var(--ust-dark);
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.ust-header {
+  background: var(--ust-blue);
+  color: var(--ust-yellow);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+.ust-header .navbar-brand,
+.ust-header .nav-link {
+  color: var(--ust-yellow) !important;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: color 0.2s;
+}
+.ust-header .nav-link:hover,
+.ust-header .nav-link.active {
+  color: var(--ust-light-yellow) !important;
+}
+
+.ust-hero {
+  background: linear-gradient(rgba(6, 8, 65, 0.7), rgba(6, 8, 65, 0.7)),
+    url("../images/ust-bg.png") center/cover no-repeat;
+  color: var(--ust-white);
+  padding: 80px 0 0 0;
+  min-height: 480px;
+  position: relative;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+.ust-hero .hero-title {
+  font-size: 2.7rem;
+  font-weight: 800;
+  color: var(--ust-light-yellow);
+  letter-spacing: 0.03em;
+}
+.ust-hero .hero-sub {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--ust-yellow);
+}
+.ust-hero .hero-announcement {
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+  color: var(--ust-white);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: flex-start;
+}
+.ust-hero .hero-logo {
+  width: 80px;
+  height: 80px;
+  background: var(--ust-white);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ust-section-title {
+  background: var(--ust-blue);
+  color: var(--ust-light-yellow);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-align: center;
+  padding: 0.75rem 0;
+  margin-bottom: 0;
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.what-now-section {
+  background: var(--ust-yellow);
+  padding: 2.5rem 0 2rem 0;
+}
+.what-now-card {
+  background: var(--ust-blue);
+  color: var(--ust-white);
+  border-radius: 20px;
+  padding: 2rem 1.5rem;
+  min-height: 220px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  position: relative;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.what-now-card.yellow {
+  background: var(--ust-yellow);
+  color: var(--ust-blue);
+}
+.what-now-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.13);
+}
+.what-now-btn {
+  background: var(--ust-light-yellow);
+  color: var(--ust-blue);
+  font-weight: 700;
+  border: none;
+  border-radius: 30px;
+  padding: 0.5rem 2rem;
+  margin-top: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: background 0.2s, color 0.2s;
+}
+.what-now-btn:hover {
+  background: var(--ust-blue);
+  color: var(--ust-light-yellow);
+}
+.what-now-btn.blue {
+  background: var(--ust-blue);
+  color: var(--ust-light-yellow);
+}
+.what-now-btn.blue:hover {
+  background: var(--ust-light-yellow);
+  color: var(--ust-blue);
+}
+
+.mission-vision-section {
+  background: var(--ust-white);
+  padding: 2.5rem 0 1.5rem 0;
+}
+.mission-vision-title {
+  color: var(--ust-blue);
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+.mission-vision-text {
+  color: var(--ust-dark);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.ust-footer {
+  background: var(--ust-blue);
+  color: var(--ust-light-yellow);
+  font-size: 0.97rem;
+  border-top: 3px solid var(--ust-yellow);
+}
+.ust-footer a {
+  color: var(--ust-light-yellow);
+  transition: color 0.2s;
+}
+.ust-footer a:hover {
+  color: var(--ust-yellow);
+  text-decoration: underline;
+}
+.ust-footer .social-icons a {
+  color: var(--ust-light-yellow);
+  font-size: 1.5rem;
+  margin-right: 1rem;
+}
+.back-to-top {
+  color: var(--ust-light-yellow);
+  text-decoration: underline;
+}
+
+/* Responsive Tweaks */
+@media (max-width: 991px) {
+  .ust-hero .hero-title {
+    font-size: 2rem;
+  }
+  .ust-hero .hero-sub {
+    font-size: 1.3rem;
+  }
+  .ust-hero {
+    padding: 60px 0 0 0;
+  }
+}
+@media (max-width: 768px) {
+  .ust-hero {
+    padding: 40px 0 0 0;
+    min-height: 340px;
+  }
+  .ust-hero .hero-title {
+    font-size: 1.3rem;
+  }
+  .ust-hero .hero-sub {
+    font-size: 1rem;
+  }
+  .ust-hero .hero-announcement {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .ust-section-title {
+    font-size: 1.1rem;
+  }
+  .what-now-section {
+    padding: 1.5rem 0 1rem 0;
+  }
+  .what-now-card {
+    padding: 1.2rem 1rem;
+  }
+  .mission-vision-section {
+    padding: 1.5rem 0 1rem 0;
+  }
+}
