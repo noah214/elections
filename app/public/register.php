@@ -187,7 +187,7 @@ if (isset($_POST['sub'])) {
     $ppfullname = $_POST['fname']." ".$_POST['mname']." ".$_POST['lname'];
     $pprole = "voter"; //default role when creating an account in registration - voter view
     $ppusername = $_POST['username'];
-    $pppassword = $_POST['pass'];
+    $pppassword = md5($_POST['pass']);
     $ppemail = $_POST['email'];
 
     //Registration for Voter Table

@@ -9,39 +9,17 @@
     
    </head>
   <body>
-        <nav class="navbar navbar-expand-lg custom-navbar">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="#">
-                    <img src="your-logo.svg" width="30" height="30" class="d-inline-block align-top" alt="SSC Logo">
-                    UST Supreme Student Council
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-                    <div class="navbar-nav ms-auto">
-                        <a class="nav-item nav-link" href="home.php">Home</a>
-                        <div class="vr mx-2 d-none d-lg-block"></div>
-                        <a class="nav-item nav-link" href="candidate.php">Candidates</a>
-                        <div class="vr mx-2 d-none d-lg-block"></div>
-                        <a class="nav-item nav-link" href="vote.php">Vote</a>
-                        <div class="vr mx-2 d-none d-lg-block"></div>
-                        <a class="nav-item nav-link active" href="#" aria-current="page">Account</a>
-                    </div>
-                </div>
-            </div>
-        </nav>
         <div class="container-fluid login-banner ">
             <div class="row h-100">
                 <div class="col-5 d-flex justify-content-center flex-column align-items-center">
                     <div>
-                        <h1 class="text-warning">University of Santo Tomas</h1>
+                        <h1 class="text-warning display-5 fw-bold">University of Santo Tomas</h1>
                     </div>
                     <div class="text-white">
-                        <h3>Supreme Student Council:</h3>
+                        <h2>Supreme Student Council:</h2>
                     </div>
                     <div class="text-white">
-                        <h3>BOTOmasino Elections</h3>
+                        <h2>BOTOmasino Elections</h2>
                     </div>
                 </div>
                 <div class="col d-flex align-items-center">
@@ -95,5 +73,59 @@
         </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js" integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous"></script>
-  </body>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+ </body>
 </html>
+
+<?php
+require_once "db_conn.php";
+
+//Button Function
+if (isset($_POST['sub'])){
+    session_start();
+    $ppusername = $_POST['username'];
+    $pppassword = md5($_POST['pass']);
+
+    $_SESSION['username'] = $ppusername;
+
+    $pploginsql = "Select * from user_table WHERE username = '".$ppusername."' AND password = '".$pppassword."'";
+    $ppresult = $conn ->query($pploginsql);
+
+    if ($ppresult->num_rows == 1) {
+        $ppfielddata = $ppresult->fetch_assoc();
+        // print_r($ppfielddata);
+        
+        //Type of User
+        $pprole = $ppfielddata['role'];
+        $ppfullname = $ppfielddata['full_name'];
+
+        $_SESSION['fullname'] = $ppfullname;
+        $_SESSION['role'] = $pprole;
+
+       if ($pprole == "Admin" || $pprole == "Organizer") {
+            header("location: ../admin/users.php");
+            exit;
+        } elseif ($pprole == "Voter"){
+            ?> 
+            <script>
+                window.location.href = "../public/home.php";
+            </script>
+            <?php
+        }
+
+    } else {
+        ?>    
+        <script>
+            Swal.fire({
+            position: "center",
+            icon: "error",
+            title: "Invalid username or password",
+            showConfirmButton: false,
+            timer: 1500
+            });
+        </script>
+        <?php
+    }
+}
+
+?>
