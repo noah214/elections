@@ -14,13 +14,27 @@
     }
 
     // delete user stuff
+    // delete user stuff
     if (isset($_POST['delete_user'])) {
         $id = $_POST['delete_user_id'];
+        
+        // First check if user is a voter and delete from voter table
+        $checkVoterQuery = "SELECT full_name, role FROM user_table WHERE user_id = $id";
+        $checkResult = mysqli_query($conn, $checkVoterQuery);
+        $userData = mysqli_fetch_assoc($checkResult);
+        
+        if ($userData && strtolower($userData['role']) === 'voter') {
+            // Delete from voter table first
+            $deleteVoterQuery = "DELETE FROM voter_table WHERE voter_name = '".$userData['full_name']."'";
+            mysqli_query($conn, $deleteVoterQuery);
+        }
+        
+        // Then delete from user table
         $deleteQuery = "DELETE FROM user_table WHERE user_id = $id";
         
         if (mysqli_query($conn, $deleteQuery)) {
             echo "<script>alert('User deleted successfully!'); window.location.href=window.location.href;</script>";
-        }else{
+        } else {
             echo "Error deleting record: " . mysqli_error($conn);
         }
     }
@@ -34,48 +48,26 @@
         $password = md5($_POST['add_password']); // hash it for security
         $email = $_POST['add_email'];
 
-        // Check if email already exists
-        $check_email = "SELECT * FROM user_table WHERE email = '$email'";
-        $email_result = mysqli_query($conn, $check_email);
-        
-        if (mysqli_num_rows($email_result) > 0) {
-            echo "<script>
-                Swal.fire({
-                    position: 'center',
-                    icon: 'error',
-                    title: 'Email already registered!',
-                    text: 'Please use a different email address.',
-                    showConfirmButton: false,
-                    timer: 1500
-                });
-            </script>";
-        } else {
-            // insert into db
-            $insertQuery = "INSERT INTO user_table (full_name, role, username, password, email) 
-                            VALUES ('$name', '$role', '$username', '$password', '$email')";
-                            
-            if (mysqli_query($conn, $insertQuery)) {
-                echo "<script>
-                    Swal.fire({
-                        position: 'center',
-                        icon: 'success',
-                        title: 'User added successfully!',
-                        showConfirmButton: false,
-                        timer: 1500
-                    });
-                </script>";
-            } else {
-                echo "<script>
-                    Swal.fire({
-                        position: 'center',
-                        icon: 'error',
-                        title: 'Error adding user!',
-                        text: '" . mysqli_error($conn) . "',
-                        showConfirmButton: false,
-                        timer: 1500
-                    });
-                </script>";
+        // insert into user table
+        $insertQuery = "INSERT INTO user_table (full_name, role, username, password, email) 
+                        VALUES ('$name', '$role', '$username', '$password', '$email')";
+                        
+        if (mysqli_query($conn, $insertQuery)) {
+            // If user role is voter, also add to voter table with additional fields
+            if (strtolower($role) === 'voter') {
+                $voterDateBirth = isset($_POST['add_date_birth']) ? $_POST['add_date_birth'] : '';
+                $voterGender = isset($_POST['add_gender']) ? $_POST['add_gender'] : '';
+                $voterContact = isset($_POST['add_contact']) ? $_POST['add_contact'] : '';
+                $voterStuId = isset($_POST['add_stu_id']) ? $_POST['add_stu_id'] : '';
+                
+                $insertVoterQuery = "INSERT INTO voter_table (voter_name, date_of_birth, gender, contact_information, student_id) 
+                                   VALUES ('$name', '$voterDateBirth', '$voterGender', '$voterContact', '$voterStuId')";
+                mysqli_query($conn, $insertVoterQuery);
             }
+            
+            echo "<script>alert('User added successfully!');</script>";
+        } else {
+            echo "Error: " . mysqli_error($conn);
         }
     }
 
@@ -84,23 +76,62 @@
         // get form data
         $id = $_POST['edit_user_id'];
         $name = $_POST['edit_name'];
-        $role = $_POST['edit_role'];
+        $newRole = $_POST['edit_role'];
         $username = $_POST['edit_username'];
         $email = $_POST['edit_email'];
         $password = md5($_POST['edit_password']); // hash it again
 
-        // update in db
+        // Get old user data
+        $getOldDataQuery = "SELECT full_name, role FROM user_table WHERE user_id = $id";
+        $oldDataResult = mysqli_query($conn, $getOldDataQuery);
+        $oldData = mysqli_fetch_assoc($oldDataResult);
+        $oldName = $oldData['full_name'];
+        $oldRole = $oldData['role'];
+
+        // update user table
         $updateQuery = "UPDATE user_table 
                         SET full_name='$name', 
-                            role='$role', 
+                            role='$newRole', 
                             username='$username', 
                             email='$email', 
                             password='$password'
                         WHERE user_id=$id";
                         
         if (mysqli_query($conn, $updateQuery)) {
+            // Handle voter table changes
+            if (strtolower($oldRole) === 'voter' && strtolower($newRole) !== 'voter') {
+                // User was voter but now isn't - remove from voter table
+                $deleteVoterQuery = "DELETE FROM voter_table WHERE voter_name = '$oldName'";
+                mysqli_query($conn, $deleteVoterQuery);
+            } else if (strtolower($oldRole) !== 'voter' && strtolower($newRole) === 'voter') {
+                // User wasn't voter but now is - add to voter table
+                $voterDateBirth = isset($_POST['edit_date_birth']) ? $_POST['edit_date_birth'] : '';
+                $voterGender = isset($_POST['edit_gender']) ? $_POST['edit_gender'] : '';
+                $voterContact = isset($_POST['edit_contact']) ? $_POST['edit_contact'] : '';
+                $voterStuId = isset($_POST['edit_stu_id']) ? $_POST['edit_stu_id'] : '';
+                
+                $insertVoterQuery = "INSERT INTO voter_table (voter_name, date_of_birth, gender, contact_information, student_id) 
+                                   VALUES ('$name', '$voterDateBirth', '$voterGender', '$voterContact', '$voterStuId')";
+                mysqli_query($conn, $insertVoterQuery);
+            } else if (strtolower($oldRole) === 'voter' && strtolower($newRole) === 'voter') {
+                // User was and still is voter - update voter table
+                $voterDateBirth = isset($_POST['edit_date_birth']) ? $_POST['edit_date_birth'] : '';
+                $voterGender = isset($_POST['edit_gender']) ? $_POST['edit_gender'] : '';
+                $voterContact = isset($_POST['edit_contact']) ? $_POST['edit_contact'] : '';
+                $voterStuId = isset($_POST['edit_stu_id']) ? $_POST['edit_stu_id'] : '';
+                
+                $updateVoterQuery = "UPDATE voter_table 
+                                   SET voter_name='$name',
+                                       date_of_birth='$voterDateBirth',
+                                       gender='$voterGender',
+                                       contact_information='$voterContact',
+                                       student_id='$voterStuId'
+                                   WHERE voter_name='$oldName'";
+                mysqli_query($conn, $updateVoterQuery);
+            }
+            
             echo "<script>alert('User updated successfully!'); window.location.href=window.location.href;</script>";
-        }else{
+        } else {
             echo "Error updating record: " . mysqli_error($conn);
         }
     }
@@ -118,35 +149,6 @@
     }else{
         // show all users if no search
         $selectsql = "Select * from user_table";
-    }
-
-    // Handle SQL command execution
-    if(isset($_POST['execute_sql'])) {
-        $sql_command = $_POST['sql_command'];
-        $result = mysqli_query($conn, $sql_command);
-        
-        if($result) {
-            echo "<script>
-                Swal.fire({
-                    position: 'center',
-                    icon: 'success',
-                    title: 'SQL command executed successfully!',
-                    showConfirmButton: false,
-                    timer: 1500
-                });
-            </script>";
-        } else {
-            echo "<script>
-                Swal.fire({
-                    position: 'center',
-                    icon: 'error',
-                    title: 'Error executing SQL command!',
-                    text: '" . mysqli_error($conn) . "',
-                    showConfirmButton: false,
-                    timer: 1500
-                });
-            </script>";
-        }
     }
 
     // get results
@@ -333,6 +335,35 @@
             border-radius: 8px;
             margin-top: 1rem;
         }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+        
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        
+        .form-floating > .form-control,
+        .form-floating > .form-select {
+            height: calc(3.5rem + 2px);
+            line-height: 1.25;
+        }
+        
+        .form-floating > label {
+            padding: 1rem 0.75rem;
+        }
+        
+        .card-title {
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -346,19 +377,19 @@
             </div>
             
             <div class="sidebar-category">User Management</div>
-            <a href="admin_dashboard.php" class="sidebar-item active">
+            <a href="users.php" class="sidebar-item active">
                 <i class="bi bi-people-fill"></i> Users
             </a>
-            <a href="#"><i class="bi bi-person-check-fill"></i> Voters</a>
+            <a href="voter.php"><i class="bi bi-person-check-fill"></i> Voters</a>
             
             <div class="sidebar-category">Election Management</div>
-            <a href="#"><i class="bi bi-person-badge-fill"></i> Candidates</a>
-            <a href="#"><i class="bi bi-briefcase-fill"></i> Positions</a>
-            <a href="#"><i class="bi bi-box-seam"></i> Votes</a>
+            <a href="candidates.php"><i class="bi bi-person-badge-fill"></i> Candidates</a>
+            <a href="positions.php"><i class="bi bi-briefcase-fill"></i> Positions</a>
+            <a href="votes.php"><i class="bi bi-box-seam"></i> Votes</a>
             
             <div class="sidebar-category">Reports</div>
-            <a href="#"><i class="bi bi-bar-chart-line-fill"></i> Vote Count</a>
-            <a href="#"><i class="bi bi-journal-text"></i> Logs</a>
+            <a href="votecount.php"><i class="bi bi-bar-chart-line-fill"></i> Vote Count</a>
+            <a href="logs.php"><i class="bi bi-journal-text"></i> Logs</a>
         </nav>
 
         <!-- Main Content -->
@@ -380,11 +411,6 @@
                         <div class="col-auto">
                             <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addUserModal">
                                 <i class="bi bi-person-plus-fill me-1"></i>Add New User
-                            </button>
-                        </div>
-                        <div class="col-auto">
-                            <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#sqlCommandModal">
-                                <i class="bi bi-database-fill me-1"></i>SQL Commands
                             </button>
                         </div>
                     </div>
@@ -466,14 +492,6 @@
                                 <div class="row g-3">
                                     <div class="col-md-12">
                                         <div class="form-floating mb-3">
-                                            <input type="text" class="form-control" name="edit_name" id="editName" placeholder="Full Name" required>
-                                            <label for="editName">Full Name</label>
-                                            <div class="invalid-feedback">Please enter the full name.</div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="col-md-12">
-                                        <div class="form-floating mb-3">
                                             <select class="form-select" name="edit_role" id="editRole" required>
                                                 <option value="" disabled>Select Role</option>
                                                 <option value="Admin">Admin</option>
@@ -485,6 +503,14 @@
                                         </div>
                                     </div>
 
+                                    <div class="col-md-12">
+                                        <div class="form-floating mb-3">
+                                            <input type="text" class="form-control" name="edit_name" id="editName" placeholder="Full Name" required>
+                                            <label for="editName">Full Name</label>
+                                            <div class="invalid-feedback">Please enter the full name.</div>
+                                        </div>
+                                    </div>
+                                    
                                     <div class="col-md-12">
                                         <div class="form-floating mb-3">
                                             <input type="text" class="form-control" name="edit_username" id="editUsername" placeholder="Username" required>
@@ -542,15 +568,7 @@
                                 <div class="row g-3">
                                     <div class="col-md-12">
                                         <div class="form-floating mb-3">
-                                            <input type="text" class="form-control" name="add_name" id="addName" placeholder="Full Name" required>
-                                            <label for="addName">Full Name</label>
-                                            <div class="invalid-feedback">Please enter the full name.</div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="col-md-12">
-                                        <div class="form-floating mb-3">
-                                            <select class="form-select" name="add_role" id="addRole" required>
+                                            <select class="form-select" name="add_role" id="addRole" required onchange="toggleVoterFields()">
                                                 <option value="" selected disabled>Select Role</option>
                                                 <option value="Admin">Admin</option>
                                                 <option value="Organizer">Organizer</option>
@@ -562,26 +580,69 @@
                                     </div>
 
                                     <div class="col-md-12">
-                                        <div class="form-floating mb-3">
-                                            <input type="text" class="form-control" name="add_username" id="addUsername" placeholder="Username" required>
-                                            <label for="addUsername">Username</label>
-                                            <div class="invalid-feedback">Please enter a username.</div>
+                                        <div class="card mb-4 border-0 bg-light">
+                                            <div class="card-body">
+                                                <h6 class="card-title fw-bold text-primary mb-3">
+                                                    <i class="bi bi-person-fill me-2"></i>User Information
+                                                </h6>
+                                                <div class="form-floating mb-3">
+                                                    <input type="text" class="form-control" name="add_name" id="addName" placeholder="Full Name" required>
+                                                    <label for="addName">Full Name</label>
+                                                    <div class="invalid-feedback">Please enter the full name.</div>
+                                                </div>
+
+                                                <div class="form-floating mb-3">
+                                                    <input type="text" class="form-control" name="add_username" id="addUsername" placeholder="Username" required>
+                                                    <label for="addUsername">Username</label>
+                                                    <div class="invalid-feedback">Please enter a username.</div>
+                                                </div>
+
+                                                <div class="form-floating mb-3">
+                                                    <input type="email" class="form-control" name="add_email" id="addEmail" placeholder="Email" required>
+                                                    <label for="addEmail">Email</label>
+                                                    <div class="invalid-feedback">Please enter a valid email address.</div>
+                                                </div>
+
+                                                <div class="form-floating mb-3">
+                                                    <input type="password" class="form-control" name="add_password" id="addPassword" placeholder="Password" required>
+                                                    <label for="addPassword">Password</label>
+                                                    <div class="invalid-feedback">Please enter a password.</div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div class="col-md-12">
-                                        <div class="form-floating mb-3">
-                                            <input type="email" class="form-control" name="add_email" id="addEmail" placeholder="Email" required>
-                                            <label for="addEmail">Email</label>
-                                            <div class="invalid-feedback">Please enter a valid email address.</div>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-12">
-                                        <div class="form-floating mb-3">
-                                            <input type="password" class="form-control" name="add_password" id="addPassword" placeholder="Password" required>
-                                            <label for="addPassword">Password</label>
-                                            <div class="invalid-feedback">Please enter a password.</div>
+                                    <!-- Voter-specific fields (initially hidden) -->
+                                    <div id="voterFields" style="display: none;">
+                                        <div class="col-md-12">
+                                            <div class="card mb-4 border-0 bg-light">
+                                                <div class="card-body">
+                                                    <h6 class="card-title fw-bold text-success mb-3">
+                                                        <i class="bi bi-person-check-fill me-2"></i>Voter Information
+                                                    </h6>
+                                                    <div class="form-floating mb-3">
+                                                        <input type="date" class="form-control" name="add_date_birth" id="addDateBirth" placeholder="Date of Birth">
+                                                        <label for="addDateBirth">Date of Birth</label>
+                                                    </div>
+                                                    <div class="form-floating mb-3">
+                                                        <select class="form-select" name="add_gender" id="addGender">
+                                                            <option value="" selected disabled>Select Gender</option>
+                                                            <option value="Male">Male</option>
+                                                            <option value="Female">Female</option>
+                                                            <option value="Other">Other</option>
+                                                        </select>
+                                                        <label for="addGender">Gender</label>
+                                                    </div>
+                                                    <div class="form-floating mb-3">
+                                                        <input type="tel" class="form-control" name="add_contact" id="addContact" placeholder="Contact Information">
+                                                        <label for="addContact">Contact Information</label>
+                                                    </div>
+                                                    <div class="form-floating mb-3">
+                                                        <input type="text" class="form-control" name="add_stu_id" id="addStuId" placeholder="Student ID">
+                                                        <label for="addStuId">Student ID</label>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -654,40 +715,6 @@
                                 <input type="hidden" name="delete_user_id" id="deleteUserId">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                                 <button type="submit" name="delete_user" class="btn btn-danger">Delete User</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SQL Command Modal -->
-            <div class="modal fade" id="sqlCommandModal" tabindex="-1" aria-labelledby="sqlCommandModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header bg-info text-white">
-                            <h5 class="modal-title" id="sqlCommandModalLabel">
-                                <i class="bi bi-database-fill me-2"></i>SQL Command Interface
-                            </h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form action="" method="POST" class="needs-validation" novalidate>
-                                <div class="mb-3">
-                                    <label for="sqlCommand" class="form-label">Enter SQL Command:</label>
-                                    <textarea class="form-control" id="sqlCommand" name="sql_command" rows="5" required 
-                                        placeholder="Enter your SQL command here..."></textarea>
-                                    <div class="form-text text-danger">
-                                        Warning: Be careful with SQL commands. They can modify or delete data permanently.
-                                    </div>
-                                </div>
-                                <div class="modal-footer border-top-0">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                        <i class="bi bi-x-circle me-1"></i>Cancel
-                                    </button>
-                                    <button type="submit" name="execute_sql" class="btn btn-info">
-                                        <i class="bi bi-play-fill me-1"></i>Execute Command
-                                    </button>
-                                </div>
                             </form>
                         </div>
                     </div>
@@ -769,6 +796,42 @@ function deleteUser(id, name) {
     document.getElementById('deleteUserName').textContent = name;
     new bootstrap.Modal(document.getElementById('deleteUserModal')).show();
 }
+
+// Toggle voter fields based on role selection
+function toggleVoterFields() {
+    const roleSelect = document.getElementById('addRole');
+    const voterFields = document.getElementById('voterFields');
+    const voterInputs = voterFields.getElementsByTagName('input');
+    const voterSelects = voterFields.getElementsByTagName('select');
+    
+    if (roleSelect.value === 'Voter') {
+        voterFields.style.display = 'block';
+        // Make fields required
+        Array.from(voterInputs).forEach(input => input.required = true);
+        Array.from(voterSelects).forEach(select => select.required = true);
+    } else {
+        voterFields.style.display = 'none';
+        // Remove required attribute
+        Array.from(voterInputs).forEach(input => input.required = false);
+        Array.from(voterSelects).forEach(select => select.required = false);
+    }
+}
+
+// Clear voter fields when modal is closed
+document.getElementById('addUserModal').addEventListener('hidden.bs.modal', function () {
+    const voterFields = document.getElementById('voterFields');
+    voterFields.style.display = 'none';
+    const voterInputs = voterFields.getElementsByTagName('input');
+    const voterSelects = voterFields.getElementsByTagName('select');
+    Array.from(voterInputs).forEach(input => {
+        input.required = false;
+        input.value = '';
+    });
+    Array.from(voterSelects).forEach(select => {
+        select.required = false;
+        select.value = '';
+    });
+});
 </script>
 </body>
 </html>

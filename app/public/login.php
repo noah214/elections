@@ -1,3 +1,6 @@
+<?php
+ob_start(); // Start output buffering
+?>
 <html lang="en">
   <head>
     <meta charset="utf-8">
@@ -63,7 +66,7 @@
                             </div>
                             <div class="row">
                                 <div class="col d-flex justify-content-center">
-                                    <p><a href="forgot_password.php">Forgot Password?</a></p>
+                                    <p><a href="../public/forgot_password.php">Forgot Password?</a></p>
                                 </div>
                             </div>
                             <div class="row">
