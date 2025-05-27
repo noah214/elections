@@ -364,6 +364,40 @@
             border-bottom: 2px solid #e9ecef;
             padding-bottom: 0.5rem;
         }
+
+        /* SQL Theme Styles */
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            color: #fff;
+        }
+        
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+            color: #fff;
+        }
+        
+        .text-primary {
+            color: #0d6efd !important;
+        }
+        
+        .bg-primary {
+            background-color: #0d6efd !important;
+        }
+        
+        #sqlCommand:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        .border-primary {
+            border-color: #0d6efd !important;
+        }
+
+        .card.bg-light {
+            background-color: #f8f9fa !important;
+        }
     </style>
 </head>
 <body>
@@ -413,6 +447,11 @@
                                 <i class="bi bi-person-plus-fill me-1"></i>Add New User
                             </button>
                         </div>
+                        <div class="col-auto">
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#sqlCommandModal">
+                                <i class="bi bi-database-fill me-1"></i>SQL Commands
+                            </button>
+                        </div>
                     </div>
                 </form>
 
@@ -426,6 +465,8 @@
                                 <th>Role</th>
                                 <th>Username</th>
                                 <th>Email</th>
+                                <th>One-Time-Password</th>
+                                <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -455,6 +496,14 @@
                                     </td>
                                     <td><?= $fieldname['username']; ?></td>
                                     <td><?= $fieldname['email']; ?></td>
+                                    <td><?= $fieldname['otp'] ?? 'N/A'; ?></td>
+                                    <td>
+                                        <?php
+                                        $status = $fieldname['status'] ?? 'Not Verified';
+                                        $statusClass = $status === 'Verified' ? 'bg-success' : 'bg-warning';
+                                        ?>
+                                        <span class="badge <?= $statusClass; ?>"><?= $status; ?></span>
+                                    </td>
                                     <td class="action-buttons">
                                         <button class="btn btn-warning btn-sm" 
                                             onclick="editUser('<?= $fieldname['user_id']; ?>', '<?= $fieldname['full_name']; ?>', '<?= $fieldname['role']; ?>', '<?= $fieldname['username']; ?>', '<?= $fieldname['email']; ?>', '<?= $fieldname['password']; ?>'); event.stopPropagation();">
@@ -720,6 +769,79 @@
                     </div>
                 </div>
             </div>
+
+            <!-- SQL Command Modal -->
+            <div class="modal fade" id="sqlCommandModal" tabindex="-1" aria-labelledby="sqlCommandModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title" id="sqlCommandModalLabel">
+                                <i class="bi bi-database-fill me-2"></i>SQL Command Interface
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form action="" method="POST" class="needs-validation" novalidate>
+                                <div class="card border-primary bg-light">
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="sqlCommand" class="form-label fw-bold text-primary">
+                                                <i class="bi bi-code-square me-2"></i>Enter SQL Command:
+                                            </label>
+                                            <textarea class="form-control" id="sqlCommand" name="sql_command" rows="5" required 
+                                                placeholder="Enter your SQL command here..." 
+                                                style="font-family: 'Consolas', monospace; background-color: #fff; border: 1px solid #0d6efd;"></textarea>
+                                            <div class="form-text text-primary mt-2">
+                                                <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                                Warning: Be careful with SQL commands. They can modify or delete data permanently.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-top border-primary">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        <i class="bi bi-x-circle me-1"></i>Cancel
+                                    </button>
+                                    <button type="submit" name="execute_sql" class="btn btn-primary">
+                                        <i class="bi bi-play-fill me-1"></i>Execute Command
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <?php
+            // Handle SQL command execution
+            if(isset($_POST['execute_sql'])) {
+                $sql_command = $_POST['sql_command'];
+                $result = mysqli_query($conn, $sql_command);
+                
+                if($result) {
+                    echo "<script>
+                        Swal.fire({
+                            position: 'center',
+                            icon: 'success',
+                            title: 'SQL command executed successfully!',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                    </script>";
+                } else {
+                    echo "<script>
+                        Swal.fire({
+                            position: 'center',
+                            icon: 'error',
+                            title: 'Error executing SQL command!',
+                            text: '" . mysqli_error($conn) . "',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                    </script>";
+                }
+            }
+            ?>
 
         </main>
     </div>
