@@ -182,52 +182,66 @@ if ($conn->connect_error) {
 }
 
 if (isset($_POST['sub'])) {
-    
-    //Registration for User Table
-    $ppfullname = $_POST['fname']." ".$_POST['mname']." ".$_POST['lname'];
-    $pprole = "voter"; //default role when creating an account in registration - voter view
-    $ppusername = $_POST['username'];
-    $pppassword = md5($_POST['pass']);
+    // Check if email already exists
     $ppemail = $_POST['email'];
-
-    //Registration for Voter Table
-    $ppvotername = $_POST['fname']." ".$_POST['mname']." ".$_POST['lname'];
-    $ppdate_birth = $_POST['date_birth'];
-    $ppgender = $_POST['gender'];
-    $ppcontact = $_POST['contact'];
-    $ppstu_id = $_POST['stu_id'];
-
-    //Inserting data in User Table
-    $insertUser = "Insert into user_table (full_name, role, username, password, email) 
-    values ('$ppfullname', '$pprole', '$ppusername', '$pppassword', '$ppemail')";
-
-    //Inserting data in VoterTable
-    $insertVoter = "Insert into voter_table (voter_name, date_of_birth, gender, contact_information, student_id) 
-    values ('$ppvotername', '$ppdate_birth', '$ppgender', '$ppcontact', '$ppstu_id')";
-
-
-    $resultUser = $conn->query($insertUser);
-    $resultVoter = $conn->query($insertVoter);
-
-    if ($resultUser && $resultVoter == TRUE){
-
-?>
+    $check_email = "SELECT * FROM user_table WHERE email = '$ppemail'";
+    $email_result = $conn->query($check_email);
+    
+    if ($email_result->num_rows > 0) {
+        ?>
         <script>
             Swal.fire({
                 position: "center",
-                icon: "success",
-                title: "Your work has been saved.",
+                icon: "error",
+                title: "Email already registered!",
+                text: "Please use a different email address.",
                 showConfirmButton: false,
                 timer: 1500
-
-            }).then(function() {
-            window.location = "login.php"; 
             });
         </script>
-<?php
-        echo "Account Successfully Created!";
+        <?php
     } else {
-        echo $db_conn->error;
+        //Registration for User Table
+        $ppfullname = $_POST['fname']." ".$_POST['mname']." ".$_POST['lname'];
+        $pprole = "voter"; //default role when creating an account in registration - voter view
+        $ppusername = $_POST['username'];
+        $pppassword = md5($_POST['pass']);
+
+        //Registration for Voter Table
+        $ppvotername = $_POST['fname']." ".$_POST['mname']." ".$_POST['lname'];
+        $ppdate_birth = $_POST['date_birth'];
+        $ppgender = $_POST['gender'];
+        $ppcontact = $_POST['contact'];
+        $ppstu_id = $_POST['stu_id'];
+
+        //Inserting data in User Table
+        $insertUser = "Insert into user_table (full_name, role, username, password, email) 
+        values ('$ppfullname', '$pprole', '$ppusername', '$pppassword', '$ppemail')";
+
+        //Inserting data in VoterTable
+        $insertVoter = "Insert into voter_table (voter_name, date_of_birth, gender, contact_information, student_id) 
+        values ('$ppvotername', '$ppdate_birth', '$ppgender', '$ppcontact', '$ppstu_id')";
+
+        $resultUser = $conn->query($insertUser);
+        $resultVoter = $conn->query($insertVoter);
+
+        if ($resultUser && $resultVoter == TRUE) {
+            ?>
+            <script>
+                Swal.fire({
+                    position: "center",
+                    icon: "success",
+                    title: "Your work has been saved.",
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(function() {
+                    window.location = "login.php"; 
+                });
+            </script>
+            <?php
+        } else {
+            echo $conn->error;
+        }
     }
 }
 

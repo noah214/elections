@@ -34,14 +34,48 @@
         $password = md5($_POST['add_password']); // hash it for security
         $email = $_POST['add_email'];
 
-        // insert into db
-        $insertQuery = "INSERT INTO user_table (full_name, role, username, password, email) 
-                        VALUES ('$name', '$role', '$username', '$password', '$email')";
-                        
-        if (mysqli_query($conn, $insertQuery)) {
-            echo "<script>alert('User added successfully!');</script>";
+        // Check if email already exists
+        $check_email = "SELECT * FROM user_table WHERE email = '$email'";
+        $email_result = mysqli_query($conn, $check_email);
+        
+        if (mysqli_num_rows($email_result) > 0) {
+            echo "<script>
+                Swal.fire({
+                    position: 'center',
+                    icon: 'error',
+                    title: 'Email already registered!',
+                    text: 'Please use a different email address.',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            </script>";
         } else {
-            echo "Error: " . mysqli_error($conn);
+            // insert into db
+            $insertQuery = "INSERT INTO user_table (full_name, role, username, password, email) 
+                            VALUES ('$name', '$role', '$username', '$password', '$email')";
+                            
+            if (mysqli_query($conn, $insertQuery)) {
+                echo "<script>
+                    Swal.fire({
+                        position: 'center',
+                        icon: 'success',
+                        title: 'User added successfully!',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                </script>";
+            } else {
+                echo "<script>
+                    Swal.fire({
+                        position: 'center',
+                        icon: 'error',
+                        title: 'Error adding user!',
+                        text: '" . mysqli_error($conn) . "',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                </script>";
+            }
         }
     }
 
@@ -84,6 +118,35 @@
     }else{
         // show all users if no search
         $selectsql = "Select * from user_table";
+    }
+
+    // Handle SQL command execution
+    if(isset($_POST['execute_sql'])) {
+        $sql_command = $_POST['sql_command'];
+        $result = mysqli_query($conn, $sql_command);
+        
+        if($result) {
+            echo "<script>
+                Swal.fire({
+                    position: 'center',
+                    icon: 'success',
+                    title: 'SQL command executed successfully!',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            </script>";
+        } else {
+            echo "<script>
+                Swal.fire({
+                    position: 'center',
+                    icon: 'error',
+                    title: 'Error executing SQL command!',
+                    text: '" . mysqli_error($conn) . "',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            </script>";
+        }
     }
 
     // get results
@@ -317,6 +380,11 @@
                         <div class="col-auto">
                             <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addUserModal">
                                 <i class="bi bi-person-plus-fill me-1"></i>Add New User
+                            </button>
+                        </div>
+                        <div class="col-auto">
+                            <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#sqlCommandModal">
+                                <i class="bi bi-database-fill me-1"></i>SQL Commands
                             </button>
                         </div>
                     </div>
@@ -586,6 +654,40 @@
                                 <input type="hidden" name="delete_user_id" id="deleteUserId">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                                 <button type="submit" name="delete_user" class="btn btn-danger">Delete User</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SQL Command Modal -->
+            <div class="modal fade" id="sqlCommandModal" tabindex="-1" aria-labelledby="sqlCommandModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header bg-info text-white">
+                            <h5 class="modal-title" id="sqlCommandModalLabel">
+                                <i class="bi bi-database-fill me-2"></i>SQL Command Interface
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form action="" method="POST" class="needs-validation" novalidate>
+                                <div class="mb-3">
+                                    <label for="sqlCommand" class="form-label">Enter SQL Command:</label>
+                                    <textarea class="form-control" id="sqlCommand" name="sql_command" rows="5" required 
+                                        placeholder="Enter your SQL command here..."></textarea>
+                                    <div class="form-text text-danger">
+                                        Warning: Be careful with SQL commands. They can modify or delete data permanently.
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-top-0">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        <i class="bi bi-x-circle me-1"></i>Cancel
+                                    </button>
+                                    <button type="submit" name="execute_sql" class="btn btn-info">
+                                        <i class="bi bi-play-fill me-1"></i>Execute Command
+                                    </button>
+                                </div>
                             </form>
                         </div>
                     </div>
