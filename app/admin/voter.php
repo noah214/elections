@@ -324,7 +324,7 @@
             <a href="voter.php" class="sidebar-item active"><i class="bi bi-person-check-fill"></i> Voters</a>
             
             <div class="sidebar-category">Election Management</div>
-            <a href="candidate.php"><i class="bi bi-person-badge-fill"></i> Candidates</a>
+            <a href="candidates.php"><i class="bi bi-person-badge-fill"></i> Candidates</a>
             <a href="position.php"><i class="bi bi-briefcase-fill"></i> Positions</a>
             <a href="vote.php"><i class="bi bi-box-seam"></i> Votes</a>
             

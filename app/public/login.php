@@ -1,5 +1,55 @@
 <?php
-ob_start(); // Start output buffering
+    session_start();
+    
+require_once "db_conn.php";
+
+//Button Function
+if (isset($_POST['sub'])){
+
+    $ppusername = $_POST['username'];
+    $pppassword = md5($_POST['pass']);
+
+    $_SESSION['username'] = $ppusername;
+
+    $pploginsql = "Select * from user_table WHERE username = '".$ppusername."' AND password = '".$pppassword."'";
+    $ppresult = $conn ->query($pploginsql);
+
+    if ($ppresult->num_rows == 1) {
+        $ppfielddata = $ppresult->fetch_assoc();
+        // print_r($ppfielddata);
+        
+        //Type of User
+        $pprole = $ppfielddata['role'];
+        $ppfullname = $ppfielddata['full_name'];
+
+        $_SESSION['fullname'] = $ppfullname;
+        $_SESSION['role'] = $pprole;
+
+       if ($pprole == "Admin" || $pprole == "Organizer") {
+            header("location: ../admin/users.php");
+            exit;
+        } elseif ($pprole == "Voter"){
+            ?> 
+            <script>
+                window.location.href = "../public/home.php";
+            </script>
+            <?php
+        }
+
+    } else {
+        ?>    
+        <script>
+            Swal.fire({
+            position: "center",
+            icon: "error",
+            title: "Invalid username or password",
+            showConfirmButton: false,
+            timer: 1500
+            });
+        </script>
+        <?php
+    }
+}
 ?>
 <html lang="en">
   <head>
@@ -85,55 +135,3 @@ ob_start(); // Start output buffering
  </body>
 </html>
 
-<?php
-require_once "db_conn.php";
-
-//Button Function
-if (isset($_POST['sub'])){
-    session_start();
-    $ppusername = $_POST['username'];
-    $pppassword = md5($_POST['pass']);
-
-    $_SESSION['username'] = $ppusername;
-
-    $pploginsql = "Select * from user_table WHERE username = '".$ppusername."' AND password = '".$pppassword."'";
-    $ppresult = $conn ->query($pploginsql);
-
-    if ($ppresult->num_rows == 1) {
-        $ppfielddata = $ppresult->fetch_assoc();
-        // print_r($ppfielddata);
-        
-        //Type of User
-        $pprole = $ppfielddata['role'];
-        $ppfullname = $ppfielddata['full_name'];
-
-        $_SESSION['fullname'] = $ppfullname;
-        $_SESSION['role'] = $pprole;
-
-       if ($pprole == "Admin" || $pprole == "Organizer") {
-            header("location: ../admin/users.php");
-            exit;
-        } elseif ($pprole == "Voter"){
-            ?> 
-            <script>
-                window.location.href = "../public/home.php";
-            </script>
-            <?php
-        }
-
-    } else {
-        ?>    
-        <script>
-            Swal.fire({
-            position: "center",
-            icon: "error",
-            title: "Invalid username or password",
-            showConfirmButton: false,
-            timer: 1500
-            });
-        </script>
-        <?php
-    }
-}
-
-?>

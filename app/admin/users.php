@@ -47,15 +47,17 @@
         $username = $_POST['add_username'];
         $password = md5($_POST['add_password']); // hash it for security
         $email = $_POST['add_email'];
+        $status = 'Verified'; // default status
+
 
         // insert into user table
-        $insertQuery = "INSERT INTO user_table (full_name, role, username, password, email) 
-                        VALUES ('$name', '$role', '$username', '$password', '$email')";
+        $insertQuery = "INSERT INTO user_table (full_name, role, username, password, email, otp, status) 
+                        VALUES ('$name', '$role', '$username', '$password', '$email', NULL, '$status')";
                         
         if (mysqli_query($conn, $insertQuery)) {
             // If user role is voter, also add to voter table with additional fields
             if (strtolower($role) === 'voter') {
-                $voterDateBirth = isset($_POST['add_date_birth']) ? $_POST['add_date_birth'] : '';
+                $voterDateBirth = $_POST['add_date_birth'] ?? '';
                 $voterGender = isset($_POST['add_gender']) ? $_POST['add_gender'] : '';
                 $voterContact = isset($_POST['add_contact']) ? $_POST['add_contact'] : '';
                 $voterStuId = isset($_POST['add_stu_id']) ? $_POST['add_stu_id'] : '';
@@ -499,7 +501,7 @@
                                     <td><?= $fieldname['otp'] ?? 'N/A'; ?></td>
                                     <td>
                                         <?php
-                                        $status = $fieldname['status'] ?? 'Not Verified';
+                                        $status = $fieldname['status'] ?? 'Pending';
                                         $statusClass = $status === 'Verified' ? 'bg-success' : 'bg-warning';
                                         ?>
                                         <span class="badge <?= $statusClass; ?>"><?= $status; ?></span>

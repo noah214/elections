@@ -3,10 +3,21 @@ session_start();
 require_once "db_conn.php";
 require_once "../includes/emailverification.php";
 
+//activates if user clicks resend otp
+// Handle reset request
+if (isset($_GET['reset'])) {
+    unset($_SESSION['forgot_stage']);
+    unset($_SESSION['reset_email']);
+    header("Location: forgot_password.php");
+    exit();
+}
+
 // Initialize stage
 if (!isset($_SESSION['forgot_stage'])) {
     $_SESSION['forgot_stage'] = 'email';
 }
+
+//stage 1
 
 // Handle form submissions
 if (isset($_POST['email_submit'])) {
@@ -18,14 +29,14 @@ if (isset($_POST['email_submit'])) {
     
     if($result->num_rows > 0) {
         $user = $result->fetch_assoc();
-        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['user_id'] = $user['user_id'];
         $_SESSION['reset_email'] = $email;
         
         // Generate OTP
         $otp = rand(000000, 999999);
         
         // Update OTP in database
-        $update_otp = "UPDATE user_table SET otp = '$otp' WHERE id = '{$user['id']}'";
+        $update_otp = "UPDATE user_table SET otp = '$otp' WHERE user_id = '{$user['user_id']}'";
         $conn->query($update_otp);
         
         // Send OTP via email
@@ -58,11 +69,12 @@ if (isset($_POST['email_submit'])) {
         <?php
     }
 }
+//stage 2
 
 if (isset($_POST['verify_otp'])) {
     $otp = $_POST['otp'];
     $email = $_SESSION['reset_email'];
-    
+
     // Verify OTP
     $verify_sql = "SELECT * FROM user_table WHERE email = '$email' AND otp = '$otp'";
     $result = $conn->query($verify_sql);
@@ -71,7 +83,9 @@ if (isset($_POST['verify_otp'])) {
         $_SESSION['verified_email'] = $email;
         $_SESSION['forgot_stage'] = 'reset';
         ?>
+      
         <script>
+            
             Swal.fire({
                 position: "center",
                 icon: "success",
@@ -96,62 +110,8 @@ if (isset($_POST['verify_otp'])) {
     }
 }
 
-if (isset($_POST['reset_password'])) {
-    $new_password = md5($_POST['new_password']);
-    $confirm_password = md5($_POST['confirm_password']);
-    $email = $_SESSION['verified_email'];
-    
-    if($new_password === $confirm_password) {
-        // Update password in database
-        $update_sql = "UPDATE user_table SET password = '$new_password', otp = NULL WHERE email = '$email'";
-        $result = $conn->query($update_sql);
-        
-        if($result) {
-            // Clear sessions
-            unset($_SESSION['reset_email']);
-            unset($_SESSION['verified_email']);
-            unset($_SESSION['forgot_stage']);
-            
-            ?>
-            <script>
-                Swal.fire({
-                    position: "center",
-                    icon: "success",
-                    title: "Password Reset Successful!",
-                    showConfirmButton: false,
-                    timer: 1500
-                }).then(() => {
-                    window.location.href = "login.php";
-                });
-            </script>
-            <?php
-        } else {
-            ?>
-            <script>
-                Swal.fire({
-                    position: "center",
-                    icon: "error",
-                    title: "Something went wrong!",
-                    showConfirmButton: false,
-                    timer: 1500
-                });
-            </script>
-            <?php
-        }
-    } else {
-        ?>
-        <script>
-            Swal.fire({
-                position: "center",
-                icon: "error",
-                title: "Passwords do not match!",
-                showConfirmButton: false,
-                timer: 1500
-            });
-        </script>
-        <?php
-    }
-}
+//stage 3
+
 ?>
 
 <html lang="en">
@@ -162,6 +122,7 @@ if (isset($_POST['reset_password'])) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/login.css">
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         .step-indicator {
             display: flex;
@@ -237,7 +198,8 @@ if (isset($_POST['reset_password'])) {
                         </div>
                     </div>
 
-                    <?php if ($_SESSION['forgot_stage'] == 'email'): ?>
+                    <?php if ($_SESSION['forgot_stage'] == 'email') 
+                    { ?>
                     <!-- Email Form -->
                     <form action="" method="post">
                         <div class="row">
@@ -272,7 +234,10 @@ if (isset($_POST['reset_password'])) {
                         </div>
                     </form>
 
-                    <?php elseif ($_SESSION['forgot_stage'] == 'otp'): ?>
+                    <?php
+                    } //end of first if condition
+
+                     elseif ($_SESSION['forgot_stage'] == 'otp'){ ?>
                     <!-- OTP Verification Form -->
                     <form action="" method="post">
                         <div class="row">
@@ -307,7 +272,12 @@ if (isset($_POST['reset_password'])) {
                         </div>
                     </form>
 
-                    <?php elseif ($_SESSION['forgot_stage'] == 'reset'): ?>
+                    <?php 
+                    }
+                    elseif ($_SESSION['forgot_stage'] == 'reset')
+                    {
+
+                     ?>
                     <!-- Password Reset Form -->
                     <form action="" method="post">
                         <div class="row">
@@ -349,23 +319,78 @@ if (isset($_POST['reset_password'])) {
                             <div class="col bg-dark block"></div>
                         </div>
                     </form>
-                    <?php endif; ?>
+                    <?php 
+                    }
+                     ?> <!-- Mam di po ito ai, nakakalito po yung -->
                 </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </body>
 </html>
 
 <?php
-// Handle reset request
-if (isset($_GET['reset'])) {
-    unset($_SESSION['forgot_stage']);
-    unset($_SESSION['reset_email']);
-    header("Location: forgot_password.php");
-    exit();
+//stage 3 - Reset Password and direct to login
+
+
+if (isset($_POST['reset_password'])) {
+    $new_password = md5($_POST['new_password']);
+    $confirm_password = md5($_POST['confirm_password']);
+    $email = $_SESSION['verified_email'];
+    
+    if($new_password === $confirm_password) {
+        // Update password in database
+        $update_sql = "UPDATE user_table SET password = '$new_password', otp = NULL WHERE email = '$email'";
+        $result = $conn->query($update_sql);
+        
+        if($result) {
+            // Clear sessions
+            unset($_SESSION['reset_email']);
+            unset($_SESSION['verified_email']);
+            unset($_SESSION['forgot_stage']);
+            
+            ?>
+            <script>
+                Swal.fire({
+                    position: "center",
+                    icon: "success",
+                    title: "Password Reset Successful!",
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    window.location.href = "login.php";
+                });
+            </script>
+            <?php
+        } else {
+            ?>
+            <script>
+                Swal.fire({
+                    position: "center",
+                    icon: "error",
+                    title: "Something went wrong!",
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            </script>
+            <?php
+        }
+    } else {
+        ?>
+        <script>
+            Swal.fire({
+                position: "center",
+                icon: "error",
+                title: "Passwords do not match!",
+                showConfirmButton: false,
+                timer: 1500
+            });
+        </script>
+        <?php
+    }
 }
+
 ?> 
