@@ -173,6 +173,7 @@
         /* basic stuff */
         body { 
             min-height: 100vh; 
+            overflow-x: hidden;
         }
         
         /* sidebar stuff */
@@ -183,6 +184,13 @@
             display: flex;
             flex-direction: column;
             padding-top: 1rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: inherit;
+            max-width: inherit;
+            z-index: 1000;
+            overflow-y: auto;
         }
 
         /* header thing */
@@ -400,6 +408,77 @@
         .card.bg-light {
             background-color: #f8f9fa !important;
         }
+
+        /* Main content adjustment */
+        main {
+            margin-left: 16.66667%; /* This matches col-md-2 width */
+            width: 83.33333%; /* This ensures main content takes remaining width */
+            padding: 1rem;
+        }
+
+        @media (max-width: 767.98px) {
+            .sidebar {
+                position: static;
+                height: auto;
+                width: 100%;
+            }
+            main {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+
+        /* table container */
+        .table-container {
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+            margin-top: 1rem;
+        }
+
+        .table-container::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .table-container::-webkit-scrollbar-track {
+            background: #000;
+            border-radius: 5px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background: #ffc107;
+            border-radius: 5px;
+            border: 2px solid #000;
+        }
+
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #e0a800;
+        }
+
+        /* sidebar scrollbar */
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: #000;
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #ffc107;
+            border-radius: 4px;
+            border: 2px solid #000;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #e0a800;
+        }
+
+        /* For Firefox */
+        .sidebar {
+            scrollbar-width: thin;
+            scrollbar-color: #ffc107 #000;
+        }
     </style>
 </head>
 <body>
@@ -410,22 +489,34 @@
         <nav class="col-md-3 col-lg-2 d-md-block sidebar">
             <div class="sidebar-header">
                 <h4>BOTOmasino Elections</h4>
+                <div class="text-light mt-2">
+                    <small>Welcome, <?= htmlspecialchars($fullname) ?></small>
+                </div>
             </div>
             
             <div class="sidebar-category">User Management</div>
-            <a href="users.php" class="sidebar-item active">
-                <i class="bi bi-people-fill"></i> Users
-            </a>
-            <a href="voter.php"><i class="bi bi-person-check-fill"></i> Voters</a>
+            <?php if (strtolower($role) !== 'organizer'): ?>
+                <a href="users.php" class="sidebar-item active"><i class="bi bi-people-fill"></i> Admin Users</a>
+            <?php endif; ?>
+            <a href="voter.php"><i class="bi bi-person-check-fill"></i> Voter Accounts</a>
             
             <div class="sidebar-category">Election Management</div>
-            <a href="candidates.php"><i class="bi bi-person-badge-fill"></i> Candidates</a>
-            <a href="positions.php"><i class="bi bi-briefcase-fill"></i> Positions</a>
-            <a href="votes.php"><i class="bi bi-box-seam"></i> Votes</a>
+            <a href="candidates.php"><i class="bi bi-person-badge-fill"></i> Candidate List</a>
+            <a href="positions.php"><i class="bi bi-briefcase-fill"></i> Position List</a>
+            <a href="votes.php"><i class="bi bi-box-seam"></i> Vote Records</a>
             
             <div class="sidebar-category">Reports</div>
-            <a href="votecount.php"><i class="bi bi-bar-chart-line-fill"></i> Vote Count</a>
-            <a href="logs.php"><i class="bi bi-journal-text"></i> Logs</a>
+            <a href="votecount.php"><i class="bi bi-bar-chart-line-fill"></i> Vote Statistics</a>
+            <?php if (strtolower($role) !== 'organizer'): ?>
+                <a href="logs.php"><i class="bi bi-journal-text"></i> Activity Logs</a>
+            <?php endif; ?>
+
+            <div class="mt-auto">
+                <div class="sidebar-category">Account</div>
+                <a href="logout.php" class="sidebar-item" style="color: #ffc107; background-color: #000;">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </div>
         </nav>
 
         <!-- Main Content -->
@@ -458,68 +549,70 @@
                 </form>
 
                 <?php if (mysqli_num_rows($result) > 0) : ?>
-                <div class="table-responsive">
-                    <table class="table table-hover table-striped">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>User ID</th>
-                                <th>Full Name</th>
-                                <th>Role</th>
-                                <th>Username</th>
-                                <th>Email</th>
-                                <th>One-Time-Password</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($result as $fieldname) : ?>
-                                <tr class="user-row" onclick="showUserDetails('<?= $fieldname['full_name']; ?>', '<?= $fieldname['role']; ?>', '<?= $fieldname['username']; ?>', '<?= $fieldname['email']; ?>', '<?= $fieldname['password']; ?>')" style="cursor: pointer;">
-                                    <td><?= $fieldname['user_id']; ?></td>
-                                    <td><?= $fieldname['full_name']; ?></td>
-                                    <td>
-                                        <?php
-                                        $roleClass = '';
-                                        switch(strtolower($fieldname['role'])) {
-                                            case 'admin':
-                                                $roleClass = 'bg-danger';
-                                                break;
-                                            case 'organizer':
-                                                $roleClass = 'bg-success';
-                                                break;
-                                            case 'voter':
-                                                $roleClass = 'bg-primary';
-                                                break;
-                                            default:
-                                                $roleClass = 'bg-secondary';
-                                        }
-                                        ?>
-                                        <span class="badge <?= $roleClass; ?>"><?= $fieldname['role']; ?></span>
-                                    </td>
-                                    <td><?= $fieldname['username']; ?></td>
-                                    <td><?= $fieldname['email']; ?></td>
-                                    <td><?= $fieldname['otp'] ?? 'N/A'; ?></td>
-                                    <td>
-                                        <?php
-                                        $status = $fieldname['status'] ?? 'Pending';
-                                        $statusClass = $status === 'Verified' ? 'bg-success' : 'bg-warning';
-                                        ?>
-                                        <span class="badge <?= $statusClass; ?>"><?= $status; ?></span>
-                                    </td>
-                                    <td class="action-buttons">
-                                        <button class="btn btn-warning btn-sm" 
-                                            onclick="editUser('<?= $fieldname['user_id']; ?>', '<?= $fieldname['full_name']; ?>', '<?= $fieldname['role']; ?>', '<?= $fieldname['username']; ?>', '<?= $fieldname['email']; ?>', '<?= $fieldname['password']; ?>'); event.stopPropagation();">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button class="btn btn-danger btn-sm" 
-                                            onclick="deleteUser('<?= $fieldname['user_id']; ?>', '<?= $fieldname['full_name']; ?>'); event.stopPropagation();">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </td>
+                <div class="table-container">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>User ID</th>
+                                    <th>Full Name</th>
+                                    <th>Role</th>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>One-Time-Password</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
                                 </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($result as $fieldname) : ?>
+                                    <tr class="user-row" onclick="showUserDetails('<?= $fieldname['full_name']; ?>', '<?= $fieldname['role']; ?>', '<?= $fieldname['username']; ?>', '<?= $fieldname['email']; ?>', '<?= $fieldname['password']; ?>')" style="cursor: pointer;">
+                                        <td><?= $fieldname['user_id']; ?></td>
+                                        <td><?= $fieldname['full_name']; ?></td>
+                                        <td>
+                                            <?php
+                                            $roleClass = '';
+                                            switch(strtolower($fieldname['role'])) {
+                                                case 'admin':
+                                                    $roleClass = 'bg-danger';
+                                                    break;
+                                                case 'organizer':
+                                                    $roleClass = 'bg-success';
+                                                    break;
+                                                case 'voter':
+                                                    $roleClass = 'bg-primary';
+                                                    break;
+                                                default:
+                                                    $roleClass = 'bg-secondary';
+                                            }
+                                            ?>
+                                            <span class="badge <?= $roleClass; ?>"><?= $fieldname['role']; ?></span>
+                                        </td>
+                                        <td><?= $fieldname['username']; ?></td>
+                                        <td><?= $fieldname['email']; ?></td>
+                                        <td><?= $fieldname['otp'] ?? 'N/A'; ?></td>
+                                        <td>
+                                            <?php
+                                            $status = $fieldname['status'] ?? 'Pending';
+                                            $statusClass = $status === 'Verified' ? 'bg-success' : 'bg-warning';
+                                            ?>
+                                            <span class="badge <?= $statusClass; ?>"><?= $status; ?></span>
+                                        </td>
+                                        <td class="action-buttons">
+                                            <button class="btn btn-warning btn-sm" 
+                                                onclick="editUser('<?= $fieldname['user_id']; ?>', '<?= $fieldname['full_name']; ?>', '<?= $fieldname['role']; ?>', '<?= $fieldname['username']; ?>', '<?= $fieldname['email']; ?>', '<?= $fieldname['password']; ?>'); event.stopPropagation();">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" 
+                                                onclick="deleteUser('<?= $fieldname['user_id']; ?>', '<?= $fieldname['full_name']; ?>'); event.stopPropagation();">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <?php else : ?>
                     <div class="alert alert-info">No users found.</div>
@@ -821,26 +914,9 @@
                 $result = mysqli_query($conn, $sql_command);
                 
                 if($result) {
-                    echo "<script>
-                        Swal.fire({
-                            position: 'center',
-                            icon: 'success',
-                            title: 'SQL command executed successfully!',
-                            showConfirmButton: false,
-                            timer: 1500
-                        });
-                    </script>";
+                    echo "<script>alert('SQL command executed successfully!');</script>";
                 } else {
-                    echo "<script>
-                        Swal.fire({
-                            position: 'center',
-                            icon: 'error',
-                            title: 'Error executing SQL command!',
-                            text: '" . mysqli_error($conn) . "',
-                            showConfirmButton: false,
-                            timer: 1500
-                        });
-                    </script>";
+                    echo "<script>alert('Error executing SQL command: " . mysqli_error($conn) . "');</script>";
                 }
             }
             ?>

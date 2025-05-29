@@ -13,86 +13,124 @@
         die("Connection failed: " . mysqli_connect_error());
     }
 
-    // Delete candidate stuff
-    if (isset($_POST['delete_candidate'])) {
-        $id = $_POST['delete_candidate_id'];
+    // Get all positions for dropdown
+    $positionsQuery = "SELECT position_id, position_name FROM position_table ORDER BY position_name";
+    $positionsResult = mysqli_query($conn, $positionsQuery);
+    $positions = array();
+    while($row = mysqli_fetch_assoc($positionsResult)) {
+        $positions[] = $row;
+    }
+
+    // Delete position stuff
+    if (isset($_POST['delete_position'])) {
+        $id = $_POST['delete_position_id'];
         
-        $deleteQuery = "DELETE FROM candidate_table WHERE candidate_id = $id";
+        // Check if position is being used by any candidates
+        $checkQuery = "SELECT COUNT(*) as count FROM candidate_table WHERE position_id = $id";
+        $checkResult = mysqli_query($conn, $checkQuery);
+        $row = mysqli_fetch_assoc($checkResult);
+        
+        if($row['count'] > 0) {
+            echo "<script>alert('Cannot delete position: It is being used by candidates!');</script>";
+        } else {
+            // Delete position from database
+            $deleteQuery = "DELETE FROM position_table WHERE position_id = $id";
         
         if (mysqli_query($conn, $deleteQuery)) {
-            echo "<script>alert('Candidate deleted successfully!'); window.location.href=window.location.href;</script>";
+                echo "<script>alert('Position deleted successfully!'); window.location.href=window.location.href;</script>";
         } else {
             echo "Error deleting record: " . mysqli_error($conn);
+            }
         }
     }
 
-    // add new candidate to db
-    if (isset($_POST['add_candidate'])) {
+    // add new position to db
+    if (isset($_POST['add_position'])) {
         // get form data
         $name = $_POST['add_name'];
-        $party = $_POST['add_party'];
-        $college = $_POST['add_college'];
-        $position_id = $_POST['add_position'];
+        $description = $_POST['add_description'];
 
-        $imagepath = "../candidate_imgs/".basename($_FILES["upload_img"]["name"]);
-        move_uploaded_file($_FILES['upload_img']['tmp_name'], $imagepath);
-
-        // insert into candidate table
-        $insertQuery = "INSERT INTO candidate_table (candidate_name, party_affiliation, college, img_path, position_id) 
-                        VALUES ('$name', '$party', '$college', '$imagepath', '$position_id')";
+        // basic validation
+        if(empty($name) || empty($description)) {
+            echo "<script>alert('Please fill in all fields!');</script>";
+        } else {
+            // Check if position name already exists
+            $checkQuery = "SELECT COUNT(*) as count FROM position_table WHERE position_name = '$name'";
+            $checkResult = mysqli_query($conn, $checkQuery);
+            $row = mysqli_fetch_assoc($checkResult);
+            
+            if($row['count'] > 0) {
+                echo "<script>alert('Position name already exists!');</script>";
+            } else {
+                // insert into position table
+                $insertQuery = "INSERT INTO position_table (position_name, position_description) 
+                                VALUES ('$name', '$description')";
                         
         if (mysqli_query($conn, $insertQuery)) {
-            echo "<script>alert('Candidate added successfully!');</script>";
+                    echo "<script>alert('Position added successfully!');</script>";
         } else {
             echo "Error: " . mysqli_error($conn);
+                }
+            }
         }
     }
 
-    // edit candidate stuff
+    // edit position stuff
     if (isset($_POST['apply_edit'])) {
         // get form data
-        $id = $_POST['edit_candidate_id'];
+        $id = $_POST['edit_position_id'];
         $name = $_POST['edit_name'];
-        $party = $_POST['edit_party'];
-        $college = $_POST['edit_college'];
-        $position_id = $_POST['edit_position'];
+        $description = $_POST['edit_description'];
 
-        $imagepath = "candidate_imgs/".basename($_FILES["edit_img"]["name"]);
-        move_uploaded_file($_FILES['edit_img']['tmp_name'], $imagepath);
-
-        // update candidate table
-        $updateQuery = "UPDATE candidate_table 
-                        SET candidate_name='$name', 
-                            party_affiliation='$party', 
-                            college='$college',
-                            img_path='$imagepath',
-                            position_id='$position_id'
-                        WHERE candidate_id=$id";
+        // basic validation
+        if(empty($name) || empty($description)) {
+            echo "<script>alert('Please fill in all fields!');</script>";
+        } else {
+            // Check if position name already exists (excluding current position)
+            $checkQuery = "SELECT COUNT(*) as count FROM position_table WHERE position_name = '$name' AND position_id != $id";
+            $checkResult = mysqli_query($conn, $checkQuery);
+            $row = mysqli_fetch_assoc($checkResult);
+            
+            if($row['count'] > 0) {
+                echo "<script>alert('Position name already exists!');</script>";
+            } else {
+                // update position table
+                $updateQuery = "UPDATE position_table 
+                                SET position_name='$name', 
+                                    position_description='$description'
+                                WHERE position_id=$id";
                         
         if (mysqli_query($conn, $updateQuery)) {
-            echo "<script>alert('Candidate updated successfully!'); window.location.href=window.location.href;</script>";
+                    echo "<script>alert('Position updated successfully!'); window.location.href=window.location.href;</script>";
         } else {
             echo "Error updating record: " . mysqli_error($conn);
+                }
+            }
         }
     }
 
-    // search function - look everywhere lol
+    // search function
     if(isset($_POST['search'])){
-        $candidatesearch = $_POST['searchinput'];
+        $positionsearch = $_POST['searchinput'];
         
-        // search in all fields with position name join
-        $selectsql = "SELECT c.*, p.position_name 
-                     FROM candidate_table c 
-                     LEFT JOIN position_table p ON c.position_id = p.position_id 
-                     WHERE c.candidate_name LIKE '%".$candidatesearch."%' 
-                     OR c.party_affiliation LIKE '%".$candidatesearch."%'
-                     OR c.college LIKE '%".$candidatesearch."%' 
-                     OR p.position_name LIKE '%".$candidatesearch."%'";
-    }else{
-        // show all candidates if no search with position name join
-        $selectsql = "SELECT c.*, p.position_name 
-                     FROM candidate_table c 
-                     LEFT JOIN position_table p ON c.position_id = p.position_id";
+        // search in name and description
+        if(!empty($positionsearch)) {
+            $selectsql = "SELECT p.*, COUNT(c.candidate_id) as candidate_count 
+                         FROM position_table p 
+                         LEFT JOIN candidate_table c ON p.position_id = c.position_id 
+                         WHERE p.position_name LIKE '%$positionsearch%' OR p.position_description LIKE '%$positionsearch%'
+                         GROUP BY p.position_id";
+        } else {
+            $selectsql = "SELECT p.*, COUNT(c.candidate_id) as candidate_count 
+                         FROM position_table p 
+                         LEFT JOIN candidate_table c ON p.position_id = c.position_id 
+                         GROUP BY p.position_id";
+        }
+    } else {
+        $selectsql = "SELECT p.*, COUNT(c.candidate_id) as candidate_count 
+                     FROM position_table p 
+                     LEFT JOIN candidate_table c ON p.position_id = c.position_id 
+                     GROUP BY p.position_id";
     }
 
     // get results
@@ -122,6 +160,7 @@
         /* basic stuff */
         body { 
             min-height: 100vh; 
+            overflow-x: hidden;
         }
         
         /* sidebar stuff */
@@ -132,6 +171,58 @@
             display: flex;
             flex-direction: column;
             padding-top: 1rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: inherit;
+            max-width: inherit;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        /* Main content adjustment */
+        main {
+            margin-left: 16.66667%; /* This matches col-md-2 width */
+            width: 83.33333%; /* This ensures main content takes remaining width */
+            padding: 1rem;
+        }
+
+        @media (max-width: 767.98px) {
+            .sidebar {
+                position: static;
+                height: auto;
+                width: 100%;
+            }
+            main {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+
+        /* table container */
+        .table-container {
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+            margin-top: 1rem;
+        }
+
+        .table-container::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .table-container::-webkit-scrollbar-track {
+            background: #000;
+            border-radius: 5px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background: #ffc107;
+            border-radius: 5px;
+            border: 2px solid #000;
+        }
+
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #e0a800;
         }
 
         /* header thing */
@@ -349,6 +440,32 @@
         .card.bg-light {
             background-color: #f8f9fa !important;
         }
+
+        /* sidebar scrollbar */
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: #000;
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #ffc107;
+            border-radius: 4px;
+            border: 2px solid #000;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #e0a800;
+        }
+
+        /* For Firefox */
+        .sidebar {
+            scrollbar-width: thin;
+            scrollbar-color: #ffc107 #000;
+        }
     </style>
 </head>
 <body>
@@ -359,22 +476,34 @@
         <nav class="col-md-3 col-lg-2 d-md-block sidebar">
             <div class="sidebar-header">
                 <h4>BOTOmasino Elections</h4>
+                <div class="text-light mt-2">
+                    <small>Welcome, <?= htmlspecialchars($fullname) ?></small>
+                </div>
             </div>
             
             <div class="sidebar-category">User Management</div>
-            <a href="users.php"><i class="bi bi-people-fill"></i> Users</a>
-            <a href="voters.php"><i class="bi bi-person-check-fill"></i> Voters</a>
+            <?php if (strtolower($role) !== 'organizer'): ?>
+                <a href="users.php"><i class="bi bi-people-fill"></i> Admin Users</a>
+            <?php endif; ?>
+            <a href="voter.php"><i class="bi bi-person-check-fill"></i> Voter Accounts</a>
             
             <div class="sidebar-category">Election Management</div>
-            <a href="candidates.php" >
-                <i class="bi bi-person-badge-fill"></i> Candidates
-            </a>
+            <a href="candidates.php"><i class="bi bi-person-badge-fill"></i> Candidates</a>
             <a href="positions.php" class="sidebar-item active"><i class="bi bi-briefcase-fill"></i> Positions</a>
             <a href="votes.php"><i class="bi bi-box-seam"></i> Votes</a>
             
             <div class="sidebar-category">Reports</div>
             <a href="votecount.php"><i class="bi bi-bar-chart-line-fill"></i> Vote Count</a>
-            <a href="logs.php"><i class="bi bi-journal-text"></i> Logs</a>
+            <?php if (strtolower($role) !== 'organizer'): ?>
+                <a href="logs.php"><i class="bi bi-journal-text"></i> Logs</a>
+            <?php endif; ?>
+
+            <div class="mt-auto">
+                <div class="sidebar-category">Account</div>
+                <a href="logout.php" class="sidebar-item" style="color: #ffc107; background-color: #000;">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </div>
         </nav>
 
         <!-- Main Content -->
@@ -386,7 +515,7 @@
                 <form action="" method="post" class="mb-4">
                     <div class="row g-3">
                         <div class="col-auto">
-                            <input type="search" name="searchinput" class="form-control" placeholder="Search candidates...">
+                            <input type="search" name="searchinput" class="form-control" placeholder="Search positions...">
                         </div>
                         <div class="col-auto">
                             <button type="submit" name="search" class="btn btn-primary">
@@ -394,8 +523,8 @@
                             </button>
                         </div>
                         <div class="col-auto">
-                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCandidateModal">
-                                <i class="bi bi-person-plus-fill me-1"></i>Add New Position
+                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addPositionModal">
+                                <i class="bi bi-plus-circle-fill me-1"></i>Add New Position
                             </button>
                         </div>
                         <div class="col-auto">
@@ -407,366 +536,104 @@
                 </form>
 
                 <?php if (mysqli_num_rows($result) > 0) : ?>
-                <div class="table-responsive">
-                    <table class="table table-hover table-striped">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Position ID</th>
-                                <th>Position Name</th>
-                                <th>Position Description</th>
-                                <th>College</th>
-                                <th>Candidate Photo</th>
-                                <th>Position</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($result as $fieldname) : ?>
-                                <tr class="candidate-row" data-id="<?= $fieldname['candidate_id']; ?>" 
-                                    data-name="<?= htmlspecialchars($fieldname['candidate_name']); ?>" 
-                                    data-party="<?= htmlspecialchars($fieldname['party_affiliation']); ?>" 
-                                    data-college="<?= htmlspecialchars($fieldname['college']); ?>" 
-                                    data-img="<?= htmlspecialchars($fieldname['img_path']); ?>" 
-                                    data-position="<?= htmlspecialchars($fieldname['position_name'] ?? 'No Position'); ?>"
-                                    onclick="showCandidateDetails(
-                                        '<?= $fieldname['candidate_id']; ?>', 
-                                        '<?= htmlspecialchars($fieldname['candidate_name']); ?>', 
-                                        '<?= htmlspecialchars($fieldname['party_affiliation']); ?>', 
-                                        '<?= htmlspecialchars($fieldname['college']); ?>', 
-                                        '<?= htmlspecialchars($fieldname['img_path']); ?>', 
-                                        '<?= htmlspecialchars($fieldname['position_name'] ?? 'No Position'); ?>'
-                                    )">
-                                    <td><?= $fieldname['candidate_id']; ?></td>
-                                    <td><?= $fieldname['candidate_name']; ?></td>
-                                    <td><?= $fieldname['party_affiliation']; ?></td>
-                                    <td>
-                                        <?php
-                                        $collegeClass = '';
-                                        switch(strtolower($fieldname['college'])) {
-                                            case 'college of accountancy':
-                                                $collegeClass = 'bg-danger';
-                                                break;
-                                            case 'college of architecture':
-                                                $collegeClass = 'bg-success';
-                                                break;
-                                            case 'faculty of arts and letters':
-                                                $collegeClass = 'bg-info';
-                                                break;
-                                            case 'faculty of civil law':
-                                                $collegeClass = 'bg-warning';
-                                                break;
-                                            case 'college of commerce and business administration':
-                                                $collegeClass = 'bg-primary';
-                                                break;
-                                            case 'college of education':
-                                                $collegeClass = 'bg-danger';
-                                                break;
-                                            case 'faculty of engineering':
-                                                $collegeClass = 'bg-success';
-                                                break;
-                                            case 'college of fine arts and design':
-                                                $collegeClass = 'bg-info';
-                                                break;
-                                            case 'college of information and computing sciences':
-                                                $collegeClass = 'bg-warning';
-                                                break;
-                                            case 'faculty of medicine and surgery':
-                                                $collegeClass = 'bg-primary';
-                                                break;
-                                            case 'conservatory of music':
-                                                $collegeClass = 'bg-danger';
-                                                break;
-                                            case 'college of nursing':
-                                                $collegeClass = 'bg-success';
-                                                break;
-                                            case 'faculty of pharmacy':
-                                                $collegeClass = 'bg-info';
-                                                break;
-                                            case 'institute of physical education and athletics':
-                                                $collegeClass = 'bg-warning';
-                                                break;
-                                            case 'college of rehabilitation sciences':
-                                                $collegeClass = 'bg-primary';
-                                                break;
-                                            case 'college of science':
-                                                $collegeClass = 'bg-danger';
-                                                break;
-                                            case 'college of tourism and hospitality management':
-                                                $collegeClass = 'bg-success';
-                                                break;
-                                            case 'faculty of philosophy':
-                                                $collegeClass = 'bg-info';
-                                                break;
-                                            case 'faculty of sacred theology':
-                                                $collegeClass = 'bg-warning';
-                                                break;
-                                            default:
-                                                $collegeClass = 'bg-secondary';
-                                        }
-                                        ?>
-                                        <span class="badge <?= $collegeClass; ?>"><?= $fieldname['college']; ?></span>
-                                    </td>
-                                    <td>
-                                        <?php if (!empty($fieldname['img_path']) && file_exists($fieldname['img_path'])): ?>
-                                            <span class="badge bg-success">Photo Available</span>
-                                        <?php else: ?>
-                                            <span class="badge bg-secondary">No Photo</span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-info">
-                                            <?= $fieldname['position_name'] ?? 'No Position'; ?>
-                                        </span>
-                                    </td>
-                                    <td class="action-buttons">
-                                        <button class="btn btn-warning btn-sm" 
-                                            onclick="editCandidate('<?= $fieldname['candidate_id']; ?>', '<?= $fieldname['candidate_name']; ?>', '<?= $fieldname['party_affiliation']; ?>', '<?= $fieldname['college']; ?>', '<?= $fieldname['img_path']; ?>', '<?= $fieldname['position_id']; ?>'); event.stopPropagation();">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button class="btn btn-danger btn-sm" 
-                                            onclick="deleteCandidate('<?= $fieldname['candidate_id']; ?>', '<?= $fieldname['candidate_name']; ?>'); event.stopPropagation();">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </td>
+                <div class="table-container">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Position ID</th>
+                                    <th>Position Name</th>
+                                    <th>Description</th>
+                                    <th>Candidates</th>
+                                    <th>Actions</th>
                                 </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($result as $position) : ?>
+                                    <tr class="position-row" data-id="<?= $position['position_id']; ?>" 
+                                        data-name="<?= htmlspecialchars($position['position_name']); ?>" 
+                                        data-description="<?= htmlspecialchars($position['position_description']); ?>"
+                                        onclick="showPositionDetails(
+                                            '<?= $position['position_id']; ?>', 
+                                            '<?= htmlspecialchars($position['position_name']); ?>', 
+                                            '<?= htmlspecialchars($position['position_description']); ?>'
+                                        )">
+                                        <td><?= $position['position_id']; ?></td>
+                                        <td><?= $position['position_name']; ?></td>
+                                        <td><?= $position['position_description']; ?></td>
+                                        <td>
+                                            <?php if($position['candidate_count'] > 0): ?>
+                                                <span class="badge bg-success"><?= $position['candidate_count']; ?> Candidates</span>
+                                            <?php else: ?>
+                                                <span class="badge bg-secondary">No Candidates</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="action-buttons">
+                                            <button class="btn btn-warning btn-sm" 
+                                                onclick="editPosition('<?= $position['position_id']; ?>', '<?= $position['position_name']; ?>', '<?= $position['position_description']; ?>'); event.stopPropagation();">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" 
+                                                onclick="deletePosition('<?= $position['position_id']; ?>', '<?= $position['position_name']; ?>'); event.stopPropagation();">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <?php else : ?>
-                    <div class="alert alert-info">No candidates found.</div>
+                    <div class="alert alert-info">No positions found.</div>
                 <?php endif; ?>
             </div>
 
-            <!-- Edit Candidate Modal -->
-            <div class="modal fade" id="editCandidateModal" tabindex="-1" aria-labelledby="editCandidateModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header bg-warning text-dark">
-                            <h5 class="modal-title" id="editCandidateModalLabel">
-                                <i class="bi bi-pencil-square me-2"></i>Edit Candidate
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form action="" method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
-                                <input type="hidden" name="edit_candidate_id" id="editCandidateId">
-                                
-                                <div class="row g-3">
-                                    <div class="col-md-12">
-                                        <div class="form-floating mb-3">
-                                            <input type="text" class="form-control" name="edit_name" id="editName" placeholder="Candidate Name" required>
-                                            <label for="editName">Candidate Name</label>
-                                            <div class="invalid-feedback">Please enter the candidate name.</div>
-                                            
-                                        </div>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <div class="form-floating mb-3">
-                                            <input type="text" class="form-control" name="edit_party" id="editParty" placeholder="Party Affiliation" required>
-                                            <label for="editParty">Party Affiliation</label>
-                                            <div class="invalid-feedback">Please enter the party affiliation.</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <div class="form-floating mb-3">
-                                            <select class="form-select" name="edit_college" id="editCollege" required>
-                                                <option value="" disabled>Select College</option>
-                                                <option value="College of Accountancy">College of Accountancy</option>
-                                                <option value="College of Architecture">College of Architecture</option>
-                                                <option value="Faculty of Arts and Letters">Faculty of Arts and Letters</option>\
-                                                <option value="Faculty of Civil Law">Faculty of Civil Law</option>
-                                                <option value="College of Commerce and Business Administration">College of Commerce and Business Administration</option>
-                                                <option value="College of Education">College of Education</option>
-                                                <option value="Faculty of Engineering">Faculty of Engineering</option>
-                                                <option value="College of Fine Arts and Design">College of Fine Arts and Design</option>
-                                                <option value="College of Information and Computing Sciences">College of Information and Computing Sciences</option>
-                                                <option value="Faculty of Medicine and Surgery">Faculty of Medicine and Surgery</option>
-                                                <option value="Conservatory of Music">Conservatory of Music</option>
-                                                <option value="College of Nursing">College of Nursing</option>
-                                                <option value="Faculty of Pharmacy">Faculty of Pharmacy</option>
-                                                <option value="Institute of Physical Education and Athletics">Institute of Physical Education and Athletics</option>
-                                                <option value="College of Rehabilitation Sciences">College of Rehabilitation Sciences</option>
-                                                <option value="College of Science">College of Science</option>
-                                                <option value="College of Tourism and Hospitality management">College of Tourism and Hospitality Management</option>
-                                                <option value="Faculty of Philosophy">Faculty of Philosophy</option>
-                                                <option value="Faculty of Sacred theology">Faculty of Sacred Theology</option>
-                                            </select>
-                                            <label for="editCollege">College</label>
-                                            <div class="invalid-feedback">Please select a college.</div>
-                                        </div>
-                                    </div>   
-                                    <div class="col-md-12">
-                                        <div class="form-floating mb-3">
-                                            <div class="text-center">
-                                                <img id="editPreviewImage" src="" alt="Preview" class="img-thumbnail mb-2" style="max-width: 200px; max-height: 200px;">
-                                            </div>
-                                            <input type="file" name="edit_img" class="form-control" accept="image/*" onchange="previewImage(event, 'editPreviewImage')">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-12">
-                                        <div class="form-floating mb-3">
-                                            <select class="form-select" name="edit_position" id="editPosition" required>
-                                                <option value="" disabled>Select Position</option>
-                                                <?php foreach($positions as $position): ?>
-                                                    <option value="<?= $position['position_id']; ?>">
-                                                        <?= $position['position_name']; ?>
-                                                    </option>
-                                                <?php endforeach; ?>
-                                            </select>
-                                            <label for="editPosition">Position</label>
-                                            <div class="invalid-feedback">Please select a position.</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="modal-footer border-top-0">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                        <i class="bi bi-x-circle me-1"></i>Cancel
-                                    </button>
-                                    <button type="submit" name="apply_edit" class="btn btn-warning">
-                                        <i class="bi bi-save me-1"></i>Update Candidate
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Add Candidate Modal -->
-            <div class="modal fade" id="addCandidateModal" tabindex="-1" aria-labelledby="addCandidateModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header bg-success text-white">
-                            <h5 class="modal-title" id="addCandidateModalLabel">
-                                <i class="bi bi-person-plus-fill me-2"></i>Add New Candidate
-                            </h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form action="" method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
-                                <div class="row g-3">
-                                    <div class="col-md-12">
-                                        <div class="card mb-4 border-0 bg-light">
-                                            <div class="card-body">
-                                                <h6 class="card-title fw-bold text-primary mb-3">
-                                                    <i class="bi bi-person-badge-fill me-2"></i>Candidate Information
-                                                </h6>
-                                                <div class="form-floating mb-3">
-                                                    <input type="text" class="form-control" name="add_name" id="addName" placeholder="Candidate Name" required>
-                                                    <label for="addName">Candidate Name</label>
-                                                    <div class="invalid-feedback">Please enter the candidate name.</div>
-                                                </div>
-
-                                                <div class="form-floating mb-3">
-                                                    <input type="text" class="form-control" name="add_party" id="addParty" placeholder="Party Affiliation" required>
-                                                    <label for="addParty">Party Affiliation</label>
-                                                    <div class="invalid-feedback">Please enter the party affiliation.</div>
-                                                </div>
-                                                <div class="col-md-12">
-                                                    <div class="form-floating mb-3">
-                                                        <select class="form-select" name="add_college" id="addCollege" required>
-                                                            <option value="" disabled>Select College</option>
-                                                            <option value="College of Accountancy">College of Accountancy</option>
-                                                            <option value="College of Architecture">College of Architecture</option>
-                                                            <option value="Faculty of Arts and Letters">Faculty of Arts and Letters</option>\
-                                                            <option value="Faculty of Civil Law">Faculty of Civil Law</option>
-                                                            <option value="College of Commerce and Business Administration">College of Commerce and Business Administration</option>
-                                                            <option value="College of Education">College of Education</option>
-                                                            <option value="Faculty of Engineering">Faculty of Engineering</option>
-                                                            <option value="College of Fine Arts and Design">College of Fine Arts and Design</option>
-                                                            <option value="College of Information and Computing Sciences">College of Information and Computing Sciences</option>
-                                                            <option value="Faculty of Medicine and Surgery">Faculty of Medicine and Surgery</option>
-                                                            <option value="Conservatory of Music">Conservatory of Music</option>
-                                                            <option value="College of Nursing">College of Nursing</option>
-                                                            <option value="Faculty of Pharmacy">Faculty of Pharmacy</option>
-                                                            <option value="Institute of Physical Education and Athletics">Institute of Physical Education and Athletics</option>
-                                                            <option value="College of Rehabilitation Sciences">College of Rehabilitation Sciences</option>
-                                                            <option value="College of Science">College of Science</option>
-                                                            <option value="College of Tourism and Hospitality management">College of Tourism and Hospitality Management</option>
-                                                            <option value="Faculty of Philosophy">Faculty of Philosophy</option>
-                                                            <option value="Faculty of Sacred theology">Faculty of Sacred Theology</option>
-                                                        </select>
-                                                        <label for="editCollege">College</label>
-                                                        <div class="invalid-feedback">Please select a college.</div>
-                                                    </div>
-                                                </div>   
-                                                <div class="col-md-12">
-                                                    <div class="form-floating mb-3">
-                                                        <div class="text-center">
-                                                            <img id="addPreviewImage" src="" alt="Preview" class="img-thumbnail mb-2" style="max-width: 200px; max-height: 200px;">
-                                                        </div>
-                                                        <input type="file" name="upload_img" class="form-control" accept="image/*" onchange="previewImage(event, 'addPreviewImage')">
-                                                    </div>
-                                                </div>
-                                                <div class="form-floating mb-3">
-                                                    <select class="form-select" name="add_position" id="addPosition" required>
-                                                        <option value="" selected disabled>Select Position</option>
-                                                        <?php foreach($positions as $position): ?>
-                                                            <option value="<?= $position['position_id']; ?>">
-                                                                <?= $position['position_name']; ?>
-                                                            </option>
-                                                        <?php endforeach; ?>
-                                                    </select>
-                                                    <label for="addPosition">Position</label>
-                                                    <div class="invalid-feedback">Please select a position.</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="modal-footer border-top-0">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                        <i class="bi bi-x-circle me-1"></i>Cancel
-                                    </button>
-                                    <button type="submit" name="add_candidate" class="btn btn-success">
-                                        <i class="bi bi-person-plus-fill me-1"></i>Add Candidate
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Candidate Details Modal -->
-            <div class="modal fade" id="candidateDetailsModal" tabindex="-1" aria-labelledby="candidateDetailsModalLabel" aria-hidden="true">
-                <div class="modal-dialog">
+            <!-- Position Details Modal -->
+            <div class="modal fade" id="positionDetailsModal" tabindex="-1" aria-labelledby="positionDetailsModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header bg-info text-white">
-                            <h5 class="modal-title" id="candidateDetailsModalLabel">
-                                <i class="bi bi-person-badge-fill me-2"></i>Candidate Details
+                            <h5 class="modal-title" id="positionDetailsModalLabel">
+                                <i class="bi bi-briefcase-fill me-2"></i>Position Details
                             </h5>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Candidate ID</label>
-                                <p id="detailId" class="form-control-plaintext"></p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Candidate Name</label>
-                                <p id="detailName" class="form-control-plaintext"></p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Party Affiliation</label>
-                                <p id="detailParty" class="form-control-plaintext"></p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">College</label>
-                                <p id="detailCollege" class="form-control-plaintext"></p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Candidate Photo</label>
-                                <div class="text-center">
-                                    <img id="detailImage" src="" alt="Candidate Photo" class="img-thumbnail" style="max-width: 200px; max-height: 200px;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Position ID</label>
+                                        <p id="detailId" class="form-control-plaintext"></p>
+                                        </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Position Name</label>
+                                        <p id="detailName" class="form-control-plaintext"></p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Position Description</label>
+                                        <p id="detailDescription" class="form-control-plaintext"></p>
+                                        </div>
+                                    </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-header bg-light">
+                                            <h6 class="mb-0">
+                                                <i class="bi bi-people-fill me-2"></i>Assigned Candidates
+                                            </h6>
+                                        </div>
+                                        <div class="card-body p-0">
+                                            <div id="candidateList" class="list-group list-group-flush">
+                                                <!-- Candidates will be loaded here -->
+                                                <div class="text-center p-3">
+                                                    <div class="spinner-border text-primary" role="status">
+                                                        <span class="visually-hidden">Loading...</span>
+                                    </div>   
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Position</label>
-                                <p id="detailPosition" class="form-control-plaintext"></p>
                             </div>
                         </div>
                         <div class="modal-footer">
@@ -776,25 +643,119 @@
                 </div>
             </div>
 
-            <!-- Delete Confirmation Modal -->
-            <div class="modal fade" id="deleteCandidateModal" tabindex="-1" aria-labelledby="deleteCandidateModalLabel" aria-hidden="true">
+            <!-- Edit Position Modal -->
+            <div class="modal fade" id="editPositionModal" tabindex="-1" aria-labelledby="editPositionModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-warning text-dark">
+                            <h5 class="modal-title" id="editPositionModalLabel">
+                                <i class="bi bi-pencil-square me-2"></i>Edit Position
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form action="" method="POST" class="needs-validation" novalidate>
+                                <input type="hidden" name="edit_position_id" id="editPositionId">
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-12">
+                                        <div class="form-floating mb-3">
+                                            <input type="text" class="form-control" name="edit_name" id="editName" placeholder="Position Name" required>
+                                            <label for="editName">Position Name</label>
+                                            <div class="invalid-feedback">Please enter the position name.</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-floating mb-3">
+                                            <textarea class="form-control" name="edit_description" id="editDescription" placeholder="Position Description" style="height: 100px" required></textarea>
+                                            <label for="editDescription">Position Description</label>
+                                            <div class="invalid-feedback">Please enter the position description.</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="modal-footer border-top-0">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        <i class="bi bi-x-circle me-1"></i>Cancel
+                                    </button>
+                                    <button type="submit" name="apply_edit" class="btn btn-warning">
+                                        <i class="bi bi-save me-1"></i>Update Position
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Position Modal -->
+            <div class="modal fade" id="addPositionModal" tabindex="-1" aria-labelledby="addPositionModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-success text-white">
+                            <h5 class="modal-title" id="addPositionModalLabel">
+                                <i class="bi bi-plus-circle-fill me-2"></i>Add New Position
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form action="" method="POST" class="needs-validation" novalidate>
+                                <div class="row g-3">
+                                    <div class="col-md-12">
+                                        <div class="card mb-4 border-0 bg-light">
+                                            <div class="card-body">
+                                                <h6 class="card-title fw-bold text-primary mb-3">
+                                                    <i class="bi bi-briefcase-fill me-2"></i>Position Information
+                                                </h6>
+                                                <div class="form-floating mb-3">
+                                                    <input type="text" class="form-control" name="add_name" id="addName" placeholder="Position Name" required>
+                                                    <label for="addName">Position Name</label>
+                                                    <div class="invalid-feedback">Please enter the position name.</div>
+                                                </div>
+
+                                                <div class="form-floating mb-3">
+                                                    <textarea class="form-control" name="add_description" id="addDescription" placeholder="Position Description" style="height: 100px" required></textarea>
+                                                    <label for="addDescription">Position Description</label>
+                                                    <div class="invalid-feedback">Please enter the position description.</div>
+                                                </div>
+                                                    </div>
+                                                </div>   
+                                    </div>
+                                </div>
+
+                                <div class="modal-footer border-top-0">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        <i class="bi bi-x-circle me-1"></i>Cancel
+                                    </button>
+                                    <button type="submit" name="add_position" class="btn btn-success">
+                                        <i class="bi bi-plus-circle-fill me-1"></i>Add Position
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delete Position Modal -->
+            <div class="modal fade" id="deletePositionModal" tabindex="-1" aria-labelledby="deletePositionModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header bg-danger text-white">
-                            <h5 class="modal-title" id="deleteCandidateModalLabel">
+                            <h5 class="modal-title" id="deletePositionModalLabel">
                                 <i class="bi bi-exclamation-triangle-fill me-2"></i>Confirm Delete
                             </h5>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <p>Are you sure you want to delete candidate: <span id="deleteCandidateName" class="fw-bold"></span>?</p>
+                            <p>Are you sure you want to delete position: <span id="deletePositionName" class="fw-bold"></span>?</p>
                             <p class="text-danger">This action cannot be undone.</p>
                         </div>
                         <div class="modal-footer">
                             <form action="" method="POST">
-                                <input type="hidden" name="delete_candidate_id" id="deleteCandidateId">
+                                <input type="hidden" name="delete_position_id" id="deletePositionId">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="submit" name="delete_candidate" class="btn btn-danger">Delete Candidate</button>
+                                <button type="submit" name="delete_position" class="btn btn-danger">Delete Position</button>
                             </form>
                         </div>
                     </div>
@@ -865,190 +826,89 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-
-function previewImage(event, previewId) {
-    const image = document.getElementById(previewId);
-    if (event.target.files && event.target.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            image.src = e.target.result;
-        };
-        reader.readAsDataURL(event.target.files[0]);
-    }
-}
-
-// Form validation - check forms before submit
-document.querySelectorAll('form').forEach(form => {
-    form.addEventListener('submit', function(event) {
-        if (!this.checkValidity()) {
-            event.preventDefault();
-            event.stopPropagation();
-            this.classList.add('was-validated');
-        }
-    });
-});
-
-// Clear forms when modals are hidden
-document.querySelectorAll('.modal').forEach(modal => {
-    modal.addEventListener('hidden.bs.modal', function() {
-        const form = this.querySelector('form');
-        if (form) {
-            form.reset();
-            form.classList.remove('was-validated');
-        }
-    });
-});
-
-// Show candidate details in modal
-function showCandidateDetails(id, name, party, college, imgPath, position) {
+// Show position details when clicked
+function showPositionDetails(id, name, description) {
+    // Update modal info
     document.getElementById('detailId').textContent = id;
     document.getElementById('detailName').textContent = name;
-    document.getElementById('detailParty').textContent = party;
-    document.getElementById('detailCollege').textContent = college;
-    document.getElementById('detailPosition').textContent = position;
+    document.getElementById('detailDescription').textContent = description;
     
-    // Handle image display
-    const detailImage = document.getElementById('detailImage');
-    if (imgPath && imgPath !== 'null' && imgPath !== 'undefined') {
-        detailImage.src = imgPath;
-        detailImage.style.display = 'block';
-    } else {
-        detailImage.src = '';
-        detailImage.style.display = 'none';
-    }
+    // Get candidates for this position
+    fetch('get_position_candidates.php?position_id=' + id)
+        .then(response => response.json())
+        .then(candidates => {
+            let candidateList = document.getElementById('candidateList');
+            candidateList.innerHTML = '';
+            
+            if (candidates.length > 0) {
+                candidates.forEach(candidate => {
+                    let item = document.createElement('div');
+                    item.className = 'list-group-item';
+                    item.innerHTML = `
+                        <h6>${candidate.candidate_name}</h6>
+                        <small>${candidate.party_affiliation} - ${candidate.college}</small>
+                    `;
+                    candidateList.appendChild(item);
+                });
+            } else {
+                candidateList.innerHTML = '<div class="list-group-item">No candidates yet</div>';
+            }
+        });
     
-    const modal = new bootstrap.Modal(document.getElementById('candidateDetailsModal'));
+    // Show the modal
+    let modal = new bootstrap.Modal(document.getElementById('positionDetailsModal'));
     modal.show();
 }
 
-// Edit candidate - populate edit modal with candidate data
-function editCandidate(id, name, party, college, imgPath, positionId) {
-    document.getElementById('editCandidateId').value = id;
+// Edit position
+function editPosition(id, name, description) {
+    document.getElementById('editPositionId').value = id;
     document.getElementById('editName').value = name;
-    document.getElementById('editParty').value = party;
-    document.getElementById('editCollege').value = college;
-    document.getElementById('editPosition').value = positionId;
+    document.getElementById('editDescription').value = description;
     
-    // Handle image preview
-    const editPreviewImage = document.getElementById('editPreviewImage');
-    if (imgPath && imgPath !== 'null' && imgPath !== 'undefined') {
-        editPreviewImage.src = imgPath;
-        editPreviewImage.style.display = 'block';
-    } else {
-        editPreviewImage.src = '';
-        editPreviewImage.style.display = 'none';
-    }
-    
-    const modal = new bootstrap.Modal(document.getElementById('editCandidateModal'));
+    let modal = new bootstrap.Modal(document.getElementById('editPositionModal'));
     modal.show();
 }
 
-// Delete candidate - show confirmation modal
-function deleteCandidate(id, name) {
-    document.getElementById('deleteCandidateId').value = id;
-    document.getElementById('deleteCandidateName').textContent = name;
+// Delete position
+function deletePosition(id, name) {
+    document.getElementById('deletePositionId').value = id;
+    document.getElementById('deletePositionName').textContent = name;
     
-    // Show the delete confirmation modal
-    const modal = new bootstrap.Modal(document.getElementById('deleteCandidateModal'));
+    let modal = new bootstrap.Modal(document.getElementById('deletePositionModal'));
     modal.show();
 }
 
-// Enhanced form validation with Bootstrap classes
+// Form validation
 document.addEventListener('DOMContentLoaded', function() {
-    // Add validation styling to all forms with .needs-validation class
-    const forms = document.querySelectorAll('.needs-validation');
-    
-    Array.from(forms).forEach(function(form) {
+    // Add validation to forms
+    let forms = document.querySelectorAll('form');
+    forms.forEach(form => {
         form.addEventListener('submit', function(event) {
             if (!form.checkValidity()) {
                 event.preventDefault();
                 event.stopPropagation();
             }
             form.classList.add('was-validated');
-        }, false);
-    });
-    
-    // Real-time validation feedback
-    const inputs = document.querySelectorAll('input[required], select[required], textarea[required]');
-    inputs.forEach(function(input) {
-        input.addEventListener('blur', function() {
-            if (this.checkValidity()) {
-                this.classList.remove('is-invalid');
-                this.classList.add('is-valid');
-            } else {
-                this.classList.remove('is-valid');
-                this.classList.add('is-invalid');
-            }
-        });
-        
-        input.addEventListener('input', function() {
-            if (this.classList.contains('is-invalid') && this.checkValidity()) {
-                this.classList.remove('is-invalid');
-                this.classList.add('is-valid');
-            }
         });
     });
-});
 
-// Clear search input when page loads (optional)
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.querySelector('input[name="searchinput"]');
-    if (searchInput && !searchInput.value) {
-        // Only clear if there's no existing search value
+    // Clear search box
+    let searchInput = document.querySelector('input[name="searchinput"]');
+    if (searchInput) {
         searchInput.value = '';
     }
 });
 
-// Add confirmation for SQL command execution
-document.querySelector('form[name="execute_sql"], form:has(button[name="execute_sql"])')?.addEventListener('submit', function(event) {
-    const sqlCommand = document.getElementById('sqlCommand').value.trim().toLowerCase();
-    
-    // Check for potentially dangerous SQL commands
-    const dangerousCommands = ['drop', 'delete', 'truncate', 'alter', 'update'];
-    const isDangerous = dangerousCommands.some(cmd => sqlCommand.includes(cmd));
-    
-    if (isDangerous) {
-        const confirmed = confirm('This SQL command may modify or delete data. Are you sure you want to execute it?');
-        if (!confirmed) {
-            event.preventDefault();
+// Clear forms when modals close
+document.querySelectorAll('.modal').forEach(modal => {
+    modal.addEventListener('hidden.bs.modal', function() {
+        let form = this.querySelector('form');
+        if (form) {
+            form.reset();
+            form.classList.remove('was-validated');
         }
-    }
-});
-
-// Enhance table row interactions
-document.addEventListener('DOMContentLoaded', function() {
-    const tableRows = document.querySelectorAll('.candidate-row');
-    
-    tableRows.forEach(function(row) {
-        // Add hover effect class
-        row.addEventListener('mouseenter', function() {
-            this.style.backgroundColor = '#f8f9fa';
-        });
-        
-        row.addEventListener('mouseleave', function() {
-            this.style.backgroundColor = '';
-        });
     });
-});
-
-// Auto-focus on modal inputs when modals are shown
-document.getElementById('addCandidateModal')?.addEventListener('shown.bs.modal', function() {
-    document.getElementById('addName').focus();
-});
-
-document.getElementById('editCandidateModal')?.addEventListener('shown.bs.modal', function() {
-    document.getElementById('editName').focus();
-});
-
-document.getElementById('sqlCommandModal')?.addEventListener('shown.bs.modal', function() {
-    document.getElementById('sqlCommand').focus();
-});
-
-// Prevent form submission on Enter key in search input (optional)
-document.querySelector('input[name="searchinput"]')?.addEventListener('keypress', function(event) {
-    if (event.key === 'Enter') {
-        // Let the form submit naturally - this is just here if you want to add custom behavior
-    }
 });
 </script>
 </body>

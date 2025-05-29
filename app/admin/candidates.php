@@ -122,6 +122,7 @@
         /* basic stuff */
         body { 
             min-height: 100vh; 
+            overflow-x: hidden;
         }
         
         /* sidebar stuff */
@@ -132,6 +133,84 @@
             display: flex;
             flex-direction: column;
             padding-top: 1rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: inherit;
+            max-width: inherit;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        /* Main content adjustment */
+        main {
+            margin-left: 16.66667%; /* This matches col-md-2 width */
+            width: 83.33333%; /* This ensures main content takes remaining width */
+            padding: 1rem;
+        }
+
+        @media (max-width: 767.98px) {
+            .sidebar {
+                position: static;
+                height: auto;
+                width: 100%;
+            }
+            main {
+                margin-left: 0;
+                width: 100%;
+            }
+        }
+
+        /* table container */
+        .table-container {
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+            margin-top: 1rem;
+        }
+
+        .table-container::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .table-container::-webkit-scrollbar-track {
+            background: #000;
+            border-radius: 5px;
+        }
+
+        .table-container::-webkit-scrollbar-thumb {
+            background: #ffc107;
+            border-radius: 5px;
+            border: 2px solid #000;
+        }
+
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #e0a800;
+        }
+
+        /* sidebar scrollbar */
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: #000;
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #ffc107;
+            border-radius: 4px;
+            border: 2px solid #000;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #e0a800;
+        }
+
+        /* For Firefox */
+        .sidebar {
+            scrollbar-width: thin;
+            scrollbar-color: #ffc107 #000;
         }
 
         /* header thing */
@@ -221,8 +300,14 @@
 
         /* badges */
         .badge {
-            font-weight: 500;
+            font-size: 0.85rem;
             padding: 0.5em 0.8em;
+            white-space: normal;
+            text-align: left;
+            line-height: 1.2;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         /* buttons */
@@ -349,6 +434,19 @@
         .card.bg-light {
             background-color: #f8f9fa !important;
         }
+
+        /* College icon styles */
+        .college-icon {
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 2px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Update table cell styles */
+        .table td {
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body>
@@ -359,11 +457,16 @@
         <nav class="col-md-3 col-lg-2 d-md-block sidebar">
             <div class="sidebar-header">
                 <h4>BOTOmasino Elections</h4>
+                <div class="text-light mt-2">
+                    <small>Welcome, <?= htmlspecialchars($fullname) ?></small>
+                </div>
             </div>
             
             <div class="sidebar-category">User Management</div>
-            <a href="users.php"><i class="bi bi-people-fill"></i> Users</a>
-            <a href="voters.php"><i class="bi bi-person-check-fill"></i> Voters</a>
+            <?php if (strtolower($role) !== 'organizer'): ?>
+                <a href="users.php"><i class="bi bi-people-fill"></i> Admin Users</a>
+            <?php endif; ?>
+            <a href="voter.php"><i class="bi bi-person-check-fill"></i> Voter Accounts</a>
             
             <div class="sidebar-category">Election Management</div>
             <a href="candidates.php" class="sidebar-item active">
@@ -374,7 +477,16 @@
             
             <div class="sidebar-category">Reports</div>
             <a href="votecount.php"><i class="bi bi-bar-chart-line-fill"></i> Vote Count</a>
-            <a href="logs.php"><i class="bi bi-journal-text"></i> Logs</a>
+            <?php if (strtolower($role) !== 'organizer'): ?>
+                <a href="logs.php"><i class="bi bi-journal-text"></i> Logs</a>
+            <?php endif; ?>
+
+            <div class="mt-auto">
+                <div class="sidebar-category">Account</div>
+                <a href="../admin/logout.php" class="sidebar-item" style="color: #ffc107; background-color: #000;">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </div>
         </nav>
 
         <!-- Main Content -->
@@ -407,131 +519,159 @@
                 </form>
 
                 <?php if (mysqli_num_rows($result) > 0) : ?>
-                <div class="table-responsive">
-                    <table class="table table-hover table-striped">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Candidate ID</th>
-                                <th>Candidate Name</th>
-                                <th>Party Affiliation</th>
-                                <th>College</th>
-                                <th>Candidate Photo</th>
-                                <th>Position</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($result as $fieldname) : ?>
-                                <tr class="candidate-row" data-id="<?= $fieldname['candidate_id']; ?>" 
-                                    data-name="<?= htmlspecialchars($fieldname['candidate_name']); ?>" 
-                                    data-party="<?= htmlspecialchars($fieldname['party_affiliation']); ?>" 
-                                    data-college="<?= htmlspecialchars($fieldname['college']); ?>" 
-                                    data-img="<?= htmlspecialchars($fieldname['img_path']); ?>" 
-                                    data-position="<?= htmlspecialchars($fieldname['position_name'] ?? 'No Position'); ?>"
-                                    onclick="showCandidateDetails(
-                                        '<?= $fieldname['candidate_id']; ?>', 
-                                        '<?= htmlspecialchars($fieldname['candidate_name']); ?>', 
-                                        '<?= htmlspecialchars($fieldname['party_affiliation']); ?>', 
-                                        '<?= htmlspecialchars($fieldname['college']); ?>', 
-                                        '<?= htmlspecialchars($fieldname['img_path']); ?>', 
-                                        '<?= htmlspecialchars($fieldname['position_name'] ?? 'No Position'); ?>'
-                                    )">
-                                    <td><?= $fieldname['candidate_id']; ?></td>
-                                    <td><?= $fieldname['candidate_name']; ?></td>
-                                    <td><?= $fieldname['party_affiliation']; ?></td>
-                                    <td>
-                                        <?php
-                                        $collegeClass = '';
-                                        switch(strtolower($fieldname['college'])) {
-                                            case 'college of accountancy':
-                                                $collegeClass = 'bg-danger';
-                                                break;
-                                            case 'college of architecture':
-                                                $collegeClass = 'bg-success';
-                                                break;
-                                            case 'faculty of arts and letters':
-                                                $collegeClass = 'bg-info';
-                                                break;
-                                            case 'faculty of civil law':
-                                                $collegeClass = 'bg-warning';
-                                                break;
-                                            case 'college of commerce and business administration':
-                                                $collegeClass = 'bg-primary';
-                                                break;
-                                            case 'college of education':
-                                                $collegeClass = 'bg-danger';
-                                                break;
-                                            case 'faculty of engineering':
-                                                $collegeClass = 'bg-success';
-                                                break;
-                                            case 'college of fine arts and design':
-                                                $collegeClass = 'bg-info';
-                                                break;
-                                            case 'college of information and computing sciences':
-                                                $collegeClass = 'bg-warning';
-                                                break;
-                                            case 'faculty of medicine and surgery':
-                                                $collegeClass = 'bg-primary';
-                                                break;
-                                            case 'conservatory of music':
-                                                $collegeClass = 'bg-danger';
-                                                break;
-                                            case 'college of nursing':
-                                                $collegeClass = 'bg-success';
-                                                break;
-                                            case 'faculty of pharmacy':
-                                                $collegeClass = 'bg-info';
-                                                break;
-                                            case 'institute of physical education and athletics':
-                                                $collegeClass = 'bg-warning';
-                                                break;
-                                            case 'college of rehabilitation sciences':
-                                                $collegeClass = 'bg-primary';
-                                                break;
-                                            case 'college of science':
-                                                $collegeClass = 'bg-danger';
-                                                break;
-                                            case 'college of tourism and hospitality management':
-                                                $collegeClass = 'bg-success';
-                                                break;
-                                            case 'faculty of philosophy':
-                                                $collegeClass = 'bg-info';
-                                                break;
-                                            case 'faculty of sacred theology':
-                                                $collegeClass = 'bg-warning';
-                                                break;
-                                            default:
-                                                $collegeClass = 'bg-secondary';
-                                        }
-                                        ?>
-                                        <span class="badge <?= $collegeClass; ?>"><?= $fieldname['college']; ?></span>
-                                    </td>
-                                    <td>
-                                        <?php if (!empty($fieldname['img_path']) && file_exists($fieldname['img_path'])): ?>
-                                            <span class="badge bg-success">Photo Available</span>
-                                        <?php else: ?>
-                                            <span class="badge bg-secondary">No Photo</span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-info">
-                                            <?= $fieldname['position_name'] ?? 'No Position'; ?>
-                                        </span>
-                                    </td>
-                                    <td class="action-buttons">
-                                        <button class="btn btn-warning btn-sm" 
-                                            onclick="editCandidate('<?= $fieldname['candidate_id']; ?>', '<?= $fieldname['candidate_name']; ?>', '<?= $fieldname['party_affiliation']; ?>', '<?= $fieldname['college']; ?>', '<?= $fieldname['img_path']; ?>', '<?= $fieldname['position_id']; ?>'); event.stopPropagation();">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button class="btn btn-danger btn-sm" 
-                                            onclick="deleteCandidate('<?= $fieldname['candidate_id']; ?>', '<?= $fieldname['candidate_name']; ?>'); event.stopPropagation();">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </td>
+                <div class="table-container">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Candidate ID</th>
+                                    <th>Candidate Name</th>
+                                    <th>Party Affiliation</th>
+                                    <th>College</th>
+                                    <th>Candidate Photo</th>
+                                    <th>Position</th>
+                                    <th>Actions</th>
                                 </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($result as $fieldname) : ?>
+                                    <tr class="candidate-row" data-id="<?= $fieldname['candidate_id']; ?>" 
+                                        data-name="<?= htmlspecialchars($fieldname['candidate_name']); ?>" 
+                                        data-party="<?= htmlspecialchars($fieldname['party_affiliation']); ?>" 
+                                        data-college="<?= htmlspecialchars($fieldname['college']); ?>" 
+                                        data-img="<?= htmlspecialchars($fieldname['img_path']); ?>" 
+                                        data-position="<?= htmlspecialchars($fieldname['position_name'] ?? 'No Position'); ?>"
+                                        onclick="showCandidateDetails(
+                                            '<?= $fieldname['candidate_id']; ?>', 
+                                            '<?= htmlspecialchars($fieldname['candidate_name']); ?>', 
+                                            '<?= htmlspecialchars($fieldname['party_affiliation']); ?>', 
+                                            '<?= htmlspecialchars($fieldname['college']); ?>', 
+                                            '<?= htmlspecialchars($fieldname['img_path']); ?>', 
+                                            '<?= htmlspecialchars($fieldname['position_name'] ?? 'No Position'); ?>'
+                                        )">
+                                        <td><?= $fieldname['candidate_id']; ?></td>
+                                        <td><?= $fieldname['candidate_name']; ?></td>
+                                        <td><?= $fieldname['party_affiliation']; ?></td>
+                                        <td>
+                                            <?php
+                                            $collegeClass = '';
+                                            $collegeImage = '';
+                                            switch(strtolower($fieldname['college'])) {
+                                                case 'college of accountancy':
+                                                    $collegeClass = 'bg-danger';
+                                                    $collegeImage = '../colleges/accountancy.png';
+                                                    break;
+                                                case 'college of architecture':
+                                                    $collegeClass = 'bg-success';
+                                                    $collegeImage = '../colleges/architecture.png';
+                                                    break;
+                                                case 'faculty of arts and letters':
+                                                    $collegeClass = 'bg-info';
+                                                    $collegeImage = '../colleges/artlets.png';
+                                                    break;
+                                                case 'faculty of civil law':
+                                                    $collegeClass = 'bg-warning';
+                                                    $collegeImage = '../colleges/civillaw.png';
+                                                    break;
+                                                case 'college of commerce and business administration':
+                                                    $collegeClass = 'bg-primary';
+                                                    $collegeImage = '../colleges/commerce.png';
+                                                    break;
+                                                case 'college of education':
+                                                    $collegeClass = 'bg-danger';
+                                                    $collegeImage = '../colleges/education.png';
+                                                    break;
+                                                case 'faculty of engineering':
+                                                    $collegeClass = 'bg-success';
+                                                    $collegeImage = '../colleges/engineering.png';
+                                                    break;
+                                                case 'college of fine arts and design':
+                                                    $collegeClass = 'bg-info';
+                                                    $collegeImage = '../colleges/finearts.png';
+                                                    break;
+                                                case 'college of information and computing sciences':
+                                                    $collegeClass = 'bg-warning';
+                                                    $collegeImage = '../colleges/cics.png';
+                                                    break;
+                                                case 'faculty of medicine and surgery':
+                                                    $collegeClass = 'bg-primary';
+                                                    $collegeImage = '../colleges/medicine.png';
+                                                    break;
+                                                case 'conservatory of music':
+                                                    $collegeClass = 'bg-danger';
+                                                    $collegeImage = '../colleges/music.png';
+                                                    break;
+                                                case 'college of nursing':
+                                                    $collegeClass = 'bg-success';
+                                                    $collegeImage = '../colleges/nursing.png';
+                                                    break;
+                                                case 'faculty of pharmacy':
+                                                    $collegeClass = 'bg-info';
+                                                    $collegeImage = '../colleges/pharmacy.png';
+                                                    break;
+                                                case 'institute of physical education and athletics':
+                                                    $collegeClass = 'bg-warning';
+                                                    $collegeImage = '../colleges/ipea.png';
+                                                    break;
+                                                case 'college of rehabilitation sciences':
+                                                    $collegeClass = 'bg-primary';
+                                                    $collegeImage = '../colleges/rehab.png';
+                                                    break;
+                                                case 'college of science':
+                                                    $collegeClass = 'bg-danger';
+                                                    $collegeImage = '../colleges/science.png';
+                                                    break;
+                                                case 'college of tourism and hospitality management':
+                                                    $collegeClass = 'bg-success';
+                                                    $collegeImage = '../colleges/tourism.png';
+                                                    break;
+                                                case 'faculty of philosophy':
+                                                    $collegeClass = 'bg-info';
+                                                    $collegeImage = '../colleges/philosophy.png';
+                                                    break;
+                                                case 'faculty of sacred theology':
+                                                    $collegeClass = 'bg-warning';
+                                                    $collegeImage = '../colleges/theology.png';
+                                                    break;
+                                                default:
+                                                    $collegeClass = 'bg-secondary';
+                                                    $collegeImage = '';
+                                            }
+                                            ?>
+                                            <span class="badge <?= $collegeClass; ?> d-inline-flex align-items-center">
+                                                <?php if ($collegeImage && file_exists($collegeImage)): ?>
+                                                    <img src="<?= $collegeImage ?>" alt="<?= $fieldname['college'] ?>" class="college-icon me-2" style="width: 20px; height: 20px; object-fit: contain;">
+                                                <?php endif; ?>
+                                                <?= $fieldname['college']; ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <?php if (!empty($fieldname['img_path']) && file_exists($fieldname['img_path'])): ?>
+                                                <span class="badge bg-success">Photo Available</span>
+                                            <?php else: ?>
+                                                <span class="badge bg-secondary">No Photo</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">
+                                                <?= $fieldname['position_name'] ?? 'No Position'; ?>
+                                            </span>
+                                        </td>
+                                        <td class="action-buttons">
+                                            <button class="btn btn-warning btn-sm" 
+                                                onclick="editCandidate('<?= $fieldname['candidate_id']; ?>', '<?= $fieldname['candidate_name']; ?>', '<?= $fieldname['party_affiliation']; ?>', '<?= $fieldname['college']; ?>', '<?= $fieldname['img_path']; ?>', '<?= $fieldname['position_id']; ?>'); event.stopPropagation();">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" 
+                                                onclick="deleteCandidate('<?= $fieldname['candidate_id']; ?>', '<?= $fieldname['candidate_name']; ?>'); event.stopPropagation();">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <?php else : ?>
                     <div class="alert alert-info">No candidates found.</div>
