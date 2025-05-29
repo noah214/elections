@@ -1,11 +1,18 @@
+<?php
+session_start();
+require_once '../config/database.php';
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UST Supreme Student Council: BOTOmasino Elections</title>
+    <title>Home - BOTOmasino Elections</title>
+    
+    <!-- CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/landing.css">
     <style>
@@ -92,128 +99,112 @@
     </style>
 </head>
 <body>
-    <!-- Header & Navbar -->
-    <nav class="navbar navbar-expand-lg ust-header">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="#">
-                <img src="../images/ust-logo.png" alt="UST Logo" width="40" class="me-2">
-                UST Supreme Student Council: BOTOmasino Elections
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="mainNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Candidates</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Vote</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Account</a></li>
-                </ul>
+    <?php include 'includes/navbar.php'; ?>
+    
+    <div class="container py-5">
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1 class="display-4 mb-3">Welcome to BOTOmasino Elections</h1>
+                <p class="lead">Cast your vote and make your voice heard in the UST Supreme Student Council Elections.</p>
+                
+                <?php if ($is_active): ?>
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        Election is currently active. Cast your vote now!
+                    </div>
+                <?php else: ?>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-clock-fill me-2"></i>
+                        Election is not active at the moment.
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <section class="ust-hero d-flex align-items-center">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-7">
-                    <div class="hero-title mb-2">University of Santo Tomas</div>
-                    <div class="hero-sub mb-4">BOTOmasino Elections</div>
-                    <div class="hero-announcement d-flex align-items-start">
-                        <div class="hero-logo me-3">
-                            <img src="../images/ust-logo.png" alt="UST Logo" width="60">
+        
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card bg-dark text-warning">
+                    <div class="card-body text-center">
+                        <i class="bi bi-people-fill display-1 mb-3"></i>
+                        <h3><?= $total_voters ?></h3>
+                        <p class="mb-0">Total Voters</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-dark text-warning">
+                    <div class="card-body text-center">
+                        <i class="bi bi-check-circle-fill display-1 mb-3"></i>
+                        <h3><?= $total_votes ?></h3>
+                        <p class="mb-0">Votes Cast</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-dark text-warning">
+                    <div class="card-body text-center">
+                        <i class="bi bi-person-badge-fill display-1 mb-3"></i>
+                        <h3><?= $total_candidates ?></h3>
+                        <p class="mb-0">Candidates</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-dark text-warning">
+                        <h5 class="mb-0">Election Timeline</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Registration Period
+                                <span class="badge bg-warning text-dark"><?= date('M d, Y', strtotime($election['registration_start'])) ?> - <?= date('M d, Y', strtotime($election['registration_end'])) ?></span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Campaign Period
+                                <span class="badge bg-warning text-dark"><?= date('M d, Y', strtotime($election['campaign_start'])) ?> - <?= date('M d, Y', strtotime($election['campaign_end'])) ?></span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Voting Period
+                                <span class="badge bg-warning text-dark"><?= date('M d, Y', strtotime($election['voting_start'])) ?> - <?= date('M d, Y', strtotime($election['voting_end'])) ?></span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-dark text-warning">
+                        <h5 class="mb-0">Quick Links</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            <a href="candidates.php" class="list-group-item list-group-item-action">
+                                <i class="bi bi-person-badge me-2"></i>
+                                View Candidates
+                            </a>
+                            <a href="vote.php" class="list-group-item list-group-item-action">
+                                <i class="bi bi-check-circle me-2"></i>
+                                Cast Your Vote
+                            </a>
+                            <a href="login.php" class="list-group-item list-group-item-action">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>
+                                Login to Your Account
+                            </a>
                         </div>
-                        <div>
-                            <div class="fw-bold mb-2">Hello, Thomasian. It's Election Day!</div>
-                            <div style="font-size: 0.98rem;">
-                                Election season has arrived at the University of Santo Tomas—a time for Thomasians to shape the future of our student body. As we choose new Supreme Student Council leaders, let us be guided by our core values: competence, compassion, and commitment. Voting is not just a right, but a duty to uphold Veritas and servant leadership. Choose the candidates who will lead with integrity and serve with heart. Vote wisely. Vote as a true Thomasian.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-5 d-none d-lg-block">
-                    <!-- Optionally, you can add a large UST image or keep empty for background focus -->
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- What Now Section -->
-    <div class="ust-section-title">WHAT NOW?</div>
-    <section class="what-now-section py-4">
-        <div class="container">
-            <div class="row g-4">
-                <div class="col-md-6">
-                    <div class="what-now-card h-100">
-                        <div class="mb-3"><i class="bi bi-megaphone-fill" style="font-size:2rem;"></i></div>
-                        <div class="fw-bold mb-2">Make Your Voice Count.</div>
-                        <div>Your voice matters. Take part in shaping the future of UST by joining the Central Student Council elections. Be the Thomasian who chooses to lead change—with one hand, one vote, and one heart.</div>
-                        <a href="#" class="btn what-now-btn mt-3">VOTE NOW</a>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="what-now-card yellow h-100">
-                        <div class="mb-3"><i class="bi bi-people-fill" style="font-size:2rem;"></i></div>
-                        <div class="fw-bold mb-2">Get to Know the Candidates</div>
-                        <div>Great leadership starts with informed choices. Learn about the candidates, their platforms, and their vision for UST. Choose those who truly represent your values as a Thomasian.</div>
-                        <a href="#" class="btn what-now-btn blue mt-3">VIEW CANDIDATES</a>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
-
-    <!-- Mission and Vision Section -->
-    <section class="mission-vision-section">
-        <div class="container">
-            <div class="row g-4">
-                <div class="col-md-6">
-                    <div class="mission-vision-title mb-2">Mission</div>
-                    <div class="mission-vision-text">
-                        The Central Student Council, in upholding its vision, commits to the holistic development of Thomasians by promoting competence, compassion, and commitment. It aims to be the voice of the student body, fostering unity and leadership, and ensuring that every Thomasian is heard and empowered.
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="mission-vision-title mb-2">Vision</div>
-                    <div class="mission-vision-text">
-                        The Central Student Council envisions itself as the premier student government, recognized for its integrity, service, and dedication to the Thomasian community. It strives to create a positive impact and uphold the values of Veritas in all its endeavors.
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="ust-footer pt-4 pb-2 mt-4">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-6 mb-2 mb-md-0">
-                    <img src="../images/ust-logo.png" alt="UST Logo" width="32" class="me-2">
-                    University of Santo Tomas<br>
-                    Supreme Student Council: BOTOmasino Elections<br>
-                    Academic Year 2024-2025
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <div>SECTIONS</div>
-                    <a href="#" class="me-2">Home</a>
-                    <a href="#" class="me-2">Candidates</a>
-                    <a href="#" class="me-2">Vote</a>
-                    <a href="#" class="me-2">Account</a>
-                    <div class="social-icons mt-2">
-                        <a href="#"><i class="bi bi-facebook"></i></a>
-                        <a href="#"><i class="bi bi-instagram"></i></a>
-                        <a href="#"><i class="bi bi-tiktok"></i></a>
-                    </div>
-                </div>
-            </div>
-            <hr class="my-3" style="border-color:#ffd700;">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>&copy; 2024 Student Council. All rights reserved.</div>
-                <a href="#" class="back-to-top">Back to Top</a>
-            </div>
-        </div>
-    </footer>
+    </div>
+    
+    <?php include 'includes/footer.php'; ?>
+    
+    <!-- JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

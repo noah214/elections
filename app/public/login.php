@@ -16,7 +16,6 @@ if (isset($_POST['sub'])){
 
     if ($ppresult->num_rows == 1) {
         $ppfielddata = $ppresult->fetch_assoc();
-        // print_r($ppfielddata);
         
         //Type of User
         $pprole = $ppfielddata['role'];
@@ -24,30 +23,24 @@ if (isset($_POST['sub'])){
         
         $_SESSION['fullname'] = $ppfullname;
         $_SESSION['role'] = $pprole;
-
-       if ($pprole == "Admin" || $pprole == "Organizer") {
+      
+        if ($pprole == "Admin" || $pprole == "Organizer") {
             header("location: ../admin/users.php");
             exit;
         } elseif ($pprole == "Voter"){
-            ?> 
-            <script>
-                window.location.href = "../public/home.php";
-            </script>
-            <?php
+            // Get voter ID directly
+            $voter_query = "SELECT voter_id FROM voter_table WHERE voter_name = '$ppfullname'";
+            $voter_result = $conn->query($voter_query);
+            $voter_data = $voter_result->fetch_assoc();
+            
+            if ($voter_data) {
+                $_SESSION['voter_id'] = $voter_data['voter_id'];
+                header("location: home.php");
+                exit;
+            }
         }
-
     } else {
-        ?>    
-        <script>
-            Swal.fire({
-            position: "center",
-            icon: "error",
-            title: "Invalid username or password",
-            showConfirmButton: false,
-            timer: 1500
-            });
-        </script>
-        <?php
+        echo "<script>alert('Invalid username or password');</script>";
     }
 }
 ?>
@@ -62,73 +55,77 @@ if (isset($_POST['sub'])){
     
    </head>
   <body>
-        <div class="container-fluid login-banner ">
-            <div class="row h-100">
-                <div class="col-5 d-flex justify-content-center flex-column align-items-center">
-                    <div>
-                        <h1 class="text-warning display-5 fw-bold">University of Santo Tomas</h1>
-                    </div>
-                    <div class="text-white">
-                        <h2>Supreme Student Council:</h2>
-                    </div>
-                    <div class="text-white">
-                        <h2>BOTOmasino Elections</h2>
-                    </div>
+    <?php include 'includes/navbar.php'; ?>
+    
+    <div class="container-fluid login-banner ">
+        <div class="row h-100">
+            <div class="col-5 d-flex justify-content-center flex-column align-items-center">
+                <div>
+                    <h1 class="text-warning display-5 fw-bold">University of Santo Tomas</h1>
                 </div>
-                <div class="col d-flex align-items-center">
-                    <div class="bg-white w-75 mx-auto shadow">
-                        <form action="" method="post">
-                            <div class="row">
-                                <div class="col bg-warning block">
-                                    
-                                </div> 
+                <div class="text-white">
+                    <h2>Supreme Student Council:</h2>
+                </div>
+                <div class="text-white">
+                    <h2>BOTOmasino Elections</h2>
+                </div>
+            </div>
+            <div class="col d-flex align-items-center">
+                <div class="bg-white w-75 mx-auto shadow">
+                    <form action="" method="post">
+                        <div class="row">
+                            <div class="col bg-warning block">
+                                
+                            </div> 
+                        </div>
+                        <div class="row mx-5 mt-3">
+                            <div class="col">
+                                <h1>Login</h1>
                             </div>
-                            <div class="row mx-5 mt-3">
-                                <div class="col">
-                                    <h1>Login</h1>
+                        </div>
+                        <div class="row mx-5 mt-3">
+                            <div class="col">
+                                <div class="form-floating">
+                                    <input type="text" name="username" id="username" class="form-control border-secondary" placeholder=" ">
+                                    <label for="username" class="form-label">Username</label>
                                 </div>
                             </div>
-                            <div class="row mx-5 mt-3">
-                                <div class="col">
-                                    <div class="form-floating">
-                                        <input type="text" name="username" id="username" class="form-control border-secondary" placeholder=" ">
-                                        <label for="username" class="form-label">Username</label>
-                                    </div>
+                        </div>
+                        <div class="row mx-5 mt-3">
+                            <div class="col">
+                                <div class="form-floating">
+                                    <input type="password" name="pass" id="pass" class="form-control border-secondary" placeholder=" ">
+                                    <label for="pass" class="form-label">Password</label>
                                 </div>
                             </div>
-                            <div class="row mx-5 mt-3">
-                                <div class="col">
-                                    <div class="form-floating">
-                                        <input type="password" name="pass" id="pass" class="form-control border-secondary" placeholder=" ">
-                                        <label for="pass" class="form-label">Password</label>
-                                    </div>
-                                </div>
+                        </div>
+                        <div class="row mx-5 mt-5 mb-1">
+                            <div class="col">   
+                                <input type="submit" name="sub" class="btn btn-primary btn-block w-100 fw-bold" value="Login" id=sub >
                             </div>
-                            <div class="row mx-5 mt-5 mb-1">
-                                <div class="col">   
-                                    <input type="submit" name="sub" class="btn btn-primary btn-block w-100 fw-bold" value="Login" id=sub >
-                                </div>
+                        </div>
+                        <div class="row">
+                            <div class="col d-flex justify-content-center">
+                                <p>Don't have an account? <a href="register.php">Sign Up Here!</a></p>
                             </div>
-                            <div class="row">
-                                <div class="col d-flex justify-content-center">
-                                    <p>Don't have an account? <a href="register.php">Sign Up Here!</a></p>
-                                </div>
+                        </div>
+                        <div class="row">
+                            <div class="col d-flex justify-content-center">
+                                <p><a href="../public/forgot_password.php">Forgot Password?</a></p>
                             </div>
-                            <div class="row">
-                                <div class="col d-flex justify-content-center">
-                                    <p><a href="../public/forgot_password.php">Forgot Password?</a></p>
-                                </div>
+                        </div>
+                        <div class="row">
+                            <div class="col bg-dark block">
+                                
                             </div>
-                            <div class="row">
-                                <div class="col bg-dark block">
-                                    
-                                </div>
-                            </div>
-                        </form>
-                    </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
+    </div>
+
+    <?php include 'includes/footer.php'; ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js" integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
