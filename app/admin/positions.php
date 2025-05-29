@@ -112,7 +112,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Candidate Management</title>
+    <title>Position Management</title>
     
     <!-- css stuff -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -366,10 +366,10 @@
             <a href="voters.php"><i class="bi bi-person-check-fill"></i> Voters</a>
             
             <div class="sidebar-category">Election Management</div>
-            <a href="candidates.php" class="sidebar-item active">
+            <a href="candidates.php" >
                 <i class="bi bi-person-badge-fill"></i> Candidates
             </a>
-            <a href="positions.php"><i class="bi bi-briefcase-fill"></i> Positions</a>
+            <a href="positions.php" class="sidebar-item active"><i class="bi bi-briefcase-fill"></i> Positions</a>
             <a href="votes.php"><i class="bi bi-box-seam"></i> Votes</a>
             
             <div class="sidebar-category">Reports</div>
@@ -380,7 +380,7 @@
         <!-- Main Content -->
         <main class="col-md-9 col-lg-10 px-4 py-4">
             <div class="container p-5 bg-light">
-                <h1 class="mb-4">Candidate Management</h1>
+                <h1 class="mb-4">Position Management</h1>
                 
                 <!-- Search Section -->
                 <form action="" method="post" class="mb-4">
@@ -395,7 +395,7 @@
                         </div>
                         <div class="col-auto">
                             <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCandidateModal">
-                                <i class="bi bi-person-plus-fill me-1"></i>Add New Candidate
+                                <i class="bi bi-person-plus-fill me-1"></i>Add New Position
                             </button>
                         </div>
                         <div class="col-auto">
@@ -411,9 +411,9 @@
                     <table class="table table-hover table-striped">
                         <thead class="table-dark">
                             <tr>
-                                <th>Candidate ID</th>
-                                <th>Candidate Name</th>
-                                <th>Party Affiliation</th>
+                                <th>Position ID</th>
+                                <th>Position Name</th>
+                                <th>Position Description</th>
                                 <th>College</th>
                                 <th>Candidate Photo</th>
                                 <th>Position</th>

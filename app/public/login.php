@@ -21,7 +21,7 @@ if (isset($_POST['sub'])){
         //Type of User
         $pprole = $ppfielddata['role'];
         $ppfullname = $ppfielddata['full_name'];
-
+        
         $_SESSION['fullname'] = $ppfullname;
         $_SESSION['role'] = $pprole;
 
