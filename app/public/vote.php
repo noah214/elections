@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 session_start();
 require_once '../public/db_conn.php';
 
@@ -152,7 +155,30 @@ while ($position = $positions->fetch_assoc()) {
     </style>
 </head>
 <body>
-    
+     <!-- Navbar -->
+     <nav class="navbar navbar-expand-lg custom-navbar" id="mainNavbar">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="home.css">
+                <img src="" width="30" height="30" class="d-inline-block align-top me-2" alt="SSC Logo">
+                UST Supreme Student Council
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                <div class="navbar-nav ms-auto">
+                    <a class="nav-item nav-link active" href="home.php" aria-current="page">Home</a>
+                    <div class="vr mx-2 d-none d-lg-block"></div>
+                    <a class="nav-item nav-link" href="candidate.php">Candidates</a>
+                    <div class="vr mx-2 d-none d-lg-block"></div>
+                    <a class="nav-item nav-link" href="vote.php">Vote</a>
+                    <div class="vr mx-2 d-none d-lg-block"></div>
+                    <a class="nav-item nav-link" href="account.php">Account</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
     <section class="vote-section">
         <div class="container">
             <form id="voteForm" method="POST" action="">
@@ -266,6 +292,19 @@ while ($position = $positions->fetch_assoc()) {
                     this.submit();
                 }
             });
+        });
+    </script>
+     <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('mainNavbar');
+            const scrolled = window.pageYOffset;
+            
+            if (scrolled > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
         });
     </script>
 </body>

@@ -95,8 +95,7 @@ ob_start(); // Start output buffering
                             </div>
                             <div class="row">
                                 <div class="col bg-dark block">
-                                    
-                                </div>
+                             </div>
                             </div>
                         </form>
                     </div>

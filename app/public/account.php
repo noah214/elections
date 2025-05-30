@@ -1,24 +1,14 @@
 <?php
 
 session_start();
-require_once '../public/db_conn.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['voter_id'])) {
-    echo "<script>
-        Swal.fire({
-            icon: 'warning',
-            title: 'Login Required',
-            text: 'Please login to access your account.',
-            confirmButtonColor: '#ffc107'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = 'login.php';
-            }
-        });
-    </script>";
+    header("Location: login.php");
     exit();
 }
+
+require_once '../public/db_conn.php';
 
 // Get voter information
 $voter_id = $_SESSION['voter_id'];

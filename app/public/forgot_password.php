@@ -165,6 +165,30 @@ if (isset($_POST['verify_otp'])) {
     </style>
 </head>
 <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg custom-navbar" id="mainNavbar">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="home.css">
+                <img src="" width="30" height="30" class="d-inline-block align-top me-2" alt="SSC Logo">
+                UST Supreme Student Council
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                <div class="navbar-nav ms-auto">
+                    <a class="nav-item nav-link" href="home.php" aria-current="page">Home</a>
+                    <div class="vr mx-2 d-none d-lg-block"></div>
+                    <a class="nav-item nav-link" href="candidate.php">Candidates</a>
+                    <div class="vr mx-2 d-none d-lg-block"></div>
+                    <a class="nav-item nav-link" href="vote.php">Vote</a>
+                    <div class="vr mx-2 d-none d-lg-block"></div>
+                    <a class="nav-item nav-link active" href="account.php">Account</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
     <div class="container-fluid ust-bg">
         <div class="row h-100">
             <div class="col-5 d-flex justify-content-center flex-column align-items-center">
@@ -178,8 +202,13 @@ if (isset($_POST['verify_otp'])) {
                     <h2>BOTOmasino Elections</h2>
                 </div>
             </div>
+            
             <div class="col d-flex align-items-center">
                 <div class="bg-white w-75 mx-auto shadow">
+                    <!--Yello block design !-->
+                     <div class="row">
+                            <div class="col bg-warning block"></div>
+                    </div>
                     <!-- Step Indicator -->
                     <div class="step-indicator mt-4">
                         <div class="step <?php echo $_SESSION['forgot_stage'] == 'email' ? 'active' : ($_SESSION['forgot_stage'] == 'otp' || $_SESSION['forgot_stage'] == 'reset' ? 'completed' : ''); ?>">
@@ -198,9 +227,7 @@ if (isset($_POST['verify_otp'])) {
                     <?php if ($_SESSION['forgot_stage'] == 'email'): ?>
                     <!-- Email Form -->
                     <form action="" method="post">
-                        <div class="row">
-                            <div class="col bg-warning block"></div>
-                        </div>
+                       
                         <div class="row mx-5 mt-3">
                             <div class="col">
                                 <h1>Forgot Password</h1>
@@ -225,9 +252,7 @@ if (isset($_POST['verify_otp'])) {
                                 <p>Remember your password? <a href="login.php">Login Here!</a></p>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col bg-dark block"></div>
-                        </div>
+                        
                     </form>
 
                     <?php elseif ($_SESSION['forgot_stage'] == 'otp'): ?>
@@ -259,9 +284,6 @@ if (isset($_POST['verify_otp'])) {
                             <div class="col d-flex justify-content-center">
                                 <p>Didn't receive OTP? <a href="?reset=1">Try Again</a></p>
                             </div>
-                        </div>
-                        <div class="row">
-                            <div class="col bg-dark block"></div>
                         </div>
                     </form>
 
@@ -303,11 +325,14 @@ if (isset($_POST['verify_otp'])) {
                                 <p>Remember your password? <a href="login.php">Login Here!</a></p>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col bg-dark block"></div>
-                        </div>
+                        
                     </form>
                     <?php endif; ?>
+                    <!--Dark block design !-->
+                    <!--Outside of the multiple forms !-->
+                    <div class="row">
+                            <div class="col bg-dark block"></div>
+                    </div>
                 </div>
             </div>
         </div>
