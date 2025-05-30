@@ -152,7 +152,7 @@ $positions = $conn->query($positions_query);
                     <div class="vr mx-2 d-none d-lg-block"></div>
                     <a class="nav-item nav-link" href="vote.php">Vote</a>
                     <div class="vr mx-2 d-none d-lg-block"></div>
-                    <a class="nav-item nav-link" href="Account.php">Account</a>
+                    <a class="nav-item nav-link" href="account.php">Account</a>
                 </div>
             </div>
         </div>

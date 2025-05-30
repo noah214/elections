@@ -152,7 +152,6 @@ while ($position = $positions->fetch_assoc()) {
     </style>
 </head>
 <body>
-    <?php include 'includes/navbar.php'; ?>
     
     <section class="vote-section">
         <div class="container">

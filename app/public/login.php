@@ -1,219 +1,195 @@
 <?php
-    session_start();
-    
-require_once "../public/db_conn.php";
-
-// Check if user is already logged in
-if (isset($_SESSION['voter_id'])) {
-    header("Location: home.php");
-    exit();
-}
-
-// Handle login
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $voter_id = $_POST['voter_id'];
-    $password = $_POST['password'];
-    
-    $query = "SELECT * FROM voter_table WHERE voter_id = '$voter_id'";
-    $result = $conn->query($query);
-    
-    if ($result->num_rows > 0) {
-        $voter = $result->fetch_assoc();
-        if (password_verify($password, $voter['password'])) {
-            $_SESSION['voter_id'] = $voter['voter_id'];
-            header("Location: home.php");
-            exit();
-        } else {
-            $error = "Invalid password";
-        }
-    } else {
-        $error = "Voter ID not found";
-    }
-}
+ob_start(); // Start output buffering
 ?>
-
-<!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - BOTOmasino Elections</title>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bootstrap demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/login.css">
     
-    <!-- CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
-    
-    <style>
-        /* Navbar styles */
-        .navbar {
-            background-color: #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            padding: 1rem 0;
-        }
-        
-        .navbar-brand {
-            color: #000;
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-        
-        .nav-link {
-            color: #666;
-            font-weight: 500;
-            padding: 0.5rem 1rem;
-            transition: color 0.3s ease;
-        }
-        
-        .nav-link:hover {
-            color: #ffc107;
-        }
-        
-        .nav-link.active {
-            color: #ffc107;
-        }
-
-        /* Login section styles */
-        .login-section {
-            padding: 4rem 0;
-            margin-bottom: 4rem;
-        }
-
-        .login-card {
-            background: #fff;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            padding: 2rem;
-            max-width: 400px;
-            margin: 0 auto;
-        }
-
-        .login-title {
-            color: #000;
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
-
-        .form-label {
-            color: #666;
-            font-weight: 500;
-        }
-
-        .form-control {
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            padding: 0.8rem 1rem;
-        }
-
-        .form-control:focus {
-            border-color: #ffc107;
-            box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
-        }
-
-        .btn-login {
-            background: #ffc107;
-            color: #000;
-            font-weight: 600;
-            padding: 0.8rem;
-            border-radius: 10px;
-            width: 100%;
-            margin-top: 1rem;
-        }
-
-        .btn-login:hover {
-            background: #e0a800;
-            color: #000;
-        }
-
-        /* Footer styles */
-        .footer {
-            background-color: #f8f9fa;
-            padding: 2rem 0;
-            margin-top: auto;
-        }
-        
-        .footer-content {
-            text-align: center;
-            color: #666;
-        }
-        
-        .footer-content p {
-            margin-bottom: 0.5rem;
-        }
-        
-        .footer-content a {
-            color: #ffc107;
-            text-decoration: none;
-        }
-        
-        .footer-content a:hover {
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg">
-        <div class="container">
-            <a class="navbar-brand" href="home.php">BOTOmasino</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+   </head>
+  <body>
+     <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg custom-navbar" id="mainNavbar">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="home.css">
+                <img src="" width="30" height="30" class="d-inline-block align-top me-2" alt="SSC Logo">
+                UST Supreme Student Council
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="home.php">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="candidates.php">Candidates</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="login.php">Login</a>
-                    </li>
-                </ul>
+            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                <div class="navbar-nav ms-auto">
+                    <a class="nav-item nav-link" href="home.php" aria-current="page">Home</a>
+                    <div class="vr mx-2 d-none d-lg-block"></div>
+                    <a class="nav-item nav-link" href="candidate.php">Candidates</a>
+                    <div class="vr mx-2 d-none d-lg-block"></div>
+                    <a class="nav-item nav-link" href="vote.php">Vote</a>
+                    <div class="vr mx-2 d-none d-lg-block"></div>
+                    <a class="nav-item nav-link active" href="account.php">Account</a>
+                </div>
             </div>
         </div>
     </nav>
 
-    <section class="login-section">
-        <div class="container">
-            <div class="login-card">
-                <h1 class="login-title">Login</h1>
-                <?php if (isset($error)): ?>
-                    <div class="alert alert-danger">
-                        <?= htmlspecialchars($error) ?>
+        <div class="container-fluid ust-bg">
+            <div class="row h-100">
+                <div class="col-5 d-flex justify-content-center flex-column align-items-center">
+                    <div>
+                        <h1 class="text-warning display-5 fw-bold">University of Santo Tomas</h1>
                     </div>
-                <?php endif; ?>
-                <form method="POST" action="">
-                    <div class="mb-3">
-                        <label for="voter_id" class="form-label">Voter ID</label>
-                        <input type="text" class="form-control" id="voter_id" name="voter_id" required>
+                    <div class="text-white">
+                        <h2>Supreme Student Council:</h2>
                     </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
+                    <div class="text-white">
+                        <h2>BOTOmasino Elections</h2>
                     </div>
-                    <button type="submit" class="btn btn-login">Login</button>
-                </form>
+                </div>
+                <div class="col d-flex align-items-center">
+                    <div class="bg-white w-75 mx-auto shadow">
+                        <form action="" method="post">
+                            <div class="row">
+                                <div class="col bg-warning block">
+                                    
+                                </div> 
+                            </div>
+                            <div class="row mx-5 mt-3">
+                                <div class="col">
+                                    <h1>Login</h1>
+                                </div>
+                            </div>
+                            <div class="row mx-5 mt-3">
+                                <div class="col">
+                                    <div class="form-floating">
+                                        <input type="text" name="username" id="username" class="form-control border-secondary" placeholder=" ">
+                                        <label for="username" class="form-label">Username</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mx-5 mt-3">
+                                <div class="col">
+                                    <div class="form-floating">
+                                        <input type="password" name="pass" id="pass" class="form-control border-secondary" placeholder=" ">
+                                        <label for="pass" class="form-label">Password</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mx-5 mt-5 mb-1">
+                                <div class="col">   
+                                    <input type="submit" name="sub" class="btn btn-primary btn-block w-100 fw-bold" value="Login" id=sub >
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col d-flex justify-content-center">
+                                    <p>Don't have an account? <a href="register.php">Sign Up Here!</a></p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col d-flex justify-content-center">
+                                    <p><a href="../public/forgot_password.php">Forgot Password?</a></p>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col bg-dark block">
+                                    
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
-    </section>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <p>&copy; <?= date('Y') ?> BOTOmasino Elections. All rights reserved.</p>
-                <p>Designed and developed with <i class="bi bi-heart-fill text-danger"></i> for the community</p>
-            </div>
-        </div>
-    </footer>
-
-    <!-- JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js" integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+     <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('mainNavbar');
+            const scrolled = window.pageYOffset;
+            
+            if (scrolled > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+    </script>
+ </body>
 </html>
+
+<?php
+require_once "db_conn.php";
+
+//Button Function
+if (isset($_POST['sub'])){
+    session_start();
+    $ppusername = $_POST['username'];
+    $pppassword = md5($_POST['pass']);
+
+    $_SESSION['username'] = $ppusername;
+
+    $pploginsql = "Select * from user_table WHERE username = '".$ppusername."' AND password = '".$pppassword."'";
+    $ppresult = $conn ->query($pploginsql);
+
+    if ($ppresult->num_rows == 1) {
+        $ppfielddata = $ppresult->fetch_assoc();
+        // print_r($ppfielddata);
+        
+        //Type of User
+        $pprole = $ppfielddata['role'];
+        $ppfullname = $ppfielddata['full_name'];
+        $ppemail = $ppfielddata['email'];
+
+        $_SESSION['username'] = $ppusername;
+        $_SESSION['fullname'] = $ppfullname;
+        $_SESSION['role'] = $pprole;
+        $_SESSION['email'] = $ppemail;
+
+        // If user is a voter, get their voter information
+        if ($pprole == "Voter") {
+            $voterQuery = "SELECT * FROM voter_table WHERE voter_name = '$ppfullname'";
+            $voterResult = $conn->query($voterQuery);
+            
+            if ($voterResult->num_rows == 1) {
+                $voterData = $voterResult->fetch_assoc();
+                
+                // Store voter information in session
+                $_SESSION['voter_id'] = $voterData['voter_id'];
+                $_SESSION['date_of_birth'] = $voterData['date_of_birth'];
+                $_SESSION['gender'] = $voterData['gender'];
+                $_SESSION['contact_information'] = $voterData['contact_information'];
+                $_SESSION['student_id'] = $voterData['student_id'];
+            }
+        }
+
+       if ($pprole == "Admin" || $pprole == "Organizer") {
+            header("location: ../admin/users.php");
+            exit;
+        } elseif ($pprole == "Voter"){
+            ?> 
+            <script>
+                window.location.href = "../public/home.php";
+            </script>
+            <?php
+        }
+
+    } else {
+        ?>    
+        <script>
+            Swal.fire({
+            position: "center",
+            icon: "error",
+            title: "Invalid username or password",
+            showConfirmButton: false,
+            timer: 1500
+            });
+        </script>
+        <?php
+    }
+}
 

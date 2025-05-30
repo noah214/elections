@@ -24,6 +24,7 @@ session_start();
     <link rel="stylesheet" href="../css/home.css">
   </head>
   <body>
+    <!-- Navbar -->
     <nav class="navbar navbar-expand-lg custom-navbar" id="mainNavbar">
         <div class="container-fluid">
             <a class="navbar-brand" href="home.css">
@@ -41,7 +42,7 @@ session_start();
                     <div class="vr mx-2 d-none d-lg-block"></div>
                     <a class="nav-item nav-link" href="vote.php">Vote</a>
                     <div class="vr mx-2 d-none d-lg-block"></div>
-                    <a class="nav-item nav-link" href="Account.php">Account</a>
+                    <a class="nav-item nav-link" href="account.php">Account</a>
                 </div>
             </div>
         </div>
