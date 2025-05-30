@@ -7,34 +7,13 @@ ob_start(); // Start output buffering
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Bootstrap demo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/login.css">
     
    </head>
   <body>
-     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg custom-navbar" id="mainNavbar">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="home.css">
-                <img src="" width="30" height="30" class="d-inline-block align-top me-2" alt="SSC Logo">
-                UST Supreme Student Council
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-                <div class="navbar-nav ms-auto">
-                    <a class="nav-item nav-link" href="home.php" aria-current="page">Home</a>
-                    <div class="vr mx-2 d-none d-lg-block"></div>
-                    <a class="nav-item nav-link" href="candidate.php">Candidates</a>
-                    <div class="vr mx-2 d-none d-lg-block"></div>
-                    <a class="nav-item nav-link" href="vote.php">Vote</a>
-                    <div class="vr mx-2 d-none d-lg-block"></div>
-                    <a class="nav-item nav-link active" href="account.php">Account</a>
-                </div>
-            </div>
-        </div>
-    </nav>
+    
 
         <div class="container-fluid ust-bg">
             <div class="row h-100">
@@ -50,6 +29,7 @@ ob_start(); // Start output buffering
                     </div>
                 </div>
                 <div class="col d-flex align-items-center">
+                    <!-- Container -->
                     <div class="bg-white w-75 mx-auto shadow">
                         <form action="" method="post">
                             <div class="row">
@@ -72,9 +52,12 @@ ob_start(); // Start output buffering
                             </div>
                             <div class="row mx-5 mt-3">
                                 <div class="col">
-                                    <div class="form-floating">
+                                    <div class="form-floating position-relative">
                                         <input type="password" name="pass" id="pass" class="form-control border-secondary" placeholder=" ">
                                         <label for="pass" class="form-label">Password</label>
+                                        <span class="position-absolute end-0 top-50 translate-middle-y pe-3" style="cursor: pointer;">
+                                            <i class="bi bi-eye-slash" id="togglePassword"></i>
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -93,11 +76,12 @@ ob_start(); // Start output buffering
                                     <p><a href="../public/forgot_password.php">Forgot Password?</a></p>
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col bg-dark block">
-                             </div>
-                            </div>
+                         
+
                         </form>
+                        <div class="row">
+                                <div class="col bg-dark block">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -106,6 +90,20 @@ ob_start(); // Start output buffering
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js" integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
      <script>
+        // Password visibility toggle
+        const togglePassword = document.querySelector('#togglePassword');
+        const password = document.querySelector('#pass');
+
+        togglePassword.addEventListener('click', function (e) {
+            // toggle the type attribute
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            
+            // toggle the eye icon
+            this.classList.toggle('bi-eye');
+            this.classList.toggle('bi-eye-slash');
+        });
+
         // Navbar scroll effect
         window.addEventListener('scroll', function() {
             const navbar = document.getElementById('mainNavbar');
@@ -122,11 +120,27 @@ ob_start(); // Start output buffering
 </html>
 
 <?php
+session_start();
 require_once "db_conn.php";
 
-//Button Function
+// Show success message if redirected from registration
+if (isset($_SESSION['registration_success'])) {
+    unset($_SESSION['registration_success']);
+    ?>
+    <script>
+        Swal.fire({
+            position: "center",
+            icon: "success",
+            title: "Registration Complete!",
+            showConfirmButton: false,
+            timer: 1500
+        });
+    </script>
+    <?php
+}
+
+// Handle login
 if (isset($_POST['sub'])){
-    session_start();
     $ppusername = $_POST['username'];
     $pppassword = md5($_POST['pass']);
 

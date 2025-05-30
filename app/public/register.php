@@ -33,82 +33,64 @@ if (isset($_POST['verify_otp'])) {
         
         // Get the registration data
         if (!isset($_SESSION['register_data'])) {
-            error_log("Error: register_data not found in session");
-            echo "<script>
+            ?>
+            <script>
                 Swal.fire({
-                    icon: 'error',
-                    title: 'Registration Error',
-                    text: 'Session data is missing. Please try registering again.',
-                    confirmButtonColor: '#ffc107'
+                    position: "center",
+                    icon: "error",
+                    title: "Registration Error",
+                    showConfirmButton: false,
+                    timer: 1500
                 });
-            </script>";
+            </script>
+            <?php
             exit();
         }
         
         $register_data = $_SESSION['register_data'];
         
-        // Insert into user_table with correct columns
+        // Insert into voter_table
         $fullname = $register_data['fname'] . " " . $register_data['mname'] . " " . $register_data['lname'];
-        $insert_user = "INSERT INTO user_table (full_name, username, password, email, status) 
-                        VALUES ('$fullname', '{$register_data['username']}', '{$register_data['password']}', '{$register_data['email']}', 'Verified')";
-        
-        // Insert into voter_table with correct columns
         $insert_voter = "INSERT INTO voter_table (voter_name, date_of_birth, gender, contact_information, student_id) 
                          VALUES ('$fullname', '{$register_data['date_birth']}', '{$register_data['gender']}', '{$register_data['contact']}', '{$register_data['stu_id']}')";
         
-        $user_result = $conn->query($insert_user);
         $voter_result = $conn->query($insert_voter);
         
-        if (!$user_result) {
-            error_log("User table insert error: " . $conn->error);
-        }
-        if (!$voter_result) {
-            error_log("Voter table insert error: " . $conn->error);
-        }
-        
-        if ($user_result && $voter_result) {
+        if ($voter_result) {
             // Clear session data
             unset($_SESSION['register_data']);
             unset($_SESSION['register_stage']);
             unset($_SESSION['email']);
             unset($_SESSION['otp']);
             
-            echo "<script>
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Registration Complete!',
-                    text: 'Your account has been created successfully. You can now login.',
-                    showConfirmButton: true,
-                    confirmButtonText: 'Go to Login',
-                    confirmButtonColor: '#ffc107'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = 'login.php';
-                    }
-                });
-            </script>";
+            $_SESSION['registration_success'] = true;
+            header("Location: login.php");
             exit();
         } else {
-            error_log("Registration failed - Database error");
-            echo "<script>
+            ?>
+            <script>
                 Swal.fire({
-                    icon: 'error',
-                    title: 'Registration Failed',
-                    text: 'An error occurred while creating your account. Please try again.',
-                    confirmButtonColor: '#ffc107'
+                    position: "center",
+                    icon: "error",
+                    title: "Registration Failed",
+                    showConfirmButton: false,
+                    timer: 1500
                 });
-            </script>";
+            </script>
+            <?php
         }
     } else {
-        error_log("Invalid OTP entered");
-        echo "<script>
+        ?>
+        <script>
             Swal.fire({
-                icon: 'error',
-                title: 'Invalid OTP',
-                text: 'Please enter the correct OTP sent to your email.',
-                confirmButtonColor: '#ffc107'
+                position: "center",
+                icon: "error",
+                title: "Invalid OTP",
+                showConfirmButton: false,
+                timer: 1500
             });
-        </script>";
+        </script>
+        <?php
     }
 }
 
@@ -160,14 +142,18 @@ if (isset($_POST['register_submit'])) {
         
         error_log("OTP generated and stored: " . $otp);
         
-        // Insert into database with Pending status
-        $insert_query = "INSERT INTO user_table (email, otp, status) VALUES ('$email', '$otp', 'Pending')";
+        // Insert into database with Pending status and all user data
+        $fullname = $_POST['fname'] . " " . $_POST['mname'] . " " . $_POST['lname'];
+        $username = $_POST['username'];
+        $password = md5($_POST['pass']);
+        
+        $insert_query = "INSERT INTO user_table (full_name, username, password, email, otp, status, role) 
+                        VALUES ('$fullname', '$username', '$password', '$email', '$otp', 'Pending', 'Voter')";
         
         if ($conn->query($insert_query)) {
             error_log("Initial user record created successfully");
             
             // Send OTP email using send_emailverification function
-            $fullname = $_POST['fname'] . " " . $_POST['mname'] . " " . $_POST['lname'];
             if(send_emailverification($fullname, $email, $otp)) {
                 error_log("OTP email sent successfully");
                 $_SESSION['register_stage'] = 'otp';
