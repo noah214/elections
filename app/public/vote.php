@@ -4,6 +4,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 session_start();
 require_once '../public/db_conn.php';
+require_once '../public/functions.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['voter_id'])) {
@@ -60,6 +61,10 @@ if (isset($_POST['submit_votes']) && !$has_voted) {
                 throw new Exception("Error recording vote: " . $conn->error);
             }
         }
+        
+        // Log the voting activity
+        $description = "Voter ID: $voter_id submitted votes for " . count($votes) . " positions";
+        logActivity($conn, $voter_id, 'VOTE', $description);
         
         $conn->commit();
         header("Location: vote_success.php");

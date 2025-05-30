@@ -1,7 +1,7 @@
 <?php
     // start session n connect to db
     session_start();
-    require_once "db_conn.php";
+    require_once "../public/db_conn.php";
 
     // get current user stuff
     $username = $_SESSION['username'];
@@ -43,13 +43,13 @@
         
         $where_clause = !empty($where_conditions) ? "WHERE " . implode(" AND ", $where_conditions) : "";
         
-        $query = "SELECT l.*, u.username, u.full_name 
+        $query = "SELECT l.*, u.username 
                  FROM logs_table l 
                  JOIN user_table u ON l.user_id = u.user_id 
                  $where_clause 
                  ORDER BY l.DateTime DESC";
     } else {
-        $query = "SELECT l.*, u.username, u.full_name 
+        $query = "SELECT l.*, u.username 
                  FROM logs_table l 
                  JOIN user_table u ON l.user_id = u.user_id 
                  ORDER BY l.DateTime DESC";
@@ -78,6 +78,7 @@
     <!-- CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="../css/global.css">
     
     <style>
@@ -183,9 +184,108 @@
         .action-type.vote { background-color: #e0f7fa; color: #006064; }
         .action-type.login { background-color: #fff3e0; color: #e65100; }
         .action-type.logout { background-color: #f5f5f5; color: #424242; }
+
+        .logs-section {
+            padding: 2rem 0;
+        }
+
+        .log-card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem;
+            transition: transform 0.2s;
+        }
+
+        .log-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .log-header {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .log-body {
+            padding: 1rem;
+        }
+
+        .log-footer {
+            padding: 0.5rem 1rem;
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+
+        .log-type {
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .log-type.vote { background: #e3f2fd; color: #0d47a1; }
+        .log-type.account { background: #e8f5e9; color: #1b5e20; }
+        .log-type.verify { background: #fff3e0; color: #e65100; }
+        .log-type.delete { background: #ffebee; color: #b71c1c; }
+        .log-type.modify { background: #f3e5f5; color: #4a148c; }
+
+        .custom-navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .custom-navbar.scrolled {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light custom-navbar fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="home.php">
+                <img src="../assets/images/logo.png" alt="BOTOmasino Logo" height="40">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="home.php">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="users.php">Users</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="positions.php">Positions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="candidates.php">Candidates</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="voter.php">Voters</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="votecount.php">Vote Count</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="votes.php">Votes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="logs.php">Logs</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="logout.php">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
@@ -306,59 +406,41 @@
                         </div>
                     </div>
 
-                    <!-- Logs Table -->
-                    <div class="table-container">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead class="table-dark">
-                                    <tr>
-                                        <th>Log ID</th>
-                                        <th>User</th>
-                                        <th>Action</th>
-                                        <th>Date & Time</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php if (mysqli_num_rows($result) > 0) : ?>
-                                        <?php while ($row = mysqli_fetch_assoc($result)) : 
-                                            // Determine action class based on action type
-                                            $actionClass = '';
-                                            if (strpos(strtolower($row['action']), 'create') !== false) {
-                                                $actionClass = 'create';
-                                            } elseif (strpos(strtolower($row['action']), 'edit') !== false) {
-                                                $actionClass = 'edit';
-                                            } elseif (strpos(strtolower($row['action']), 'delete') !== false) {
-                                                $actionClass = 'delete';
-                                            } elseif (strpos(strtolower($row['action']), 'verify') !== false) {
-                                                $actionClass = 'verify';
-                                            } elseif (strpos(strtolower($row['action']), 'vote') !== false) {
-                                                $actionClass = 'vote';
-                                            } elseif (strpos(strtolower($row['action']), 'login') !== false) {
-                                                $actionClass = 'login';
-                                            } elseif (strpos(strtolower($row['action']), 'logout') !== false) {
-                                                $actionClass = 'logout';
-                                            }
-                                        ?>
-                                            <tr>
-                                                <td><?= $row['log_id'] ?></td>
-                                                <td><?= htmlspecialchars($row['username']) ?> (<?= htmlspecialchars($row['full_name']) ?>)</td>
-                                                <td>
-                                                    <span class="action-type <?= $actionClass ?>">
-                                                        <?= htmlspecialchars($row['action']) ?>
+                    <!-- Logs Section -->
+                    <section class="logs-section">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col">
+                                    <?php
+                                    if ($result && $result->num_rows > 0) {
+                                        while ($log = $result->fetch_assoc()) {
+                                            $type_class = strtolower($log['action']);
+                                            ?>
+                                            <div class="log-card">
+                                                <div class="log-header d-flex justify-content-between align-items-center">
+                                                    <span class="log-type <?php echo $type_class; ?>">
+                                                        <?php echo htmlspecialchars($log['action']); ?>
                                                     </span>
-                                                </td>
-                                                <td><?= date('M d, Y h:i A', strtotime($row['DateTime'])) ?></td>
-                                            </tr>
-                                        <?php endwhile; ?>
-                                    <?php else : ?>
-                                        <tr>
-                                            <td colspan="4" class="text-center">No logs found.</td>
-                                        </tr>
-                                    <?php endif; ?>
-                                </tbody>
-                            </table>
+                                                    <small class="text-muted">
+                                                        <?php echo date('F j, Y g:i A', strtotime($log['DateTime'])); ?>
+                                                    </small>
+                                                </div>
+                                                <div class="log-footer">
+                                                    <small>
+                                                        <strong>User:</strong> <?php echo htmlspecialchars($log['username']); ?>
+                                                    </small>
+                                                </div>
+                                            </div>
+                                            <?php
+                                        }
+                                    } else {
+                                        echo '<div class="alert alert-info">No logs found.</div>';
+                                    }
+                                    ?>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    </section>
                 </div>
             </main>
         </div>
@@ -366,5 +448,17 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.custom-navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+    </script>
 </body>
 </html>

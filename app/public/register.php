@@ -2,6 +2,7 @@
 session_start();
 require_once "db_conn.php";
 require_once "../public/logic/emailverification.php";
+require_once "../public/functions.php";
 
 if (!isset($_SESSION['register_stage'])) {
     $_SESSION['register_stage'] = 'register_account';
@@ -64,6 +65,11 @@ if (isset($_POST['verify_otp'])) {
             unset($_SESSION['otp']);
             
             $_SESSION['registration_success'] = true;
+            
+            // Log account verification
+            $description = "Account verified for user: " . $register_data['username'];
+            logActivity($conn, $register_data['username'], 'VERIFY', $description);
+            
             header("Location: login.php");
             exit();
         } else {
@@ -209,6 +215,10 @@ if (isset($_POST['verify_otp']) && $_SESSION['register_stage'] == 'completed') {
         unset($_SESSION['register_stage']);
         unset($_SESSION['email']);
         unset($_SESSION['otp']);
+        
+        // Log account verification
+        $description = "Account verified for user: " . $register_data['username'];
+        logActivity($conn, $register_data['username'], 'VERIFY', $description);
         
         echo "<script>
             Swal.fire({

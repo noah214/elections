@@ -2,6 +2,7 @@
     // start session n connect to db
     session_start();
     require_once "db_conn.php";
+    require_once "../public/functions.php";
 
     // get current user stuff
     $username = $_SESSION['username'];
@@ -14,7 +15,6 @@
     }
 
     // delete user stuff
-    // delete user stuff
     if (isset($_POST['delete_user'])) {
         $id = $_POST['delete_user_id'];
         
@@ -24,15 +24,32 @@
         $userData = mysqli_fetch_assoc($checkResult);
         
         if ($userData && strtolower($userData['role']) === 'voter') {
-            // Delete from voter table first
-            $deleteVoterQuery = "DELETE FROM voter_table WHERE voter_name = '".$userData['full_name']."'";
-            mysqli_query($conn, $deleteVoterQuery);
+            // Get voter_id from voter_table
+            $getVoterIdQuery = "SELECT voter_id FROM voter_table WHERE voter_name = '".$userData['full_name']."'";
+            $voterIdResult = mysqli_query($conn, $getVoterIdQuery);
+            $voterData = mysqli_fetch_assoc($voterIdResult);
+            
+            if ($voterData) {
+                // First delete votes associated with this voter
+                $deleteVotesQuery = "DELETE FROM vote_table WHERE voter_id = '".$voterData['voter_id']."'";
+                mysqli_query($conn, $deleteVotesQuery);
+                
+                // Then delete from voter table
+                $deleteVoterQuery = "DELETE FROM voter_table WHERE voter_id = '".$voterData['voter_id']."'";
+                mysqli_query($conn, $deleteVoterQuery);
+            }
         }
         
-        // Then delete from user table
+        // Finally delete from user table
         $deleteQuery = "DELETE FROM user_table WHERE user_id = $id";
         
         if (mysqli_query($conn, $deleteQuery)) {
+            // Log before deletion only if we have user data
+            if ($userData) {
+                $description = "User deleted: " . $userData['full_name'];
+                logActivity($conn, $_SESSION['username'], 'DELETE', $description);
+            }
+            
             echo "<script>alert('User deleted successfully!'); window.location.href=window.location.href;</script>";
         } else {
             echo "Error deleting record: " . mysqli_error($conn);
@@ -131,6 +148,10 @@
                                    WHERE voter_name='$oldName'";
                 mysqli_query($conn, $updateVoterQuery);
             }
+            
+            // Log the modification
+            $description = "User modified: $username (Role: $newRole)";
+            logActivity($conn, $_SESSION['username'], 'MODIFY', $description);
             
             echo "<script>alert('User updated successfully!'); window.location.href=window.location.href;</script>";
         } else {
