@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once "db_conn.php";
-require_once "../public/emailverification.php";
+require_once "../includes/emailverification.php";
 
 //activates if user clicks resend otp
 // Handle reset request
@@ -83,7 +83,9 @@ if (isset($_POST['verify_otp'])) {
         $_SESSION['verified_email'] = $email;
         $_SESSION['forgot_stage'] = 'reset';
         ?>
+      
         <script>
+            
             Swal.fire({
                 position: "center",
                 icon: "success",
@@ -120,6 +122,7 @@ if (isset($_POST['verify_otp'])) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/login.css">
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         .step-indicator {
             display: flex;
@@ -165,7 +168,7 @@ if (isset($_POST['verify_otp'])) {
     </style>
 </head>
 <body>
-    <div class="container-fluid ust-bg">
+    <div class="container-fluid login-banner">
         <div class="row h-100">
             <div class="col-5 d-flex justify-content-center flex-column align-items-center">
                 <div>
@@ -195,7 +198,8 @@ if (isset($_POST['verify_otp'])) {
                         </div>
                     </div>
 
-                    <?php if ($_SESSION['forgot_stage'] == 'email'): ?>
+                    <?php if ($_SESSION['forgot_stage'] == 'email') 
+                    { ?>
                     <!-- Email Form -->
                     <form action="" method="post">
                         <div class="row">
@@ -230,7 +234,10 @@ if (isset($_POST['verify_otp'])) {
                         </div>
                     </form>
 
-                    <?php elseif ($_SESSION['forgot_stage'] == 'otp'): ?>
+                    <?php
+                    } //end of first if condition
+
+                     elseif ($_SESSION['forgot_stage'] == 'otp'){ ?>
                     <!-- OTP Verification Form -->
                     <form action="" method="post">
                         <div class="row">
@@ -265,7 +272,12 @@ if (isset($_POST['verify_otp'])) {
                         </div>
                     </form>
 
-                    <?php elseif ($_SESSION['forgot_stage'] == 'reset'): ?>
+                    <?php 
+                    }
+                    elseif ($_SESSION['forgot_stage'] == 'reset')
+                    {
+
+                     ?>
                     <!-- Password Reset Form -->
                     <form action="" method="post">
                         <div class="row">
@@ -307,14 +319,16 @@ if (isset($_POST['verify_otp'])) {
                             <div class="col bg-dark block"></div>
                         </div>
                     </form>
-                    <?php endif; ?>
+                    <?php 
+                    }
+                     ?> <!-- Mam di po ito ai, nakakalito po yung -->
                 </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </body>
 </html>
 

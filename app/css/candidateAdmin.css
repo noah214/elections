@@ -1,0 +1,111 @@
+:root {
+  --accountancy-color: #EA0027;
+  --architecture-color: #800000;
+  --artlets-color: #014980;
+  --law-color: #EA0027;
+  --commerce-color: #FFD635;
+  --education-color: #FF7B00;
+  --engineering-color: #373C3F;
+  --finearts-color: #008040;
+  --cics-color: #B8001F;
+  --medicine-color: #CC8B00;
+  --music-color: #CC5289;
+  --nursing-color: #349E48;
+  --pharmacy-color: #A331A5;
+  --ipea-color: #373C3F;
+  --rehab-color: #AB912B;
+  --science-color: #007373;
+  --tourism-color: #94E044;
+  --philosophy-color: #014980;
+  --theology-color: #D3D6DA;
+}
+
+.bg-accountancy {
+  background-color: var(--accountancy-color);
+}
+
+.bg-architecture {
+  background-color: var(--architecture-color);
+}
+
+.bg-artlets {
+  background-color: var(--artlets-color);
+}
+
+.bg-law {
+  background-color: var(--law-color);
+}
+
+.bg-commerce {
+  background-color: var(--commerce-color);
+  color: #000;
+}
+
+.bg-education {
+  background-color: var(--education-color);
+}
+
+.bg-engineering {
+  background-color: var(--engineering-color);
+}
+
+.bg-finearts {
+  background-color: var(--finearts-color);
+}
+
+.bg-cics {
+  background-color: var(--cics-color);
+}
+
+.bg-medicine {
+  background-color: var(--medicine-color);
+}
+
+.bg-music {
+  background-color: var(--music-color);
+}
+
+.bg-nursing {
+  background-color: var(--nursing-color);
+}
+
+.bg-pharmacy {
+  background-color: var(--pharmacy-color);
+}
+
+.bg-ipea {
+  background-color: var(--ipea-color);
+}
+
+.bg-rehab {
+  background-color: var(--rehab-color);
+}
+
+.bg-science {
+  background-color: var(--science-color);
+}
+
+.bg-tourism {
+  background-color: var(--tourism-color);
+  color: #000;
+}
+
+.bg-philosophy {
+  background-color: var(--philosophy-color);
+}
+
+.bg-theology {
+  background-color: var(--theology-color);
+  color: #000;
+}
+
+/* Badge hover effect */
+.badge {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.badge:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 3px 5px rgba(0,0,0,0.30);
+}
+

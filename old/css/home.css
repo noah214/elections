@@ -1,0 +1,249 @@
+:root {
+  --youtube-dark: #0f0f0f;
+  --youtube-light-dark: #272727;
+  --youtube-text: #ffffff;
+  --youtube-text-secondary: #aaaaaa;
+  --primary-blue: #1a56a3;
+  --primary-yellow: #ffd700;
+  --secondary-blue: #0d47a1;
+  --secondary-yellow: #ffc107;
+}
+
+body {
+  background: url("../images/ust-bg.png") no-repeat center center fixed;
+  background-size: cover;
+  color: var(--youtube-text);
+  min-height: 100vh;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 15, 15, 0.85);
+  z-index: -1;
+}
+
+.navbar {
+  background-color: rgba(15, 15, 15, 0.95) !important;
+  border-bottom: 1px solid #303030;
+  backdrop-filter: blur(10px);
+}
+
+.navbar-brand,
+.nav-link {
+  color: var(--youtube-text) !important;
+}
+
+.nav-link:hover {
+  color: var(--primary-yellow) !important;
+}
+
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 56px;
+  bottom: 0;
+  width: 240px;
+  background-color: rgba(15, 15, 15, 0.95);
+  padding: 12px 0;
+  overflow-y: auto;
+  backdrop-filter: blur(10px);
+}
+
+.sidebar-item {
+  padding: 8px 24px;
+  display: flex;
+  align-items: center;
+  color: var(--youtube-text);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.sidebar-item:hover {
+  background-color: rgba(39, 39, 39, 0.5);
+  color: var(--primary-yellow);
+}
+
+.sidebar-item.active {
+  background-color: rgba(39, 39, 39, 0.5);
+  color: var(--primary-yellow);
+  border-left: 4px solid var(--primary-yellow);
+}
+
+.sidebar-item i {
+  margin-right: 24px;
+  font-size: 1.2rem;
+}
+
+.main-content {
+  margin-left: 240px;
+  padding: 24px;
+  padding-top: 80px;
+  min-height: calc(100vh - 56px);
+  display: flex;
+  align-items: center;
+}
+
+.search-bar {
+  background-color: rgba(39, 39, 39, 0.5);
+  border: 1px solid #303030;
+  color: var(--youtube-text);
+  backdrop-filter: blur(5px);
+}
+
+.search-bar:focus {
+  background-color: rgba(39, 39, 39, 0.5);
+  border-color: var(--primary-yellow);
+  color: var(--youtube-text);
+  box-shadow: none;
+}
+
+/* Featured Section */
+.featured-section {
+  margin-bottom: 2rem;
+}
+
+.featured-card {
+  background: linear-gradient(
+    135deg,
+    var(--primary-blue) 0%,
+    var(--secondary-blue) 100%
+  );
+  border-radius: 12px;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.featured-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 300px;
+  height: 100%;
+  background: linear-gradient(45deg, transparent, rgba(255, 215, 0, 0.1));
+}
+
+.featured-content {
+  position: relative;
+  z-index: 1;
+}
+
+/* Quick Actions */
+.section-title {
+  color: var(--youtube-text);
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+.action-card {
+  background-color: var(--youtube-light-dark);
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.action-card:hover {
+  transform: translateY(-5px);
+  background-color: var(--primary-blue);
+}
+
+.action-card i {
+  font-size: 2rem;
+  color: var(--primary-yellow);
+  margin-bottom: 1rem;
+}
+
+.action-card h5 {
+  color: var(--youtube-text);
+  margin-bottom: 0.5rem;
+}
+
+.action-card p {
+  color: var(--youtube-text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 0;
+}
+
+/* Login Form */
+.login-form {
+  background-color: rgba(39, 39, 39, 0.8);
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+.form-control {
+  background-color: rgba(39, 39, 39, 0.5);
+  border: 1px solid #303030;
+  color: var(--youtube-text);
+}
+
+.form-control:focus {
+  background-color: rgba(39, 39, 39, 0.5);
+  border-color: var(--primary-yellow);
+  color: var(--youtube-text);
+  box-shadow: none;
+}
+
+.form-floating label {
+  color: var(--youtube-text-secondary);
+}
+
+.btn-primary {
+  background-color: var(--primary-blue);
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: var(--secondary-blue);
+}
+
+.accent-block {
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--primary-blue),
+    var(--primary-yellow)
+  );
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding-top: 70px;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .featured-card {
+    padding: 1.5rem;
+  }
+
+  .featured-card h1 {
+    font-size: 2rem;
+  }
+
+  .featured-card h3 {
+    font-size: 1.5rem;
+  }
+
+  .action-card {
+    margin-bottom: 1rem;
+  }
+
+  .login-form {
+    margin-top: 2rem;
+  }
+}

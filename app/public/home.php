@@ -1,211 +1,85 @@
 <?php
+
 session_start();
-require_once '../config/database.php';
+    require_once "db_conn.php";
+
+    // get current user stuff
+    $username = $_SESSION['username'];
+    $fullname = $_SESSION['fullname'];
+    $email = $_SESSION['email'];
+    $contactinfo = $_SESSION['contact_information'] ??'';
+    $date_of_birth = $_SESSION['date_of_birth'] ?? '';
+    $student_id = $_SESSION['student_id'] ?? '';
+
 ?>
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home - BOTOmasino Elections</title>
-    
-    <!-- CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bootstrap demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4Q6Gf2aSP4eDXB8Miphtr37CMZZQ5oXLH2yaXMJ2w8e2ZtHTl7GptT4jmndRuHDT" crossorigin="anonymous">
     <link rel="stylesheet" href="../css/global.css">
-    <link rel="stylesheet" href="../css/landing.css">
-    <style>
-        body { background: #f8f9fa; }
-        .ust-header { background: #060841; color: #efb409; }
-        .ust-header .navbar-brand, .ust-header .nav-link { color: #efb409 !important; font-weight: 600; }
-        .ust-hero {
-            background: linear-gradient(rgba(6,8,65,0.7),rgba(6,8,65,0.7)), url('../images/ust-bg.png') center/cover no-repeat;
-            color: #fff;
-            padding: 60px 0 0 0;
-            min-height: 480px;
-            position: relative;
-        }
-        .ust-hero .hero-title { font-size: 2.5rem; font-weight: 700; color: #ffd700; }
-        .ust-hero .hero-sub { font-size: 2rem; font-weight: 600; color: #efb409; }
-        .ust-hero .hero-announcement {
-            background: rgba(0,0,0,0.7);
-            border-radius: 10px;
-            padding: 1.5rem;
-            margin-top: 2rem;
-            color: #fff;
-        }
-        .ust-hero .hero-logo {
-            width: 80px; height: 80px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;
-        }
-        .ust-section-title {
-            background: #060841;
-            color: #ffd700;
-            font-size: 1.5rem;
-            font-weight: 700;
-            letter-spacing: 0.1em;
-            text-align: center;
-            padding: 0.75rem 0;
-            margin-bottom: 0;
-        }
-        .what-now-section { background: #efb409; }
-        .what-now-card {
-            background: #060841;
-            color: #fff;
-            border-radius: 20px;
-            padding: 2rem 1.5rem;
-            min-height: 220px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            position: relative;
-        }
-        .what-now-card.yellow {
-            background: #efb409;
-            color: #060841;
-        }
-        .what-now-btn {
-            background: #ffd700;
-            color: #060841;
-            font-weight: 700;
-            border: none;
-            border-radius: 30px;
-            padding: 0.5rem 2rem;
-            margin-top: 1rem;
-        }
-        .what-now-btn.blue {
-            background: #060841;
-            color: #ffd700;
-        }
-        .mission-vision-section {
-            background: #fff;
-            padding: 2rem 0 1rem 0;
-        }
-        .mission-vision-title {
-            color: #060841;
-            font-weight: 700;
-            font-size: 1.2rem;
-        }
-        .mission-vision-text {
-            color: #222;
-            font-size: 1rem;
-        }
-        .ust-footer {
-            background: #060841;
-            color: #ffd700;
-            font-size: 0.95rem;
-        }
-        .ust-footer a { color: #ffd700; }
-        .ust-footer .social-icons a { color: #ffd700; font-size: 1.5rem; margin-right: 1rem; }
-        .back-to-top { color: #ffd700; text-decoration: underline; }
-    </style>
-</head>
-<body>
-    <?php include 'includes/navbar.php'; ?>
+    <link rel="stylesheet" href="../css/home.css">
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg custom-navbar" id="mainNavbar">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="home.css">
+                <img src="" width="30" height="30" class="d-inline-block align-top me-2" alt="SSC Logo">
+                UST Supreme Student Council
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                <div class="navbar-nav ms-auto">
+                    <a class="nav-item nav-link active" href="home.php" aria-current="page">Home</a>
+                    <div class="vr mx-2 d-none d-lg-block"></div>
+                    <a class="nav-item nav-link" href="candidate.php">Candidates</a>
+                    <div class="vr mx-2 d-none d-lg-block"></div>
+                    <a class="nav-item nav-link" href="vote.php">Vote</a>
+                    <div class="vr mx-2 d-none d-lg-block"></div>
+                    <a class="nav-item nav-link" href="Account.php">Account</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <section class="hero-section d-flex flex-column justify-content-around align-items-center text-center ">
+        <div class="hero-content ">
+            <h1 class="hero-title">University of Santo Tomas</h1>
+            <h2 class="hero-subtitle"><span class="text-yellow">BOTO</span>masino Elections</h2>
+        </div>
+        <div class="row bg-semiblack">
+          <div class="col-3">
+              
+          </div>
+          <div class="col">
+              <div class="content-wrapper text-white">
+                <h2>Hello, Thomasian. It's Election Day!</h2>
+                <p class="justified-text fw-bold">Election season has arrived at the University of Santo Tomas—a time for Thomasians to shape the future of our student body. 
+                  As we choose new Supreme Student Council leaders, let us be guided by our core values: competence, compassion, and commitment. 
+                  Voting is not just a right, but a duty to uphold Veritas and servant leadership. Choose the candidates who will lead with integrity and serve with heart. 
+                  Vote wisely. Vote as a true Thomasian.</p>
+              </div>
+          </div>
+        </div>
+    </section>
     
-    <div class="container py-5">
-        <div class="row mb-4">
-            <div class="col-md-8">
-                <h1 class="display-4 mb-3">Welcome to BOTOmasino Elections</h1>
-                <p class="lead">Cast your vote and make your voice heard in the UST Supreme Student Council Elections.</p>
-                
-                <?php if ($is_active): ?>
-                    <div class="alert alert-success">
-                        <i class="bi bi-check-circle-fill me-2"></i>
-                        Election is currently active. Cast your vote now!
-                    </div>
-                <?php else: ?>
-                    <div class="alert alert-warning">
-                        <i class="bi bi-clock-fill me-2"></i>
-                        Election is not active at the moment.
-                    </div>
-                <?php endif; ?>
-            </div>
-        </div>
-        
-        <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="card bg-dark text-warning">
-                    <div class="card-body text-center">
-                        <i class="bi bi-people-fill display-1 mb-3"></i>
-                        <h3><?= $total_voters ?></h3>
-                        <p class="mb-0">Total Voters</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card bg-dark text-warning">
-                    <div class="card-body text-center">
-                        <i class="bi bi-check-circle-fill display-1 mb-3"></i>
-                        <h3><?= $total_votes ?></h3>
-                        <p class="mb-0">Votes Cast</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card bg-dark text-warning">
-                    <div class="card-body text-center">
-                        <i class="bi bi-person-badge-fill display-1 mb-3"></i>
-                        <h3><?= $total_candidates ?></h3>
-                        <p class="mb-0">Candidates</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card mb-4">
-                    <div class="card-header bg-dark text-warning">
-                        <h5 class="mb-0">Election Timeline</h5>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                Registration Period
-                                <span class="badge bg-warning text-dark"><?= date('M d, Y', strtotime($election['registration_start'])) ?> - <?= date('M d, Y', strtotime($election['registration_end'])) ?></span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                Campaign Period
-                                <span class="badge bg-warning text-dark"><?= date('M d, Y', strtotime($election['campaign_start'])) ?> - <?= date('M d, Y', strtotime($election['campaign_end'])) ?></span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                Voting Period
-                                <span class="badge bg-warning text-dark"><?= date('M d, Y', strtotime($election['voting_start'])) ?> - <?= date('M d, Y', strtotime($election['voting_end'])) ?></span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js" integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous"></script>
+     <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('mainNavbar');
+            const scrolled = window.pageYOffset;
             
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-dark text-warning">
-                        <h5 class="mb-0">Quick Links</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="list-group">
-                            <a href="candidates.php" class="list-group-item list-group-item-action">
-                                <i class="bi bi-person-badge me-2"></i>
-                                View Candidates
-                            </a>
-                            <a href="vote.php" class="list-group-item list-group-item-action">
-                                <i class="bi bi-check-circle me-2"></i>
-                                Cast Your Vote
-                            </a>
-                            <a href="login.php" class="list-group-item list-group-item-action">
-                                <i class="bi bi-box-arrow-in-right me-2"></i>
-                                Login to Your Account
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <?php include 'includes/footer.php'; ?>
-    
-    <!-- JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+            if (scrolled > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+    </script>
+  </body>
 </html>
-

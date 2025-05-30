@@ -1,0 +1,102 @@
+/* Basic layout */
+body { 
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Sticky sidebar */
+.sidebar {
+    height: 100vh;
+    background-color: #000;
+    color: #ffc107;
+    display: flex;
+    flex-direction: column;
+    padding-top: 1rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: inherit;
+    max-width: inherit;
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+/* Main content adjustment */
+main {
+    margin-left: 16.66667%; /* This matches col-md-2 width */
+    width: 83.33333%; /* This ensures main content takes remaining width */
+    padding: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767.98px) {
+    .sidebar {
+        position: static;
+        height: auto;
+        width: 100%;
+    }
+    main {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+
+/* Sidebar styling */
+.sidebar-header {
+    padding: 1rem;
+    text-align: center;
+    border-bottom: 1px solid #ffc107;
+    margin-bottom: 1rem;
+}
+
+.sidebar-header h4 {
+    color: #ffc107;
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.sidebar-category {
+    color: #6c757d;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    padding: 1rem 1rem 0.5rem;
+    margin-top: 1rem;
+    border-bottom: 1px solid #2c3034;
+}
+
+.sidebar a {
+    color: #ffc107;
+    text-decoration: none;
+    display: block;
+    padding: 0.75rem 1rem;
+    text-align: left;
+}
+
+.sidebar a i {
+    margin-right: 8px;
+}
+
+.sidebar a:hover {
+    background-color: #212529;
+}
+
+.sidebar .sidebar-item {
+    color: #efb409;
+    background: transparent;
+    transition: background 0.2s, color 0.2s;
+}
+
+.sidebar .sidebar-item.active {
+    background: #efb409;
+    color: #212529;
+    font-weight: bold;
+}
+
+.sidebar .sidebar-item.active i {
+    color: #212529;
+}
+
+.sidebar .sidebar-item i {
+    color: #efb409;
+    margin-right: 10px;
+} 

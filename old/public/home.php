@@ -1,35 +1,23 @@
 <?php
-    session_start();
-    
-require_once "../public/db_conn.php";
+session_start();
+require_once '../public/db_conn.php';
 
-// Check if user is already logged in
-if (isset($_SESSION['voter_id'])) {
-    header("Location: home.php");
+// Check if user is logged in
+if (!isset($_SESSION['voter_id'])) {
+    header("Location: login.php");
     exit();
 }
 
-// Handle login
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $voter_id = $_POST['voter_id'];
-    $password = $_POST['password'];
-    
-    $query = "SELECT * FROM voter_table WHERE voter_id = '$voter_id'";
-    $result = $conn->query($query);
-    
-    if ($result->num_rows > 0) {
-        $voter = $result->fetch_assoc();
-        if (password_verify($password, $voter['password'])) {
-            $_SESSION['voter_id'] = $voter['voter_id'];
-            header("Location: home.php");
-            exit();
-        } else {
-            $error = "Invalid password";
-        }
-    } else {
-        $error = "Voter ID not found";
-    }
-}
+// Get voter information
+$voter_id = $_SESSION['voter_id'];
+$voter_query = "SELECT * FROM voter_table WHERE voter_id = '$voter_id'";
+$voter_result = $conn->query($voter_query);
+$voter = $voter_result->fetch_assoc();
+
+// Check if voter has already voted
+$check_vote = "SELECT * FROM vote_table WHERE voter_id = '$voter_id'";
+$vote_result = $conn->query($check_vote);
+$has_voted = $vote_result->num_rows > 0;
 ?>
 
 <!DOCTYPE html>
@@ -37,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - BOTOmasino Elections</title>
+    <title>Home - BOTOmasino Elections</title>
     
     <!-- CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -73,58 +61,62 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #ffc107;
         }
 
-        /* Login section styles */
-        .login-section {
+        /* Home section styles */
+        .home-section {
             padding: 4rem 0;
             margin-bottom: 4rem;
         }
 
-        .login-card {
+        .welcome-card {
             background: #fff;
             border-radius: 15px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             padding: 2rem;
-            max-width: 400px;
-            margin: 0 auto;
+            margin-bottom: 2rem;
         }
 
-        .login-title {
+        .welcome-title {
             color: #000;
             font-size: 2rem;
             font-weight: 700;
-            margin-bottom: 1.5rem;
-            text-align: center;
+            margin-bottom: 1rem;
         }
 
-        .form-label {
+        .welcome-text {
             color: #666;
-            font-weight: 500;
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
         }
 
-        .form-control {
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            padding: 0.8rem 1rem;
+        .action-card {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 2rem;
+            text-align: center;
+            transition: transform 0.3s ease;
         }
 
-        .form-control:focus {
-            border-color: #ffc107;
-            box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+        .action-card:hover {
+            transform: translateY(-5px);
         }
 
-        .btn-login {
-            background: #ffc107;
+        .action-icon {
+            font-size: 3rem;
+            color: #ffc107;
+            margin-bottom: 1rem;
+        }
+
+        .action-title {
             color: #000;
+            font-size: 1.5rem;
             font-weight: 600;
-            padding: 0.8rem;
-            border-radius: 10px;
-            width: 100%;
-            margin-top: 1rem;
+            margin-bottom: 1rem;
         }
 
-        .btn-login:hover {
-            background: #e0a800;
-            color: #000;
+        .action-text {
+            color: #666;
+            margin-bottom: 1.5rem;
         }
 
         /* Footer styles */
@@ -164,39 +156,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="home.php">Home</a>
+                        <a class="nav-link active" href="home.php">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="vote.php">Vote</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="candidates.php">Candidates</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="login.php">Login</a>
+                        <a class="nav-link" href="logout.php">Logout</a>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <section class="login-section">
+    <section class="home-section">
         <div class="container">
-            <div class="login-card">
-                <h1 class="login-title">Login</h1>
-                <?php if (isset($error)): ?>
-                    <div class="alert alert-danger">
-                        <?= htmlspecialchars($error) ?>
+            <div class="welcome-card">
+                <h1 class="welcome-title">Welcome, <?= htmlspecialchars($voter['firstname'] . ' ' . $voter['lastname']) ?>!</h1>
+                <p class="welcome-text">Thank you for participating in the BOTOmasino Elections. Your voice matters!</p>
+                <?php if ($has_voted): ?>
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle-fill me-2"></i>You have already cast your vote.
+                    </div>
+                <?php else: ?>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-circle-fill me-2"></i>You haven't cast your vote yet.
                     </div>
                 <?php endif; ?>
-                <form method="POST" action="">
-                    <div class="mb-3">
-                        <label for="voter_id" class="form-label">Voter ID</label>
-                        <input type="text" class="form-control" id="voter_id" name="voter_id" required>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="action-card">
+                        <i class="bi bi-person-badge action-icon"></i>
+                        <h2 class="action-title">View Candidates</h2>
+                        <p class="action-text">Get to know the candidates running for different positions.</p>
+                        <a href="candidates.php" class="btn btn-outline-warning">View Candidates</a>
                     </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <div class="action-card">
+                        <i class="bi bi-check-square action-icon"></i>
+                        <h2 class="action-title">Cast Your Vote</h2>
+                        <p class="action-text">Make your voice heard by voting for your preferred candidates.</p>
+                        <?php if ($has_voted): ?>
+                            <button class="btn btn-secondary" disabled>Already Voted</button>
+                        <?php else: ?>
+                            <a href="vote.php" class="btn btn-warning">Vote Now</a>
+                        <?php endif; ?>
                     </div>
-                    <button type="submit" class="btn btn-login">Login</button>
-                </form>
+                </div>
             </div>
         </div>
     </section>

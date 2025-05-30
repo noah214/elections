@@ -1,3 +1,63 @@
 .block {
-  height: 10px;
+    height: 10px;
+}
+
+.ust-bg {
+    min-height: 100vh;
+}
+
+/* Make form container full height */
+.form-side {
+    height: 100vh;
+    overflow-y: auto;
+}
+
+/* Adjust spacing */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+/* Reduce some spacing to fit screen */
+.form-floating {
+    margin-bottom: 0.75rem;
+}
+
+/* Ensure proper spacing for the heading section */
+.heading-section {
+    margin: 1rem 0;
+}
+
+/* Adjust right side content */
+.content-side {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Adjust input sizes */
+.form-control, .form-select {
+    padding: 0.5rem;
+    height: calc(2.5rem + 2px);
+}
+
+.form-floating > label {
+    padding: 0.5rem;
+}
+
+/* Adjust heading sizes */
+h1 {
+    font-size: 2rem;
+    margin-bottom: 0;
+}
+
+h6 {
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Adjust button size */
+.btn {
+    padding: 0.5rem;
 }

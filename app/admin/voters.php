@@ -139,6 +139,7 @@
     
     <style>
         /* basic stuff */
+        /* basic stuff */
         body { 
             min-height: 100vh;
             overflow-x: hidden;
@@ -178,6 +179,33 @@
                 margin-left: 0;
                 width: 100%;
             }
+        }
+
+        
+        /* sidebar scrollbar */
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: #000;
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #ffc107;
+            border-radius: 4px;
+            border: 2px solid #000;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #e0a800;
+        }
+
+        /* For Firefox */
+        .sidebar {
+            scrollbar-width: thin;
+            scrollbar-color: #ffc107 #000;
         }
 
         /* header thing */
@@ -332,58 +360,6 @@
             border-radius: 8px;
             margin-top: 1rem;
         }
-
-        /* table container */
-        .table-container {
-            max-height: calc(100vh - 200px);
-            overflow-y: auto;
-            margin-top: 1rem;
-        }
-
-        .table-container::-webkit-scrollbar {
-            width: 10px;
-        }
-
-        .table-container::-webkit-scrollbar-track {
-            background: #000;
-            border-radius: 5px;
-        }
-
-        .table-container::-webkit-scrollbar-thumb {
-            background: #ffc107;
-            border-radius: 5px;
-            border: 2px solid #000;
-        }
-
-        .table-container::-webkit-scrollbar-thumb:hover {
-            background: #e0a800;
-        }
-
-        /* sidebar scrollbar */
-        .sidebar::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .sidebar::-webkit-scrollbar-track {
-            background: #000;
-            border-radius: 4px;
-        }
-
-        .sidebar::-webkit-scrollbar-thumb {
-            background: #ffc107;
-            border-radius: 4px;
-            border: 2px solid #000;
-        }
-
-        .sidebar::-webkit-scrollbar-thumb:hover {
-            background: #e0a800;
-        }
-
-        /* For Firefox */
-        .sidebar {
-            scrollbar-width: thin;
-            scrollbar-color: #ffc107 #000;
-        }
     </style>
 </head>
 <body>
@@ -391,26 +367,26 @@
 <div class="container-fluid">
     <div class="row">
         <!-- Sidebar -->
-        <nav class="col-md-3 col-lg-2 d-md-block sidebar">
+    <nav class="col-md-3 col-lg-2 d-md-block sidebar">
             <div class="sidebar-header">
                 <h4>BOTOmasino Elections</h4>
                 <div class="text-light mt-2">
-                    <small>Welcome, <?= htmlspecialchars($fullname) ?></small>
+                    <small>Welcome, <?= $fullname?></small>
                 </div>
             </div>
+            
             <div class="sidebar-category">Admin Dashboard</div>
             <a href="home.php"><i class="bi bi-person-badge-fill"></i>Home</a>
-
             <div class="sidebar-category">User Management</div>
             <?php if (strtolower($role) !== 'organizer'): ?>
                 <a href="users.php"><i class="bi bi-people-fill"></i> Admin Users</a>
             <?php endif; ?>
-            <a href="voter.php" class="sidebar-item active"><i class="bi bi-person-check-fill"></i> Voter Accounts</a>
+            <a href="voters.php" class="sidebar-item active"><i class="bi bi-person-check-fill"></i> Voter Accounts</a>
             
             <div class="sidebar-category">Election Management</div>
             <a href="candidates.php"><i class="bi bi-person-badge-fill"></i> Candidates</a>
             <a href="positions.php"><i class="bi bi-briefcase-fill"></i> Positions</a>
-            <a href="votes.php"><i class="bi bi-box-seam"></i> Votes</a>
+            <a href="votes.php" ><i class="bi bi-box-seam"></i> Votes</a>
             
             <div class="sidebar-category">Reports</div>
             <a href="votecount.php"><i class="bi bi-bar-chart-line-fill"></i> Vote Count</a>
@@ -435,7 +411,7 @@
                 <form action="" method="post" class="mb-4">
                     <div class="row g-3">
                         <div class="col-auto">
-                            <input type="search" name="searchinput" class="form-control" placeholder="Search voter accounts...">
+                            <input type="search" name="searchinput" class="form-control" placeholder="Search voters...">
                         </div>
                         <div class="col-auto">
                             <button type="submit" name="search" class="btn btn-primary">
@@ -447,68 +423,61 @@
                                 <i class="bi bi-person-plus-fill me-1"></i>Add New Voter
                             </button>
                         </div>
-                        <div class="col-auto">
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#sqlCommandModal">
-                                <i class="bi bi-database-fill me-1"></i>SQL Commands
-                            </button>
-                        </div>
                     </div>
                 </form>
 
                 <?php if (mysqli_num_rows($result) > 0) : ?>
-                <div class="table-container">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Voter ID</th>
-                                    <th>Voter Name</th>
-                                    <th>Date of Birth</th>
-                                    <th>Gender</th>
-                                    <th>Contact Information</th>
-                                    <th>Student ID</th>
-                                    <th>Actions</th>
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Voter ID</th>
+                                <th>Voter Name</th>
+                                <th>Date of Birth</th>
+                                <th>Gender</th>
+                                <th>Contact Information</th>
+                                <th>Student ID</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($result as $fieldname) : ?>
+                                <tr class="voter-row" onclick="showVoterDetails('<?= $fieldname['voter_name']; ?>', '<?= $fieldname['date_of_birth']; ?>', '<?= $fieldname['gender']; ?>', '<?= $fieldname['contact_information']; ?>', '<?= $fieldname['student_id']; ?>')" style="cursor: pointer;">
+                                    <td><?= $fieldname['voter_id']; ?></td>
+                                    <td><?= $fieldname['voter_name']; ?></td>
+                                    <td><?= $fieldname['date_of_birth']; ?></td>
+                                    <td>
+                                        <?php
+                                        $genderClass = '';
+                                        switch(strtolower($fieldname['gender'])) {
+                                            case 'male':
+                                                $genderClass = 'bg-primary';
+                                                break;
+                                            case 'female':
+                                                $genderClass = 'bg-danger';
+                                                break;
+                                            default:
+                                                $genderClass = 'bg-secondary';
+                                        }
+                                        ?>
+                                        <span class="badge <?= $genderClass; ?>"><?= $fieldname['gender']; ?></span>
+                                    </td>
+                                    <td><?= $fieldname['contact_information']; ?></td>
+                                    <td><?= $fieldname['student_id']; ?></td>
+                                    <td class="action-buttons">
+                                        <button class="btn btn-warning btn-sm" 
+                                            onclick="editVoter('<?= $fieldname['voter_id']; ?>', '<?= $fieldname['voter_name']; ?>', '<?= $fieldname['date_of_birth']; ?>', '<?= $fieldname['gender']; ?>', '<?= $fieldname['contact_information']; ?>', '<?= $fieldname['student_id']; ?>'); event.stopPropagation();">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-danger btn-sm" 
+                                            onclick="deleteVoter('<?= $fieldname['voter_id']; ?>', '<?= $fieldname['voter_name']; ?>'); event.stopPropagation();">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($result as $fieldname) : ?>
-                                    <tr class="voter-row" onclick="showVoterDetails('<?= $fieldname['voter_name']; ?>', '<?= $fieldname['date_of_birth']; ?>', '<?= $fieldname['gender']; ?>', '<?= $fieldname['contact_information']; ?>', '<?= $fieldname['student_id']; ?>')" style="cursor: pointer;">
-                                        <td><?= $fieldname['voter_id']; ?></td>
-                                        <td><?= $fieldname['voter_name']; ?></td>
-                                        <td><?= $fieldname['date_of_birth']; ?></td>
-                                        <td>
-                                            <?php
-                                            $genderClass = '';
-                                            switch(strtolower($fieldname['gender'])) {
-                                                case 'male':
-                                                    $genderClass = 'bg-primary';
-                                                    break;
-                                                case 'female':
-                                                    $genderClass = 'bg-danger';
-                                                    break;
-                                                default:
-                                                    $genderClass = 'bg-secondary';
-                                            }
-                                            ?>
-                                            <span class="badge <?= $genderClass; ?>"><?= $fieldname['gender']; ?></span>
-                                        </td>
-                                        <td><?= $fieldname['contact_information']; ?></td>
-                                        <td><?= $fieldname['student_id']; ?></td>
-                                        <td class="action-buttons">
-                                            <button class="btn btn-warning btn-sm" 
-                                                onclick="editVoter('<?= $fieldname['voter_id']; ?>', '<?= $fieldname['voter_name']; ?>', '<?= $fieldname['date_of_birth']; ?>', '<?= $fieldname['gender']; ?>', '<?= $fieldname['contact_information']; ?>', '<?= $fieldname['student_id']; ?>'); event.stopPropagation();">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <button class="btn btn-danger btn-sm" 
-                                                onclick="deleteVoter('<?= $fieldname['voter_id']; ?>', '<?= $fieldname['voter_name']; ?>'); event.stopPropagation();">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
                 <?php else : ?>
                     <div class="alert alert-info">No voters found.</div>
@@ -747,48 +716,6 @@
                                 <input type="hidden" name="delete_voter_id" id="deleteVoterId">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                                 <button type="submit" name="delete_voter" class="btn btn-danger">Delete Voter</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SQL Command Modal -->
-            <div class="modal fade" id="sqlCommandModal" tabindex="-1" aria-labelledby="sqlCommandModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header bg-primary text-white">
-                            <h5 class="modal-title" id="sqlCommandModalLabel">
-                                <i class="bi bi-database-fill me-2"></i>SQL Command Interface
-                            </h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form action="" method="POST" class="needs-validation" novalidate>
-                                <div class="card border-primary bg-light">
-                                    <div class="card-body">
-                                        <div class="mb-3">
-                                            <label for="sqlCommand" class="form-label fw-bold text-primary">
-                                                <i class="bi bi-code-square me-2"></i>Enter SQL Command:
-                                            </label>
-                                            <textarea class="form-control" id="sqlCommand" name="sql_command" rows="5" required 
-                                                placeholder="Enter your SQL command here..." 
-                                                style="font-family: 'Consolas', monospace; background-color: #fff; border: 1px solid #0d6efd;"></textarea>
-                                            <div class="form-text text-primary mt-2">
-                                                <i class="bi bi-exclamation-triangle-fill me-1"></i>
-                                                Warning: Be careful with SQL commands. They can modify or delete data permanently.
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="modal-footer border-top border-primary">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                        <i class="bi bi-x-circle me-1"></i>Cancel
-                                    </button>
-                                    <button type="submit" name="execute_sql" class="btn btn-primary">
-                                        <i class="bi bi-play-fill me-1"></i>Execute Command
-                                    </button>
-                                </div>
                             </form>
                         </div>
                     </div>
