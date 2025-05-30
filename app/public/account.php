@@ -42,27 +42,28 @@ $student_id = $_SESSION['student_id'] ?? '';
   <body>
     <!--navbar-->
     <nav class="navbar navbar-expand-lg custom-navbar" id="mainNavbar">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="home.css">
-                <img src="" width="30" height="30" class="d-inline-block align-top me-2" alt="SSC Logo">
-                UST Supreme Student Council
+        <div class="container-fluid px-5">
+            <a class="navbar-brand d-flex align-items-center" href="home.php">
+                <img src="../images/USTLogo.png" width="40" height="40" class="d-inline-block me-2" alt="SSC Logo">
+                <span class="text-yellow">UST</span>&nbsp;Supreme Student Council
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                 <div class="navbar-nav ms-auto">
-                    <a class="nav-item nav-link " href="home.php" aria-current="page">Home</a>
+                    <a class="nav-item nav-link active" href="home.php" aria-current="page">Home</a>
                     <div class="vr mx-2 d-none d-lg-block"></div>
                     <a class="nav-item nav-link" href="candidate.php">Candidates</a>
                     <div class="vr mx-2 d-none d-lg-block"></div>
                     <a class="nav-item nav-link" href="vote.php">Vote</a>
                     <div class="vr mx-2 d-none d-lg-block"></div>
-                    <a class="nav-item nav-link active" href="Account.php">Account</a>
+                    <a class="nav-item nav-link" href="Account.php">Account</a>
                 </div>
             </div>
         </div>
     </nav>
+    
         <div class="container-fluid ust-bg vh-100">
             <div class="row h-100">
                 <div class="col d-flex justify-content-center align-items-center">
@@ -122,6 +123,8 @@ $student_id = $_SESSION['student_id'] ?? '';
                 </div>
             </div>
         </div>
+
+        
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js" integrity="sha384-j1CDi7MgGQ12Z7Qab0qlWQ/Qqz24Gc6BM0thvEMVjHnfYGF0rmFCozFSxQBxwHKO" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

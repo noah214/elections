@@ -301,6 +301,12 @@ if (isset($_POST['verify_otp']) && $_SESSION['register_stage'] == 'completed') {
     <div class="container-fluid">
         <div class="row">
             <div class="col-6 border">
+            <div class="row">
+                            <div class="col bg-warning block mb-4">
+                                <!--Yellow Block at Top -->
+                            </div> 
+                        </div>
+
                 <!-- Step Indicator -->
                 <div class="step-indicator mt-4">
                     <div class="step <?php echo $_SESSION['register_stage'] == 'register_account' ? 'active' : ($_SESSION['register_stage'] == 'otp' || $_SESSION['register_stage'] == 'completed' ? 'completed' : ''); ?>">
@@ -312,15 +318,11 @@ if (isset($_POST['verify_otp']) && $_SESSION['register_stage'] == 'completed') {
                         <div class="step-line <?php echo $_SESSION['register_stage'] == 'reset' ? 'completed' : ''; ?>"></div>
                     </div>
                 </div>
-
+            
                 <!-- Registration Form -->
                 <?php if ($_SESSION['register_stage'] == 'register_account'){ ?>
                     <form action="" method="post">
-                        <div class="row">
-                            <div class="col bg-warning block mb-4">
-                                <!--Yellow Block at Top -->
-                            </div> 
-                        </div>
+                      
 
                         <div class="row mt-4 mb-1">
                             <div class="col d-flex justify-content-center">
@@ -333,7 +335,7 @@ if (isset($_POST['verify_otp']) && $_SESSION['register_stage'] == 'completed') {
                                 <h6>Be a voter today!</h6>
                             </div>
                         </div>
-
+                    <hr>
                         <div class="row mx-5 mt-3">
                             <div class="col">
                                 <div class="form-floating">
@@ -439,9 +441,7 @@ if (isset($_POST['verify_otp']) && $_SESSION['register_stage'] == 'completed') {
                 ?>
                     <!--Send OTP Form -->
                     <form action="" method="post">
-                        <div class="row">
-                            <div class="col bg-warning block"></div>
-                        </div>
+                        
                         <div class="row mx-5 mt-3">
                             <div class="col">
                                 <h1>Verify OTP</h1>

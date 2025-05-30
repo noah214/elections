@@ -136,25 +136,25 @@ $positions = $conn->query($positions_query);
     </style>
 </head>
 <body>
-        <!-- Navbar -->
+        <!--navbar-->
     <nav class="navbar navbar-expand-lg custom-navbar" id="mainNavbar">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="home.css">
-                <img src="" width="30" height="30" class="d-inline-block align-top me-2" alt="SSC Logo">
-                UST Supreme Student Council
+        <div class="container-fluid px-5">
+            <a class="navbar-brand d-flex align-items-center" href="home.php">
+                <img src="../images/USTLogo.png" width="40" height="40" class="d-inline-block me-2" alt="SSC Logo">
+                <span class="text-yellow">UST</span>&nbsp;Supreme Student Council
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                 <div class="navbar-nav ms-auto">
-                    <a class="nav-item nav-link" href="home.php" aria-current="page">Home</a>
+                    <a class="nav-item nav-link active" href="home.php" aria-current="page">Home</a>
                     <div class="vr mx-2 d-none d-lg-block"></div>
-                    <a class="nav-item nav-link active" href="candidate.php">Candidates</a>
+                    <a class="nav-item nav-link" href="candidate.php">Candidates</a>
                     <div class="vr mx-2 d-none d-lg-block"></div>
                     <a class="nav-item nav-link" href="vote.php">Vote</a>
                     <div class="vr mx-2 d-none d-lg-block"></div>
-                    <a class="nav-item nav-link" href="account.php">Account</a>
+                    <a class="nav-item nav-link" href="Account.php">Account</a>
                 </div>
             </div>
         </div>
@@ -208,6 +208,50 @@ $positions = $conn->query($positions_query);
             ?>
         </div>
     </section>
+     <!--footer-->
+     <footer class="footer mt-auto py-4 bg-navy text-white">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-5 mb-1">
+                    <div class="row">
+                        <div class="col-3">
+                            <img src="../images/USTLogo.png" alt="UST Logo" style="width: 100px; height: 100px;">
+                        </div>
+                        <div class="col d-flex flex-column justify-content-center">
+                            <h3 class="text-white"><span class="text-yellow">UST</span> Supreme Student Council</h3>
+                            <h5 class="text-white"><span class="text-yellow">BOTO</span>masino Elections</h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-1 ">
+                    <h5 class="text-yellow mx-4 d-flex justify-content-center">Quick Links</h5>
+                    <div class="row ">
+                        <div class="col-6 d-flex flex-column justify-content-center align-items-center">
+                            <ul class="list-unstyled">
+                            <li><a href="home.php" class="text-white text-decoration-none active">Home</a></li>
+                            <li><a href="candidate.php" class="text-white text-decoration-none">Candidates</a></li>
+                        </div>
+                        <div class="col d-flex flex-column justify-content-center align-items-center">
+                            <ul class="list-unstyled">
+                            <li><a href="vote.php" class="text-white text-decoration-none">Vote</a></li>
+                            <li><a href="Account.php" class="text-white text-decoration-none">Account</a></li>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-1">
+                    <h5 class="text-yellow d-flex flex-column justify-content-center align-items-center">Contact Us</h5>
+                    <p class="desc"><span class="text-yellow">Address:</span> España Blvd, Sampaloc, Manila, Metro Manila</p>
+                    <p><span class="text-yellow">Email:</span> ssc@ust.edu.ph</p>
+                </div>
+            </div>
+            <hr class="my-2">
+            <div class="row">
+                <div class="col text-center">
+                    <p class="small mb-0">&copy; <?php echo date('Y'); ?> UST Supreme Student Council. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
     
     <!-- JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
