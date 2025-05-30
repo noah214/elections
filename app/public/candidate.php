@@ -21,115 +21,117 @@ $positions = $conn->query($positions_query);
     <link rel="stylesheet" href="../css/global.css">
     
     <style>
-        .candidate-section {
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .candidate-section { 
             padding: 4rem 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .candidate-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: -1;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .position-card {
+            background: #fff;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .position-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
         }
 
         .position-title {
             color: #000;
-            font-size: 2.5rem;
+            font-size: 2rem;
             font-weight: 700;
-            margin-bottom: 0.5rem;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .position-description {
-            color: #666;
-            font-size: 1.1rem;
-            text-align: center;
-            margin-bottom: 2rem;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-            font-style: italic;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #ffc107;
         }
 
         .candidate-card {
             background: #fff;
+            border: 2px solid #ddd;
             border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            overflow: hidden;
-            transition: transform 0.3s ease;
-            height: 100%;
-            border: 2px solid #ffc107;
-            max-width: 320px;
-            margin: 0 auto;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
 
         .candidate-card:hover {
-            transform: translateY(-5px);
+            border-color: #ffc107;
+            background-color: #fff9e6;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
         }
 
         .candidate-image {
-            width: 100%;
-            height: 280px;
+            width: 120px;
+            height: 120px;
             object-fit: cover;
-            border: none;
-            border-radius: 0;
-        }
-
-        .candidate-info {
-            padding: 1.2rem;
+            border-radius: 50%;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .candidate-name {
             color: #000;
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: 600;
-            margin-bottom: 0.4rem;
+            margin-bottom: 0.5rem;
         }
 
-        .candidate-position {
+        .candidate-party {
             color: #ffc107;
             font-weight: 500;
-            margin-bottom: 0.4rem;
-            font-size: 1rem;
+            margin-bottom: 0.5rem;
         }
 
-        .candidate-description {
+        .candidate-college {
             color: #666;
-            margin-bottom: 0.8rem;
             font-size: 0.9rem;
         }
 
-        .platform-title {
-            color: #000;
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 0.8rem;
-            border-top: 1px solid #eee;
-            padding-top: 0.8rem;
+        .custom-navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .platform-list {
-            list-style: none;
-            padding-left: 0;
-            margin-bottom: 0;
+        .custom-navbar.scrolled {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
 
-        .platform-list li {
-            color: #666;
-            margin-bottom: 0.4rem;
-            padding-left: 1.2rem;
-            position: relative;
-            font-size: 0.9rem;
+        .footer {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
         }
 
-        .platform-list li:before {
-            content: "•";
-            color: #ffc107;
-            position: absolute;
-            left: 0;
-        }
-
-        .row {
-            justify-content: center;
-        }
-
-        .col-md-6.col-lg-4 {
-            padding: 0 15px;
+        .alert {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
     </style>
 </head>
@@ -179,7 +181,7 @@ $positions = $conn->query($positions_query);
                         <?php while ($candidate = $candidates->fetch_assoc()): ?>
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="candidate-card">
-                                    <img src="../<?= htmlspecialchars($candidate['img_path']) ?>" 
+                                    <img src="<?= htmlspecialchars($candidate['img_path']) ?>" 
                                          alt="<?= htmlspecialchars($candidate['candidate_name']) ?>" 
                                          class="candidate-image">
                                     <div class="candidate-info">

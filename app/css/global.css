@@ -209,3 +209,33 @@ body {
   scrollbar-width: thin;
   scrollbar-color: #ffc107 #000;
 }
+
+/* Footer Styles */
+.footer {
+  margin-top: auto;
+}
+
+.text-yellow {
+  color: var(--yellow-color);
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.footer a:hover {
+  color: var(--yellow-color) !important;
+  text-decoration: underline !important;
+}
+
+.footer a.active {
+  color: var(--yellow-color) !important;
+  font-weight: 600;
+  text-decoration: underline !important;
+}
+
+.desc {
+  margin: 0px;
+}

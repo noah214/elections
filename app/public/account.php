@@ -40,6 +40,7 @@ $student_id = $_SESSION['student_id'] ?? '';
     
    </head>
   <body>
+    <!--navbar-->
     <nav class="navbar navbar-expand-lg custom-navbar" id="mainNavbar">
         <div class="container-fluid">
             <a class="navbar-brand" href="home.css">

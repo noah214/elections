@@ -34,8 +34,8 @@
         $college = $_POST['add_college'];
         $position_id = $_POST['add_position'];
 
-        $imagepath = "../../candidate_imgs/".basename($_FILES["upload_img"]["name"]);
-        move_uploaded_file($_FILES['upload_img']['tmp_name'], $imagepath);
+        $imagepath = "candidate_imgs/".basename($_FILES["upload_img"]["name"]);
+        move_uploaded_file($_FILES['upload_img']['tmp_name'], "../../".$imagepath);
 
         // insert into candidate table
         $insertQuery = "INSERT INTO candidate_table (candidate_name, party_affiliation, college, img_path, position_id) 
@@ -52,22 +52,31 @@
     if (isset($_POST['apply_edit'])) {
         // get form data
         $id = $_POST['edit_candidate_id'];
-        $name = $_POST['edit_name'];
-        $party = $_POST['edit_party'];
-        $college = $_POST['edit_college'];
-        $position_id = $_POST['edit_position'];
+        $name = mysqli_real_escape_string($conn, $_POST['edit_name']);
+        $party = mysqli_real_escape_string($conn, $_POST['edit_party']);
+        $college = mysqli_real_escape_string($conn, $_POST['edit_college']);
+        $position_id = (int)$_POST['edit_position'];
 
-        $imagepath = "../../candidate_imgs/".basename($_FILES["edit_img"]["name"]);
-        move_uploaded_file($_FILES['edit_img']['tmp_name'], $imagepath);
+        // Handle image upload if a new image is provided
+        if (!empty($_FILES['edit_img']['name'])) {
+            $imagepath = "candidate_imgs/".basename($_FILES["edit_img"]["name"]);
+            move_uploaded_file($_FILES['edit_img']['tmp_name'], "../../".$imagepath);
+        } else {
+            // Keep existing image path if no new image is uploaded
+            $getImageQuery = "SELECT img_path FROM candidate_table WHERE candidate_id = $id";
+            $imageResult = mysqli_query($conn, $getImageQuery);
+            $imageRow = mysqli_fetch_assoc($imageResult);
+            $imagepath = $imageRow['img_path'];
+        }
 
         // update candidate table
         $updateQuery = "UPDATE candidate_table 
-                        SET candidate_name='$name', 
-                            party_affiliation='$party', 
-                            college='$college',
-                            img_path='$imagepath',
-                            position_id='$position_id'
-                        WHERE candidate_id=$id";
+                        SET candidate_name = '$name', 
+                            party_affiliation = '$party', 
+                            college = '$college',
+                            img_path = '$imagepath',
+                            position_id = $position_id
+                        WHERE candidate_id = $id";
                         
         if (mysqli_query($conn, $updateQuery)) {
             echo "<script>alert('Candidate updated successfully!'); window.location.href=window.location.href;</script>";
@@ -81,25 +90,27 @@
         $candidatesearch = $_POST['searchinput'];
         
         // search in all fields with position name join
-        $selectsql = "SELECT c.*, p.position_name 
+        $selectsql = "SELECT c.*, p.position_name, p.position_id as pos_id 
                      FROM candidate_table c 
-                     LEFT JOIN position_table p ON c.position_id = p.position_id 
+                     INNER JOIN position_table p ON c.position_id = p.position_id 
                      WHERE c.candidate_name LIKE '%".$candidatesearch."%' 
                      OR c.party_affiliation LIKE '%".$candidatesearch."%'
                      OR c.college LIKE '%".$candidatesearch."%' 
-                     OR p.position_name LIKE '%".$candidatesearch."%'";
+                     OR p.position_name LIKE '%".$candidatesearch."%'
+                     ORDER BY p.position_name, c.candidate_name";
     }else{
         // show all candidates if no search with position name join
-        $selectsql = "SELECT c.*, p.position_name 
+        $selectsql = "SELECT c.*, p.position_name, p.position_id as pos_id 
                      FROM candidate_table c 
-                     LEFT JOIN position_table p ON c.position_id = p.position_id";
+                     INNER JOIN position_table p ON c.position_id = p.position_id 
+                     ORDER BY p.position_name, c.candidate_name";
     }
 
     // get results
     $result = mysqli_query($conn, $selectsql);
 
     // get positions for dropdown
-    $positionsQuery = "SELECT position_id, position_name FROM position_table";
+    $positionsQuery = "SELECT position_id, position_name FROM position_table ORDER BY position_name";
     $positionsResult = mysqli_query($conn, $positionsQuery);
     $positions = [];
     while($row = mysqli_fetch_assoc($positionsResult)) {
@@ -545,8 +556,11 @@
                                             </span>
                                         </td>
                                         <td>
-                                            <?php if (!empty($fieldname['img_path']) && file_exists($fieldname['img_path'])): ?>
-                                                <span class="badge bg-success">Photo Available</span>
+                                            <?php if (!empty($fieldname['img_path'])): ?>
+                                                <img src="../../<?= htmlspecialchars($fieldname['img_path']) ?>" 
+                                                     alt="Candidate Photo" 
+                                                     class="img-thumbnail" 
+                                                     style="max-width: 100px; max-height: 100px; object-fit: cover;">
                                             <?php else: ?>
                                                 <span class="badge bg-secondary">No Photo</span>
                                             <?php endif; ?>
@@ -800,7 +814,15 @@
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Candidate Photo</label>
                                 <div class="text-center">
-                                    <img id="detailImage" src="" alt="Candidate Photo" class="img-thumbnail" style="max-width: 200px; max-height: 200px;">
+                                    <?php if (!empty($fieldname['img_path'])): ?>
+                                        <img id="detailImage" 
+                                             src="../../<?= htmlspecialchars($fieldname['img_path']) ?>" 
+                                             alt="Candidate Photo" 
+                                             class="img-thumbnail" 
+                                             style="max-width: 200px; max-height: 200px; object-fit: cover;">
+                                    <?php else: ?>
+                                        <span class="badge bg-secondary">No Photo Available</span>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                             <div class="mb-3">
@@ -949,11 +971,11 @@ function showCandidateDetails(id, name, party, college, imgPath, position) {
     // Handle image display
     const detailImage = document.getElementById('detailImage');
     if (imgPath && imgPath !== 'null' && imgPath !== 'undefined') {
-        detailImage.src = imgPath;
+        detailImage.src = '../../' + imgPath;
         detailImage.style.display = 'block';
     } else {
-        detailImage.src = '';
         detailImage.style.display = 'none';
+        detailImage.parentElement.innerHTML = '<span class="badge bg-secondary">No Photo Available</span>';
     }
     
     const modal = new bootstrap.Modal(document.getElementById('candidateDetailsModal'));
@@ -971,11 +993,11 @@ function editCandidate(id, name, party, college, imgPath, positionId) {
     // Handle image preview
     const editPreviewImage = document.getElementById('editPreviewImage');
     if (imgPath && imgPath !== 'null' && imgPath !== 'undefined') {
-        editPreviewImage.src = imgPath;
+        editPreviewImage.src = '../../' + imgPath;
         editPreviewImage.style.display = 'block';
     } else {
-        editPreviewImage.src = '';
         editPreviewImage.style.display = 'none';
+        editPreviewImage.src = '';
     }
     
     const modal = new bootstrap.Modal(document.getElementById('editCandidateModal'));
