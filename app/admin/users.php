@@ -168,6 +168,7 @@
     <!-- css stuff -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../css/global.css">
     
     <style>
         /* basic stuff */
@@ -176,86 +177,6 @@
             overflow-x: hidden;
         }
         
-        /* sidebar stuff */
-        .sidebar {
-            height: 100vh;
-            background-color: #000;
-            color: #ffc107;
-            display: flex;
-            flex-direction: column;
-            padding-top: 1rem;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: inherit;
-            max-width: inherit;
-            z-index: 1000;
-            overflow-y: auto;
-        }
-
-        /* header thing */
-        .sidebar-header {
-            padding: 1rem;
-            text-align: center;
-            border-bottom: 1px solid #ffc107;
-            margin-bottom: 1rem;
-        }
-
-        .sidebar-header h4 {
-            color: #ffc107;
-            margin: 0;
-            font-size: 1.5rem;
-        }
-
-        /* links n stuff */
-        .sidebar a {
-            color: #ffc107;
-            text-decoration: none;
-            display: block;
-            padding: 0.75rem 1rem;
-            text-align: left;
-        }
-
-        .sidebar a i {
-            margin-right: 8px;
-        }
-
-        .sidebar a:hover {
-            background-color: #212529;
-        }
-
-        /* categories */
-        .sidebar-category {
-            color: #6c757d;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            padding: 1rem 1rem 0.5rem;
-            margin-top: 1rem;
-            border-bottom: 1px solid #2c3034;
-        }
-
-        /* active stuff */
-        .sidebar .sidebar-item {
-            color: #efb409;
-            background: transparent;
-            transition: background 0.2s, color 0.2s;
-        }
-
-        .sidebar .sidebar-item.active {
-            background: #efb409;
-            color: #212529;
-            font-weight: bold;
-        }
-
-        .sidebar .sidebar-item.active i {
-            color: #212529;
-        }
-
-        .sidebar .sidebar-item i {
-            color: #efb409;
-            margin-right: 10px;
-        }
-
         /* table stuff */
         .table-responsive {
             border-radius: 8px;
@@ -830,7 +751,7 @@
                                 <p id="detailEmail" class="form-control-plaintext"></p>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label fw-bold">Password</label>
+                                <label class="form-label fw-bold">Password (Hashed)</label>
                                 <p id="detailPassword" class="form-control-plaintext"></p>
                             </div>
                         </div>
@@ -979,7 +900,6 @@ function editUser(id, name, role, username, email, password) {
     document.getElementById('editName').value = name;
     document.getElementById('editUsername').value = username;
     document.getElementById('editEmail').value = email;
-    document.getElementById('editPassword').value = password;
     
     // set role
     let roleSelect = document.getElementById('editRole');

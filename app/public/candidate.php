@@ -179,7 +179,7 @@ $positions = $conn->query($positions_query);
                         <?php while ($candidate = $candidates->fetch_assoc()): ?>
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="candidate-card">
-                                    <img src="<?= htmlspecialchars($candidate['img_path']) ?>" 
+                                    <img src="../<?= htmlspecialchars($candidate['img_path']) ?>" 
                                          alt="<?= htmlspecialchars($candidate['candidate_name']) ?>" 
                                          class="candidate-image">
                                     <div class="candidate-info">
@@ -199,6 +199,7 @@ $positions = $conn->query($positions_query);
                         <?php endwhile; ?>
                     </div>
                 </div>
+                <hr class="my-5">
             <?php 
                 endif;
             endwhile; 

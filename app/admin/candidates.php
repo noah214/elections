@@ -34,7 +34,7 @@
         $college = $_POST['add_college'];
         $position_id = $_POST['add_position'];
 
-        $imagepath = "../candidate_imgs/".basename($_FILES["upload_img"]["name"]);
+        $imagepath = "../../candidate_imgs/".basename($_FILES["upload_img"]["name"]);
         move_uploaded_file($_FILES['upload_img']['tmp_name'], $imagepath);
 
         // insert into candidate table
@@ -57,7 +57,7 @@
         $college = $_POST['edit_college'];
         $position_id = $_POST['edit_position'];
 
-        $imagepath = "candidate_imgs/".basename($_FILES["edit_img"]["name"]);
+        $imagepath = "../../candidate_imgs/".basename($_FILES["edit_img"]["name"]);
         move_uploaded_file($_FILES['edit_img']['tmp_name'], $imagepath);
 
         // update candidate table
@@ -117,6 +117,7 @@
     <!-- css stuff -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../css/global.css">
     
     <style>
         /* basic stuff */
@@ -125,22 +126,6 @@
             overflow-x: hidden;
         }
         
-        /* sidebar stuff */
-        .sidebar {
-            height: 100vh;
-            background-color: #000;
-            color: #ffc107;
-            display: flex;
-            flex-direction: column;
-            padding-top: 1rem;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: inherit;
-            max-width: inherit;
-            z-index: 1000;
-            overflow-y: auto;
-        }
 
         /* Main content adjustment */
         main {
@@ -187,94 +172,6 @@
             background: #e0a800;
         }
 
-        /* sidebar scrollbar */
-        .sidebar::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .sidebar::-webkit-scrollbar-track {
-            background: #000;
-            border-radius: 4px;
-        }
-
-        .sidebar::-webkit-scrollbar-thumb {
-            background: #ffc107;
-            border-radius: 4px;
-            border: 2px solid #000;
-        }
-
-        .sidebar::-webkit-scrollbar-thumb:hover {
-            background: #e0a800;
-        }
-
-        /* For Firefox */
-        .sidebar {
-            scrollbar-width: thin;
-            scrollbar-color: #ffc107 #000;
-        }
-
-        /* header thing */
-        .sidebar-header {
-            padding: 1rem;
-            text-align: center;
-            border-bottom: 1px solid #ffc107;
-            margin-bottom: 1rem;
-        }
-
-        .sidebar-header h4 {
-            color: #ffc107;
-            margin: 0;
-            font-size: 1.5rem;
-        }
-
-        /* links n stuff */
-        .sidebar a {
-            color: #ffc107;
-            text-decoration: none;
-            display: block;
-            padding: 0.75rem 1rem;
-            text-align: left;
-        }
-
-        .sidebar a i {
-            margin-right: 8px;
-        }
-
-        .sidebar a:hover {
-            background-color: #212529;
-        }
-
-        /* categories */
-        .sidebar-category {
-            color: #6c757d;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            padding: 1rem 1rem 0.5rem;
-            margin-top: 1rem;
-            border-bottom: 1px solid #2c3034;
-        }
-
-        /* active stuff */
-        .sidebar .sidebar-item {
-            color: #efb409;
-            background: transparent;
-            transition: background 0.2s, color 0.2s;
-        }
-
-        .sidebar .sidebar-item.active {
-            background: #efb409;
-            color: #212529;
-            font-weight: bold;
-        }
-
-        .sidebar .sidebar-item.active i {
-            color: #212529;
-        }
-
-        .sidebar .sidebar-item i {
-            color: #efb409;
-            margin-right: 10px;
-        }
 
         /* table stuff */
         .table-responsive {

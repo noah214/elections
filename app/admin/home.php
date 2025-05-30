@@ -103,38 +103,40 @@ $position_votes_result = $conn->query($position_votes);
 </head>
 <body>
     <!-- Sidebar -->
-    <nav class="sidebar">
+    <nav class="col-md-3 col-lg-2 d-md-block sidebar">
         <div class="sidebar-header">
             <h4>BOTOmasino Elections</h4>
             <div class="text-light mt-2">
                 <small>Welcome, <?= htmlspecialchars($fullname) ?></small>
             </div>
         </div>
-        <a href="home.php" class="sidebar-item active"><i class="bi bi-house-fill"></i>Home</a>
+        <div class="sidebar-category">Admin Dashboard</div>
+        <a href="home.php" class="sidebar-item active"><i class="bi bi-person-badge-fill"></i>Home</a>
         <div class="sidebar-category">User Management</div>
         <?php if (strtolower($role) !== 'organizer'): ?>
-            <a href="users.php" class="sidebar-item"><i class="bi bi-people-fill"></i>Admin Users</a>
+            <a href="users.php" class="sidebar-item"><i class="bi bi-people-fill"></i>Users</a>
         <?php endif; ?>
-        <a href="voters.php" class="sidebar-item"><i class="bi bi-person-check-fill"></i>Voter Accounts</a>
+        <a href="voter.php"><i class="bi bi-person-check-fill"></i> Voter Accounts</a>
         
         <div class="sidebar-category">Election Management</div>
-        <a href="candidates.php" class="sidebar-item"><i class="bi bi-person-badge-fill"></i>Candidate List</a>
-        <a href="positions.php" class="sidebar-item"><i class="bi bi-briefcase-fill"></i>Position List</a>
-        <a href="votes.php" class="sidebar-item"><i class="bi bi-box-seam"></i>Vote Records</a>
+        <a href="candidates.php"><i class="bi bi-person-badge-fill"></i> Candidates</a>
+        <a href="positions.php"><i class="bi bi-briefcase-fill"></i> Positions</a>
+        <a href="votes.php"><i class="bi bi-box-seam"></i> Votes</a>
         
         <div class="sidebar-category">Reports</div>
-        <a href="votecount.php" class="sidebar-item"><i class="bi bi-bar-chart-line-fill"></i>Vote Statistics</a>
+        <a href="votecount.php"><i class="bi bi-bar-chart-line-fill"></i> Vote Statistics</a>
         <?php if (strtolower($role) !== 'organizer'): ?>
-            <a href="logs.php" class="sidebar-item"><i class="bi bi-journal-text"></i>Activity Logs</a>
+            <a href="logs.php"><i class="bi bi-journal-text"></i> Activity Logs</a>
         <?php endif; ?>
 
         <div class="mt-auto">
             <div class="sidebar-category">Account</div>
             <a href="logout.php" class="sidebar-item" style="color: #ffc107; background-color: #000;">
-                <i class="bi bi-box-arrow-right"></i>Logout
+                <i class="bi bi-box-arrow-right"></i> Logout
             </a>
         </div>
     </nav>
+
     
     <!-- Main Content -->
     <div class="main-content">
