@@ -34,17 +34,52 @@
         $college = $_POST['add_college'];
         $position_id = $_POST['add_position'];
 
-        $imagepath = "candidate_imgs/".basename($_FILES["upload_img"]["name"]);
-        move_uploaded_file($_FILES['upload_img']['tmp_name'], "../../".$imagepath);
+        // Create directory if it doesn't exist
+        $upload_dir = "../../candidate_imgs/";
+        if (!file_exists($upload_dir)) {
+            mkdir($upload_dir, 0777, true);
+        }
 
-        // insert into candidate table
-        $insertQuery = "INSERT INTO candidate_table (candidate_name, party_affiliation, college, img_path, position_id) 
-                        VALUES ('$name', '$party', '$college', '$imagepath', '$position_id')";
-                        
-        if (mysqli_query($conn, $insertQuery)) {
-            echo "<script>alert('Candidate added successfully!');</script>";
+        // Handle image upload
+        $imagepath = "candidate_imgs/".basename($_FILES["upload_img"]["name"]);
+        $target_file = "../../".$imagepath;
+        
+        // Check if image file is a actual image
+        $check = getimagesize($_FILES["upload_img"]["tmp_name"]);
+        if($check === false) {
+            echo "<script>alert('File is not an image.');</script>";
+            exit();
+        }
+
+        // Check file size (limit to 5MB)
+        if ($_FILES["upload_img"]["size"] > 5000000) {
+            echo "<script>alert('Sorry, your file is too large. Maximum size is 5MB.');</script>";
+            exit();
+        }
+
+        // Allow certain file formats
+        $allowed_types = array('jpg', 'jpeg', 'png', 'gif');
+        $imageFileType = strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
+        if(!in_array($imageFileType, $allowed_types)) {
+            echo "<script>alert('Sorry, only JPG, JPEG, PNG & GIF files are allowed.');</script>";
+            exit();
+        }
+
+        // Upload file
+        if (move_uploaded_file($_FILES['upload_img']['tmp_name'], $target_file)) {
+            // insert into candidate table
+            $insertQuery = "INSERT INTO candidate_table (candidate_name, party_affiliation, college, img_path, position_id) 
+                            VALUES ('$name', '$party', '$college', '$imagepath', '$position_id')";
+                            
+            if (mysqli_query($conn, $insertQuery)) {
+                echo "<script>alert('Candidate added successfully!');</script>";
+            } else {
+                echo "Error: " . mysqli_error($conn);
+                // Delete uploaded file if database insert fails
+                unlink($target_file);
+            }
         } else {
-            echo "Error: " . mysqli_error($conn);
+            echo "<script>alert('Sorry, there was an error uploading your file.');</script>";
         }
     }
 

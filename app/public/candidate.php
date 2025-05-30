@@ -112,22 +112,6 @@ $positions = $conn->query($positions_query);
             font-size: 0.9rem;
         }
 
-        .custom-navbar {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .custom-navbar.scrolled {
-            background: rgba(255, 255, 255, 0.98);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .footer {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-        }
 
         .alert {
             border-radius: 10px;
@@ -148,9 +132,9 @@ $positions = $conn->query($positions_query);
             </button>
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                 <div class="navbar-nav ms-auto">
-                    <a class="nav-item nav-link active" href="home.php" aria-current="page">Home</a>
+                    <a class="nav-item nav-link " href="home.php" aria-current="page">Home</a>
                     <div class="vr mx-2 d-none d-lg-block"></div>
-                    <a class="nav-item nav-link" href="candidate.php">Candidates</a>
+                    <a class="nav-item nav-link active" href="candidate.php">Candidates</a>
                     <div class="vr mx-2 d-none d-lg-block"></div>
                     <a class="nav-item nav-link" href="vote.php">Vote</a>
                     <div class="vr mx-2 d-none d-lg-block"></div>
@@ -174,14 +158,14 @@ $positions = $conn->query($positions_query);
 
                 if ($candidates->num_rows > 0):
             ?>
-                <div class="mb-5">
+                <div class="mb-5 text-center">
                     <h2 class="position-title"><?= htmlspecialchars($position['position_name']) ?></h2>
                     <p class="position-description"><?= htmlspecialchars($position['position_description']) ?></p>
-                    <div class="row">
+                    <div class="row d-flex justify-content-center align-items-center">
                         <?php while ($candidate = $candidates->fetch_assoc()): ?>
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="candidate-card">
-                                    <img src="<?= htmlspecialchars($candidate['img_path']) ?>" 
+                                    <img src="../<?= htmlspecialchars($candidate['img_path']) ?>" 
                                          alt="<?= htmlspecialchars($candidate['candidate_name']) ?>" 
                                          class="candidate-image">
                                     <div class="candidate-info">

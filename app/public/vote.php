@@ -14,15 +14,18 @@ if (!isset($_SESSION['voter_id'])) {
 
 $voter_id = $_SESSION['voter_id'];
 
+// Initialize selected candidates in session if not exists
+if (!isset($_SESSION['selected_candidates'])) {
+    $_SESSION['selected_candidates'] = [];
+}
+
+// Get current position index from session or set to 0
+$current_position_index = isset($_SESSION['current_position_index']) ? $_SESSION['current_position_index'] : 0;
+
 // Debug: Check database connection
 if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
-
-// Check if voter has already voted
-$check_vote = "SELECT * FROM vote_table WHERE voter_id = '$voter_id'";
-$vote_result = $conn->query($check_vote);
-$has_voted = $vote_result->num_rows > 0;
 
 // Get all positions
 $positions_query = "SELECT * FROM position_table ORDER BY position_id";
@@ -45,16 +48,36 @@ while ($position = $positions->fetch_assoc()) {
 // Debug: Print positions array
 echo "<!-- Debug: Positions array: " . print_r($positions_array, true) . " -->";
 
-// Handle vote submission
-if (isset($_POST['submit_votes']) && !$has_voted) {
-    $votes = $_POST['votes'];
+// Handle candidate selection
+if (isset($_POST['select_candidate'])) {
+    $position_id = $_POST['position_id'];
+    $candidate_id = $_POST['candidate_id'];
+    
+    // Store the selection in session
+    $_SESSION['selected_candidates'][$position_id] = $candidate_id;
+    
+    // Move to next position if not last
+    if ($current_position_index < count($positions_array) - 1) {
+        $_SESSION['current_position_index'] = $current_position_index + 1;
+        header("Location: vote.php");
+        exit();
+    } else {
+        // If last position, redirect to confirmation page
+        header("Location: vote_confirm.php");
+        exit();
+    }
+}
+
+// Handle final vote submission
+if (isset($_POST['submit_votes'])) {
     $success = true;
+    $error_message = '';
 
     // Start transaction
     $conn->begin_transaction();
 
     try {
-        foreach ($votes as $position_id => $candidate_id) {
+        foreach ($_SESSION['selected_candidates'] as $position_id => $candidate_id) {
             $insert_vote = "INSERT INTO vote_table (voter_id, candidate_id, vote_timestamp) 
                            VALUES ('$voter_id', '$candidate_id', NOW())";
             if (!$conn->query($insert_vote)) {
@@ -63,17 +86,31 @@ if (isset($_POST['submit_votes']) && !$has_voted) {
         }
         
         // Log the voting activity
-        $description = "Voter ID: $voter_id submitted votes for " . count($votes) . " positions";
+        $description = "Voter ID: $voter_id submitted votes for " . count($_SESSION['selected_candidates']) . " positions";
         logActivity($conn, $voter_id, 'VOTE', $description);
         
         $conn->commit();
+        
+        // Clear voting session data
+        unset($_SESSION['selected_candidates']);
+        unset($_SESSION['current_position_index']);
+        
         header("Location: vote_success.php");
         exit();
     } catch (Exception $e) {
         $conn->rollback();
-        $error_message = "Error recording votes. Please try again.";
+        $error_message = "Error recording votes: " . $e->getMessage();
+        error_log("Vote Error: " . $e->getMessage());
+        echo "<script>alert('$error_message');</script>";
     }
 }
+
+// Get current position
+$current_position = $positions_array[$current_position_index];
+
+// Get candidates for current position
+$candidates_query = "SELECT * FROM candidate_table WHERE position_id = '" . $current_position['position_id'] . "'";
+$candidates = $conn->query($candidates_query);
 ?>
 
 <!DOCTYPE html>
@@ -113,7 +150,24 @@ if (isset($_POST['submit_votes']) && !$has_voted) {
             border-radius: 20px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
-        
+
+        .form-card {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            transition: all 0.3s ease;
+        }
+
+        .form-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
         .position-title {
             color: #000;
             font-size: 2rem;
@@ -122,89 +176,75 @@ if (isset($_POST['submit_votes']) && !$has_voted) {
             padding-bottom: 0.5rem;
             border-bottom: 2px solid #ffc107;
         }
-        
-        .candidate-option {
+
+        .candidate-card {
             background: #fff;
             border: 2px solid #ddd;
             border-radius: 10px;
-            padding: 1rem;
+            padding: 1.5rem;
             margin-bottom: 1rem;
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
-        
-        .candidate-option:hover {
+
+        .candidate-card:hover {
             border-color: #ffc107;
             background-color: #fff9e6;
             transform: translateY(-2px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
         }
-        
-        .candidate-option.selected {
-            border-color: #198754;
-            background-color: #f8fff9;
-            box-shadow: 0 6px 12px rgba(25, 135, 84, 0.1);
+
+        .candidate-card.selected {
+            border-color: #ffc107;
+            background-color: #fff9e6;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
         }
-        
-        .candidate-option input[type="radio"] {
-            margin-right: 1rem;
-        }
-        
+
         .candidate-info {
             display: flex;
             align-items: center;
+            gap: 1.5rem;
         }
-        
+
         .candidate-image {
-            width: 80px;
-            height: 80px;
+            width: 120px;
+            height: 120px;
             object-fit: cover;
             border-radius: 50%;
-            margin-right: 1rem;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-        
+
         .candidate-details {
             flex: 1;
         }
-        
+
         .candidate-name {
             color: #000;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: 600;
-            margin-bottom: 0.2rem;
+            margin-bottom: 0.5rem;
         }
-        
+
         .candidate-position {
             color: #ffc107;
             font-weight: 500;
-            margin-bottom: 0.2rem;
+            margin-bottom: 0.5rem;
         }
-        
+
         .candidate-description {
             color: #666;
             font-size: 0.9rem;
         }
 
-        .step {
-            display: none;
-            background: #fff;
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-
-        .step.active {
-            display: block;
+        .progress-container {
+            margin-bottom: 2rem;
         }
 
         .progress {
             height: 10px;
-            margin-bottom: 2rem;
-            background-color: #e9ecef;
             border-radius: 5px;
-            overflow: hidden;
+            background-color: #e9ecef;
         }
 
         .progress-bar {
@@ -212,44 +252,39 @@ if (isset($_POST['submit_votes']) && !$has_voted) {
             transition: width 0.3s ease;
         }
 
-        .nav-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 2rem;
+        .step-indicator {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
         }
 
-        .nav-buttons .btn {
-            padding: 0.8rem 2rem;
-            font-weight: 500;
-            border-radius: 8px;
-            transition: all 0.3s ease;
+        .btn-primary {
+            background-color: #ffc107;
+            border-color: #ffc107;
+            color: #000;
         }
 
-        .nav-buttons .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        .btn-primary:hover {
+            background-color: #e0a800;
+            border-color: #e0a800;
+            color: #000;
+        }
+
+        .btn-outline-secondary {
+            color: #666;
+            border-color: #666;
+        }
+
+        .btn-outline-secondary:hover {
+            background-color: #666;
+            border-color: #666;
+            color: #fff;
         }
 
         .alert {
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        }
-
-        .custom-navbar {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .custom-navbar.scrolled {
-            background: rgba(255, 255, 255, 0.98);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .footer {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
@@ -280,78 +315,69 @@ if (isset($_POST['submit_votes']) && !$has_voted) {
 
     <section class="vote-section">
         <div class="container">
-            <?php if ($has_voted): ?>
-                <div class="alert alert-warning text-center">
-                    <h4 class="alert-heading">You have already voted!</h4>
-                    <p>You cannot vote again. Your previous votes have been recorded.</p>
-                    <hr>
-                    <p class="mb-0">
-                        <a href="home.php" class="btn btn-primary">Return to Home</a>
-                    </p>
-                </div>
-            <?php else: ?>
-                <form id="voteForm" method="POST" action="">
+            <div class="form-card">
+                <div class="progress-container">
                     <div class="progress">
-                        <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: <?= (($current_position_index + 1) / count($positions_array)) * 100 ?>%">
+                        </div>
                     </div>
+                    <div class="step-indicator">
+                        Position <?= $current_position_index + 1 ?> of <?= count($positions_array) ?>
+                    </div>
+                </div>
 
-                    <?php foreach ($positions_array as $index => $position): 
-                        // Get candidates for this position
-                        $candidates_query = "SELECT * FROM candidate_table WHERE position_id = '" . $position['position_id'] . "'";
-                        $candidates = $conn->query($candidates_query);
-                        $has_candidates = $candidates->num_rows > 0;
-                    ?>
-                        <div class="step <?= $index === 0 ? 'active' : '' ?>" id="step-<?= $index + 1 ?>">
-                            <h2 class="position-title"><?= htmlspecialchars($position['position_name']) ?></h2>
-                            <p class="text-muted mb-4"><?= htmlspecialchars($position['position_description']) ?></p>
-                            
-                            <?php if ($has_candidates): ?>
-                                <div class="candidates-list">
-                                    <?php while ($candidate = $candidates->fetch_assoc()): ?>
-                                        <label class="candidate-option">
-                                            <input type="radio" 
-                                                   name="votes[<?= $position['position_id'] ?>]" 
-                                                   value="<?= $candidate['candidate_id'] ?>" 
-                                                   required>
-                                            <div class="candidate-info">
-                                                <img src="<?= htmlspecialchars($candidate['img_path']) ?>" 
-                                                     alt="<?= htmlspecialchars($candidate['candidate_name']) ?>" 
-                                                     class="candidate-image">
-                                                <div class="candidate-details">
-                                                    <h3 class="candidate-name"><?= htmlspecialchars($candidate['candidate_name']) ?></h3>
-                                                    <p class="candidate-position"><?= htmlspecialchars($candidate['party_affiliation']) ?></p>
-                                                    <p class="candidate-description"><?= htmlspecialchars($candidate['college']) ?></p>
-                                                </div>
-                                            </div>
-                                        </label>
-                                    <?php endwhile; ?>
-                                </div>
+                <h2 class="position-title"><?= htmlspecialchars($current_position['position_name']) ?></h2>
+                <p class="text-muted mb-4"><?= htmlspecialchars($current_position['position_description']) ?></p>
+
+                <?php if ($candidates->num_rows > 0): ?>
+                    <form method="POST" action="">
+                        <input type="hidden" name="position_id" value="<?= $current_position['position_id'] ?>">
+                        <div class="candidates-list">
+                            <?php while ($candidate = $candidates->fetch_assoc()): ?>
+                                <label class="candidate-card <?= isset($_SESSION['selected_candidates'][$current_position['position_id']]) && $_SESSION['selected_candidates'][$current_position['position_id']] == $candidate['candidate_id'] ? 'selected' : '' ?>">
+                                    <input type="radio" 
+                                           name="candidate_id" 
+                                           value="<?= $candidate['candidate_id'] ?>" 
+                                           required
+                                           style="display: none;"
+                                           <?= isset($_SESSION['selected_candidates'][$current_position['position_id']]) && $_SESSION['selected_candidates'][$current_position['position_id']] == $candidate['candidate_id'] ? 'checked' : '' ?>>
+                                    <div class="candidate-info">
+                                        <img src="../<?= htmlspecialchars($candidate['img_path']) ?>" 
+                                             alt="<?= htmlspecialchars($candidate['candidate_name']) ?>" 
+                                             class="candidate-image">
+                                        <div class="candidate-details">
+                                            <h3 class="candidate-name"><?= htmlspecialchars($candidate['candidate_name']) ?></h3>
+                                            <p class="candidate-position"><?= htmlspecialchars($candidate['party_affiliation']) ?></p>
+                                            <p class="candidate-description"><?= htmlspecialchars($candidate['college']) ?></p>
+                                        </div>
+                                    </div>
+                                </label>
+                            <?php endwhile; ?>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <?php if ($current_position_index > 0): ?>
+                                <a href="?prev=1" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-left me-2"></i>Previous
+                                </a>
                             <?php else: ?>
-                                <div class="alert alert-info">
-                                    <i class="bi bi-info-circle me-2"></i>
-                                    No candidates have been registered for this position yet.
-                                </div>
+                                <div></div>
                             <?php endif; ?>
 
-                            <div class="nav-buttons">
-                                <?php if ($index > 0): ?>
-                                    <button type="button" class="btn btn-secondary" onclick="prevStep()">Previous</button>
-                                <?php else: ?>
-                                    <div></div>
-                                <?php endif; ?>
-
-                                <?php if ($index < count($positions_array) - 1): ?>
-                                    <button type="button" class="btn btn-primary" onclick="nextStep()">Next</button>
-                                <?php else: ?>
-                                    <button type="submit" name="submit_votes" class="btn btn-success">
-                                        Submit Votes<i class="bi bi-check-circle ms-2"></i>
-                                    </button>
-                                <?php endif; ?>
-                            </div>
+                            <button type="submit" name="select_candidate" class="btn btn-primary">
+                                <?= $current_position_index < count($positions_array) - 1 ? 'Next' : 'Review Votes' ?>
+                                <i class="bi bi-arrow-right ms-2"></i>
+                            </button>
                         </div>
-                    <?php endforeach; ?>
-                </form>
-            <?php endif; ?>
+                    </form>
+                <?php else: ?>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        No candidates have been registered for this position yet.
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
     </section>
 
@@ -366,86 +392,21 @@ if (isset($_POST['submit_votes']) && !$has_voted) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
     <script>
-        let currentStep = 1;
-        const totalSteps = <?= count($positions_array) ?>;
-        const selectedVotes = {};
-
-        function updateProgress() {
-            const progress = (Object.keys(selectedVotes).length / totalSteps) * 100;
-            document.querySelector('.progress-bar').style.width = `${progress}%`;
-        }
-
-        function showStep(step) {
-            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-            document.getElementById(`step-${step}`).classList.add('active');
-            currentStep = step;
-        }
-
-        function nextStep() {
-            const currentStepElement = document.getElementById(`step-${currentStep}`);
-            const hasCandidates = currentStepElement.querySelector('.candidates-list') !== null;
-            
-            if (hasCandidates) {
-                const currentPosition = currentStepElement.querySelector('input[type="radio"]:checked');
-                if (!currentPosition) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Selection Required',
-                        text: 'Please select a candidate before proceeding.',
-                        confirmButtonColor: '#ffc107'
-                    });
-                    return;
-                }
-                selectedVotes[currentPosition.name] = currentPosition.value;
-            }
-            
-            updateProgress();
-            showStep(currentStep + 1);
-        }
-
-        function prevStep() {
-            showStep(currentStep - 1);
-        }
-
         // Add visual feedback for radio selection
-        document.querySelectorAll('.candidate-option').forEach(option => {
-            option.addEventListener('click', function() {
-                // Remove selected class from all options in this step
-                const step = this.closest('.step');
-                step.querySelectorAll('.candidate-option').forEach(opt => {
-                    opt.classList.remove('selected');
+        document.querySelectorAll('.candidate-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const radio = this.querySelector('input[type="radio"]');
+                const step = this.closest('.candidates-list');
+                
+                // Remove selected class from all cards
+                step.querySelectorAll('.candidate-card').forEach(c => {
+                    c.classList.remove('selected');
                 });
-                // Add selected class to this option
+                
+                // Add selected class to this card and check the radio
                 this.classList.add('selected');
+                radio.checked = true;
             });
-        });
-
-        // Form validation
-        document.getElementById('voteForm').addEventListener('submit', function(e) {
-            const selectedCount = Object.keys(selectedVotes).length;
-            const totalPositionsWithCandidates = document.querySelectorAll('.candidates-list').length;
-            
-            if (selectedCount !== totalPositionsWithCandidates) {
-                e.preventDefault();
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Incomplete Votes',
-                    text: 'Please select a candidate for each position that has candidates.',
-                    confirmButtonColor: '#ffc107'
-                });
-            }
-        });
-
-        // Navbar scroll effect
-        window.addEventListener('scroll', function() {
-            const navbar = document.getElementById('mainNavbar');
-            const scrolled = window.pageYOffset;
-            
-            if (scrolled > 50) {
-                navbar.classList.add('scrolled');
-            } else {
-                navbar.classList.remove('scrolled');
-            }
         });
     </script>
 </body>
