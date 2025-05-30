@@ -1,6 +1,10 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 session_start();
 require_once '../public/db_conn.php';
+require_once '../public/functions.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['voter_id'])) {
@@ -8,14 +12,66 @@ if (!isset($_SESSION['voter_id'])) {
     exit();
 }
 
-// Check if user has actually voted
 $voter_id = $_SESSION['voter_id'];
-$check_vote = "SELECT * FROM vote_table WHERE voter_id = '$voter_id'";
-$vote_result = $conn->query($check_vote);
 
-if ($vote_result->num_rows == 0) {
+// Check if user has already voted
+$check_vote_query = "SELECT COUNT(*) as vote_count FROM vote_table WHERE voter_id = '$voter_id'";
+$vote_result = $conn->query($check_vote_query);
+$vote_count = $vote_result->fetch_assoc()['vote_count'];
+
+if ($vote_count == 0) {
+    // If no votes found, redirect to voting page
     header("Location: vote.php");
     exit();
+}
+
+// Get all positions and their candidates
+$positions_query = "SELECT * FROM position_table ORDER BY position_id";
+$positions = $conn->query($positions_query);
+$positions_array = [];
+while ($position = $positions->fetch_assoc()) {
+    $positions_array[$position['position_id']] = $position;
+}
+
+// Get the user's votes
+$votes_query = "SELECT v.*, c.*, p.position_name 
+                FROM vote_table v 
+                JOIN candidate_table c ON v.candidate_id = c.candidate_id 
+                JOIN position_table p ON c.position_id = p.position_id 
+                WHERE v.voter_id = '$voter_id' 
+                ORDER BY p.position_id";
+$votes = $conn->query($votes_query);
+
+// Check if results are available
+$results_query = "SELECT * FROM settings_table WHERE setting_name = 'show_results'";
+$results_setting = $conn->query($results_query);
+$show_results = $results_setting->fetch_assoc()['setting_value'] ?? '0';
+
+// Get election results if available
+$results = [];
+if ($show_results == '1') {
+    $results_query = "SELECT 
+                        p.position_name,
+                        c.candidate_name,
+                        c.party_affiliation,
+                        c.college,
+                        c.img_path,
+                        COUNT(v.vote_id) as vote_count,
+                        (SELECT COUNT(*) FROM vote_table) as total_votes
+                    FROM position_table p
+                    LEFT JOIN candidate_table c ON p.position_id = c.position_id
+                    LEFT JOIN vote_table v ON c.candidate_id = v.candidate_id
+                    GROUP BY p.position_id, c.candidate_id
+                    ORDER BY p.position_id, vote_count DESC";
+    $results_result = $conn->query($results_query);
+    
+    while ($row = $results_result->fetch_assoc()) {
+        $position_id = $row['position_name'];
+        if (!isset($results[$position_id])) {
+            $results[$position_id] = [];
+        }
+        $results[$position_id][] = $row;
+    }
 }
 ?>
 
@@ -24,7 +80,7 @@ if ($vote_result->num_rows == 0) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vote Success - BOTOmasino Elections</title>
+    <title>Vote Summary - BOTOmasino Elections</title>
     
     <!-- CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -38,132 +94,308 @@ if ($vote_result->num_rows == 0) {
             min-height: 100vh;
         }
 
-        .success-section {
+        .summary-section { 
             padding: 4rem 0;
             position: relative;
             z-index: 1;
         }
 
-        .success-card {
-            background: rgba(255, 255, 255, 0.95);
+        .summary-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: -1;
             border-radius: 20px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            padding: 3rem;
-            text-align: center;
-            max-width: 800px;
-            margin: 0 auto;
         }
 
-        .success-icon {
-            font-size: 5rem;
-            color: #198754;
-            margin-bottom: 1.5rem;
-        }
-
-        .success-title {
-            color: #000;
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-        }
-
-        .success-message {
-            color: #666;
-            font-size: 1.2rem;
+        .summary-card {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
             margin-bottom: 2rem;
-        }
-
-        .btn-custom {
-            padding: 0.8rem 2rem;
-            font-weight: 500;
-            border-radius: 8px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
             transition: all 0.3s ease;
         }
 
-        .btn-custom:hover {
+        .summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: #ffc107;
+            margin-bottom: 1rem;
+        }
+
+        .position-title {
+            color: #000;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #ffc107;
+        }
+
+        .vote-card {
+            background: #fff;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .vote-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
         }
 
-        .custom-navbar {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        .candidate-info {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
         }
 
-        .custom-navbar.scrolled {
-            background: rgba(255, 255, 255, 0.98);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        .candidate-image {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 50%;
+            box-shadow: none;
+        }
+
+        .candidate-details {
+            flex: 1;
+        }
+
+        .candidate-name {
+            color: #000;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .candidate-position {
+            color: #ffc107;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .candidate-description {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .vote-timestamp {
+            color: #666;
+            font-size: 0.9rem;
+            text-align: right;
+            margin-top: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: #ffc107;
+            border-color: #ffc107;
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            background-color: #e0a800;
+            border-color: #e0a800;
+            color: #000;
+        }
+
+        .results-section {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #ffc107;
+        }
+
+        .results-title {
+            color: #000;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .results-card {
+            background: #fff;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .results-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .vote-count {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #ffc107;
+        }
+
+        .vote-percentage {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .progress {
+            height: 8px;
+            background-color: #e9ecef;
+            margin-top: 0.5rem;
+        }
+
+        .progress-bar {
+            background-color: #ffc107;
+            transition: width 0.3s ease;
+        }
+
+        .winner-badge {
+            background-color: #ffc107;
+            color: #000;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 1rem;
         }
     </style>
 </head>
-<body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light custom-navbar fixed-top">
-        <div class="container">
-            <a class="navbar-brand" href="home.php">
-                <img src="../assets/images/logo.png" alt="BOTOmasino Logo" height="40">
+<body> <!--navbar-->
+    <nav class="navbar navbar-expand-lg custom-navbar" id="mainNavbar">
+        <div class="container-fluid px-5">
+            <a class="navbar-brand d-flex align-items-center" href="home.php">
+                <img src="../images/USTLogo.png" width="40" height="40" class="d-inline-block me-2" alt="SSC Logo">
+                <span class="text-yellow">UST</span>&nbsp;Supreme Student Council
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="home.php">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="../admin/logout.php">Logout</a>
-                    </li>
-                </ul>
+            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                <div class="navbar-nav ms-auto">
+                    <a class="nav-item nav-link active" href="home.php" aria-current="page">Home</a>
+                    <div class="vr mx-2 d-none d-lg-block"></div>
+                    <a class="nav-item nav-link" href="candidate.php">Candidates</a>
+                    <div class="vr mx-2 d-none d-lg-block"></div>
+                    <a class="nav-item nav-link" href="vote.php">Vote</a>
+                    <div class="vr mx-2 d-none d-lg-block"></div>
+                    <a class="nav-item nav-link" href="Account.php">Account</a>
+                </div>
             </div>
         </div>
     </nav>
 
-    <!-- Success Section -->
-    <section class="success-section">
+    <section class="summary-section">
         <div class="container">
-            <div class="success-card">
-                <i class="bi bi-check-circle-fill success-icon"></i>
-                <h1 class="success-title">Thank You for Voting!</h1>
-                <p class="success-message">
-                    Your votes have been successfully recorded. Your participation in the BOTOmasino Elections is greatly appreciated.
-                </p>
-                <div class="d-flex justify-content-center gap-3">
-                    <a href="home.php" class="btn btn-primary btn-custom">
+            <div class="summary-card">
+                <div class="text-center mb-4">
+                    <i class="bi bi-check-circle-fill success-icon"></i>
+                    <h2 class="mb-3">Vote Submitted Successfully!</h2>
+                    <p class="text-muted">Thank you for participating in the election. Here's a summary of your votes:</p>
+                </div>
+
+                <?php while ($vote = $votes->fetch_assoc()): ?>
+                    <div class="mb-4">
+                        <h3 class="position-title"><?= htmlspecialchars($vote['position_name']) ?></h3>
+                        <div class="vote-card">
+                            <div class="candidate-info">
+                                <img src="../<?= htmlspecialchars($vote['img_path']) ?>" 
+                                     alt="<?= htmlspecialchars($vote['candidate_name']) ?>" 
+                                     class="candidate-image">
+                                <div class="candidate-details">
+                                    <h4 class="candidate-name"><?= htmlspecialchars($vote['candidate_name']) ?></h4>
+                                    <p class="candidate-position"><?= htmlspecialchars($vote['party_affiliation']) ?></p>
+                                    <p class="candidate-description"><?= htmlspecialchars($vote['college']) ?></p>
+                                </div>
+                            </div>
+                            <div class="vote-timestamp">
+                                <i class="bi bi-clock me-1"></i>
+                                <?= date('F j, Y g:i A', strtotime($vote['vote_timestamp'])) ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php endwhile; ?>
+
+                <?php if ($show_results == '1'): ?>
+                <div class="results-section">
+                    <h2 class="results-title">Election Results</h2>
+                    
+                    <?php foreach ($results as $position => $candidates): ?>
+                        <div class="mb-4">
+                            <h3 class="position-title"><?= htmlspecialchars($position) ?></h3>
+                            <?php 
+                            $max_votes = max(array_column($candidates, 'vote_count'));
+                            $total_votes = $candidates[0]['total_votes'];
+                            ?>
+                            
+                            <?php foreach ($candidates as $candidate): ?>
+                                <div class="results-card">
+                                    <div class="candidate-info">
+                                        <img src="../<?= htmlspecialchars($candidate['img_path']) ?>" 
+                                             alt="<?= htmlspecialchars($candidate['candidate_name']) ?>" 
+                                             class="candidate-image">
+                                        <div class="candidate-details">
+                                            <div class="d-flex align-items-center">
+                                                <h4 class="candidate-name mb-0"><?= htmlspecialchars($candidate['candidate_name']) ?></h4>
+                                                <?php if ($candidate['vote_count'] == $max_votes && $candidate['vote_count'] > 0): ?>
+                                                    <span class="winner-badge">Winner</span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <p class="candidate-position"><?= htmlspecialchars($candidate['party_affiliation']) ?></p>
+                                            <p class="candidate-description"><?= htmlspecialchars($candidate['college']) ?></p>
+                                            <div class="vote-count">
+                                                <?= number_format($candidate['vote_count']) ?> votes
+                                                <span class="vote-percentage">
+                                                    (<?= $total_votes > 0 ? number_format(($candidate['vote_count'] / $total_votes) * 100, 1) : 0 ?>%)
+                                                </span>
+                                            </div>
+                                            <div class="progress">
+                                                <div class="progress-bar" role="progressbar" 
+                                                     style="width: <?= $total_votes > 0 ? ($candidate['vote_count'] / $total_votes) * 100 : 0 ?>%">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
+
+                <div class="text-center mt-4">
+                    <a href="home.php" class="btn btn-primary">
                         <i class="bi bi-house-door me-2"></i>Return to Home
-                    </a>
-                    <a href="../admin/logout.php" class="btn btn-outline-secondary btn-custom">
-                        <i class="bi bi-box-arrow-right me-2"></i>Logout
                     </a>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Scripts -->
+    <!-- Footer -->
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container text-center">
+            <span class="text-muted">© 2024 UST Supreme Student Council. All rights reserved.</span>
+        </div>
+    </footer>
+    
+    <!-- JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
-    <script>
-        // Navbar scroll effect
-        window.addEventListener('scroll', function() {
-            const navbar = document.querySelector('.custom-navbar');
-            if (window.scrollY > 50) {
-                navbar.classList.add('scrolled');
-            } else {
-                navbar.classList.remove('scrolled');
-            }
-        });
-
-        // Show success message
-        Swal.fire({
-            position: "center",
-            icon: "success",
-            title: "Votes Recorded Successfully!",
-            text: "Thank you for participating in the BOTOmasino Elections.",
-            showConfirmButton: false,
-            timer: 2000
-        });
-    </script>
 </body>
 </html> 

@@ -14,6 +14,17 @@ if (!isset($_SESSION['voter_id'])) {
 
 $voter_id = $_SESSION['voter_id'];
 
+// Check if user has already voted
+$check_vote_query = "SELECT COUNT(*) as vote_count FROM vote_table WHERE voter_id = '$voter_id'";
+$vote_result = $conn->query($check_vote_query);
+$vote_count = $vote_result->fetch_assoc()['vote_count'];
+
+if ($vote_count > 0) {
+    // If user has already voted, redirect to vote summary page
+    header("Location: vote_success.php");
+    exit();
+}
+
 // Initialize selected candidates in session if not exists
 if (!isset($_SESSION['selected_candidates'])) {
     $_SESSION['selected_candidates'] = [];
@@ -130,7 +141,10 @@ $candidates = $conn->query($candidates_query);
         body {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
+            padding-top: 76px; /* Add padding for fixed navbar */
         }
+
+        
 
         .vote-section { 
             padding: 4rem 0;
@@ -181,11 +195,14 @@ $candidates = $conn->query($candidates_query);
             background: #fff;
             border: 2px solid #ddd;
             border-radius: 10px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
+            padding: 0;
+            margin-bottom: 0.5rem;
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            display: flex;
+            flex-direction: column;
         }
 
         .candidate-card:hover {
@@ -201,21 +218,23 @@ $candidates = $conn->query($candidates_query);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
         }
 
-        .candidate-info {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-
         .candidate-image {
-            width: 120px;
-            height: 120px;
-            object-fit: cover;
-            border-radius: 50%;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            aspect-ratio: 1;
+            position: relative;
+            overflow: hidden;
         }
 
-        .candidate-details {
+        .candidate-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .candidate-info {
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
             flex: 1;
         }
 
@@ -224,6 +243,7 @@ $candidates = $conn->query($candidates_query);
             font-size: 1.2rem;
             font-weight: 600;
             margin-bottom: 0.5rem;
+            line-height: 1.2;
         }
 
         .candidate-position {
@@ -234,7 +254,40 @@ $candidates = $conn->query($candidates_query);
 
         .candidate-description {
             color: #666;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            line-height: 1.2;
+            margin-bottom: 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 2.4em;
+        }
+
+        .candidate-container {
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            height: 100%;
+            padding: 0.5rem;
+        }
+
+        @media (max-width: 1200px) {
+            .candidate-container {
+                width: 33.333%;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .candidate-container {
+                width: 50%;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .candidate-container {
+                width: 100%;
+            }
         }
 
         .progress-container {
@@ -289,25 +342,26 @@ $candidates = $conn->query($candidates_query);
     </style>
 </head>
 <body>
-    <!-- Navbar -->
+    
+    <!--navbar-->
     <nav class="navbar navbar-expand-lg custom-navbar" id="mainNavbar">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="home.php">
-                <img src="../assets/images/logo.png" width="30" height="30" class="d-inline-block align-top me-2" alt="SSC Logo">
-                UST Supreme Student Council
+        <div class="container-fluid px-5">
+            <a class="navbar-brand d-flex align-items-center" href="home.php">
+                <img src="../images/USTLogo.png" width="40" height="40" class="d-inline-block me-2" alt="SSC Logo">
+                <span class="text-yellow">UST</span>&nbsp;Supreme Student Council
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                 <div class="navbar-nav ms-auto">
-                    <a class="nav-item nav-link" href="home.php">Home</a>
+                    <a class="nav-item nav-link active" href="home.php" aria-current="page">Home</a>
                     <div class="vr mx-2 d-none d-lg-block"></div>
                     <a class="nav-item nav-link" href="candidate.php">Candidates</a>
                     <div class="vr mx-2 d-none d-lg-block"></div>
-                    <a class="nav-item nav-link active" href="vote.php" aria-current="page">Vote</a>
+                    <a class="nav-item nav-link" href="vote.php">Vote</a>
                     <div class="vr mx-2 d-none d-lg-block"></div>
-                    <a class="nav-item nav-link" href="account.php">Account</a>
+                    <a class="nav-item nav-link" href="Account.php">Account</a>
                 </div>
             </div>
         </div>
@@ -327,32 +381,33 @@ $candidates = $conn->query($candidates_query);
                     </div>
                 </div>
 
-                <h2 class="position-title"><?= htmlspecialchars($current_position['position_name']) ?></h2>
+                <h2 class="position-title text-center"><?= htmlspecialchars($current_position['position_name']) ?></h2>
                 <p class="text-muted mb-4"><?= htmlspecialchars($current_position['position_description']) ?></p>
 
                 <?php if ($candidates->num_rows > 0): ?>
                     <form method="POST" action="">
                         <input type="hidden" name="position_id" value="<?= $current_position['position_id'] ?>">
-                        <div class="candidates-list">
+                        <div class="row d-flex justify-content-center align-items-center g-2">
                             <?php while ($candidate = $candidates->fetch_assoc()): ?>
-                                <label class="candidate-card <?= isset($_SESSION['selected_candidates'][$current_position['position_id']]) && $_SESSION['selected_candidates'][$current_position['position_id']] == $candidate['candidate_id'] ? 'selected' : '' ?>">
-                                    <input type="radio" 
-                                           name="candidate_id" 
-                                           value="<?= $candidate['candidate_id'] ?>" 
-                                           required
-                                           style="display: none;"
-                                           <?= isset($_SESSION['selected_candidates'][$current_position['position_id']]) && $_SESSION['selected_candidates'][$current_position['position_id']] == $candidate['candidate_id'] ? 'checked' : '' ?>>
-                                    <div class="candidate-info">
-                                        <img src="../<?= htmlspecialchars($candidate['img_path']) ?>" 
-                                             alt="<?= htmlspecialchars($candidate['candidate_name']) ?>" 
-                                             class="candidate-image">
-                                        <div class="candidate-details">
+                                <div class="candidate-container col-3">
+                                    <label class="candidate-card <?= isset($_SESSION['selected_candidates'][$current_position['position_id']]) && $_SESSION['selected_candidates'][$current_position['position_id']] == $candidate['candidate_id'] ? 'selected' : '' ?>">
+                                        <input type="radio" 
+                                               name="candidate_id" 
+                                               value="<?= $candidate['candidate_id'] ?>" 
+                                               required
+                                               style="display: none;"
+                                               <?= isset($_SESSION['selected_candidates'][$current_position['position_id']]) && $_SESSION['selected_candidates'][$current_position['position_id']] == $candidate['candidate_id'] ? 'checked' : '' ?>>
+                                        <div class="candidate-image">
+                                            <img src="../<?= htmlspecialchars($candidate['img_path']) ?>" 
+                                                 alt="<?= htmlspecialchars($candidate['candidate_name']) ?>">
+                                        </div>
+                                        <div class="candidate-info">
                                             <h3 class="candidate-name"><?= htmlspecialchars($candidate['candidate_name']) ?></h3>
                                             <p class="candidate-position"><?= htmlspecialchars($candidate['party_affiliation']) ?></p>
                                             <p class="candidate-description"><?= htmlspecialchars($candidate['college']) ?></p>
                                         </div>
-                                    </div>
-                                </label>
+                                    </label>
+                                </div>
                             <?php endwhile; ?>
                         </div>
 

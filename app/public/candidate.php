@@ -2,10 +2,30 @@
 session_start();
 require_once '../public/db_conn.php';
 
+// Get all candidates with their positions
+$candidates_query = "SELECT c.*, p.position_name, p.position_description 
+                    FROM candidate_table c 
+                    JOIN position_table p ON c.position_id = p.position_id 
+                    ORDER BY p.position_id, c.candidate_name";
+$candidates = $conn->query($candidates_query);
 
-// Get all positions
-$positions_query = "SELECT * FROM position_table ORDER BY position_id";
-$positions = $conn->query($positions_query);
+if (!$candidates) {
+    die("Error in candidates query: " . $conn->error);
+}
+
+// Group candidates by position
+$candidates_by_position = [];
+while ($candidate = $candidates->fetch_assoc()) {
+    $position_id = $candidate['position_id'];
+    if (!isset($candidates_by_position[$position_id])) {
+        $candidates_by_position[$position_id] = [
+            'position_name' => $candidate['position_name'],
+            'position_description' => $candidate['position_description'],
+            'candidates' => []
+        ];
+    }
+    $candidates_by_position[$position_id]['candidates'][] = $candidate;
+}
 ?>
 
 <!DOCTYPE html>
@@ -22,7 +42,11 @@ $positions = $conn->query($positions_query);
     
     <style>
         body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background-image: url('../images/ust-bg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
             min-height: 100vh;
         }
 
@@ -39,43 +63,63 @@ $positions = $conn->query($positions_query);
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(255, 255, 255, 0.9);
             z-index: -1;
             border-radius: 20px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
-        .position-card {
+        .form-card {
             background: #fff;
             border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             padding: 2rem;
             margin-bottom: 2rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
             transition: all 0.3s ease;
         }
 
-        .position-card:hover {
+        .form-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
         }
 
         .position-title {
             color: #000;
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: 700;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
             padding-bottom: 0.5rem;
             border-bottom: 2px solid #ffc107;
+        }
+
+        .position-description {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .candidate-card {
             background: #fff;
             border: 2px solid #ddd;
             border-radius: 10px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
+            padding: 0;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            max-width: 280px;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
         }
 
         .candidate-card:hover {
@@ -86,36 +130,103 @@ $positions = $conn->query($positions_query);
         }
 
         .candidate-image {
-            width: 120px;
-            height: 120px;
+            width: 100%;
+            aspect-ratio: 1;
+            position: relative;
+            overflow: hidden;
+            max-height: 280px;
+        }
+
+        .candidate-image img {
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            border-radius: 50%;
-            margin-bottom: 1rem;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .candidate-info {
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            align-items: center;
         }
 
         .candidate-name {
             color: #000;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 600;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.4rem;
+            line-height: 1.2;
         }
 
-        .candidate-party {
+        .candidate-position {
             color: #ffc107;
             font-weight: 500;
-            margin-bottom: 0.5rem;
-        }
-
-        .candidate-college {
-            color: #666;
+            margin-bottom: 0.4rem;
             font-size: 0.9rem;
         }
 
+        .candidate-description {
+            color: #666;
+            font-size: 0.8rem;
+            line-height: 1.2;
+            margin-bottom: 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            min-height: 2.4em;
+        }
+
+        .candidate-container {
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            height: 100%;
+            padding: 0.5rem;
+        }
+
+        @media (max-width: 1200px) {
+            .candidate-container {
+                width: 33.333%;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .candidate-container {
+                width: 50%;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .candidate-container {
+                width: 100%;
+            }
+        }
+
+        .btn-primary {
+            background-color: #ffc107;
+            border-color: #ffc107;
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            background-color: #e0a800;
+            border-color: #e0a800;
+            color: #000;
+        }
 
         .alert {
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .position-section {
+            margin-bottom: 4rem;
+        }
+
+        .position-section:last-child {
+            margin-bottom: 0;
         }
     </style>
 </head>
@@ -147,53 +258,47 @@ $positions = $conn->query($positions_query);
     
     <section class="candidate-section">
         <div class="container">
-            <?php 
-            while ($position = $positions->fetch_assoc()): 
-                // Get candidates for this position
-                $candidates_query = "SELECT * FROM candidate_table WHERE position_id = ?";
-                $stmt = $conn->prepare($candidates_query);
-                $stmt->bind_param("i", $position['position_id']);
-                $stmt->execute();
-                $candidates = $stmt->get_result();
+            <div class="form-card">
+                <h2 class="position-title text-center">Candidates</h2>
+                <p class="text-muted mb-4 text-center">Meet our candidates for the upcoming election</p>
 
-                if ($candidates->num_rows > 0):
-            ?>
-                <div class="mb-5 text-center">
-                    <h2 class="position-title"><?= htmlspecialchars($position['position_name']) ?></h2>
-                    <p class="position-description"><?= htmlspecialchars($position['position_description']) ?></p>
-                    <div class="row d-flex justify-content-center align-items-center">
-                        <?php while ($candidate = $candidates->fetch_assoc()): ?>
-                            <div class="col-md-6 col-lg-4 mb-4">
-                                <div class="candidate-card">
-                                    <img src="../<?= htmlspecialchars($candidate['img_path']) ?>" 
-                                         alt="<?= htmlspecialchars($candidate['candidate_name']) ?>" 
-                                         class="candidate-image">
-                                    <div class="candidate-info">
-                                        <h3 class="candidate-name"><?= htmlspecialchars($candidate['candidate_name']) ?></h3>
-                                        <p class="candidate-position">Running for <?= htmlspecialchars($position['position_name']) ?></p>
-                                        <p class="candidate-description"><?= htmlspecialchars($candidate['college']) ?></p>
-                                        <div class="candidate-platform">
-                                            <h4 class="platform-title">Platform</h4>
-                                            <ul class="platform-list">
-                                                <li><?= htmlspecialchars($candidate['party_affiliation']) ?></li>
-                                                <li><?= htmlspecialchars($position['position_description']) ?></li>
-                                            </ul>
+                <?php if (!empty($candidates_by_position)): ?>
+                    <?php foreach ($candidates_by_position as $position_id => $position_data): ?>
+                        <div class="position-section">
+                            <h3 class="position-title text-center"><?= htmlspecialchars($position_data['position_name']) ?></h3>
+                            <p class="position-description"><?= htmlspecialchars($position_data['position_description']) ?></p>
+                            <div class="row d-flex justify-content-center align-items-center g-2">
+                                <?php foreach ($position_data['candidates'] as $candidate): ?>
+                                    <div class="candidate-container col-3">
+                                        <div class="candidate-card">
+                                            <div class="candidate-image">
+                                                <img src="../<?= htmlspecialchars($candidate['img_path']) ?>" 
+                                                     alt="<?= htmlspecialchars($candidate['candidate_name']) ?>">
+                                            </div>
+                                            <div class="candidate-info">
+                                                <h3 class="candidate-name"><?= htmlspecialchars($candidate['candidate_name']) ?></h3>
+                                                <p class="candidate-position"><?= htmlspecialchars($candidate['party_affiliation']) ?></p>
+                                                <p class="candidate-description"><?= htmlspecialchars($candidate['college']) ?></p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                <?php endforeach; ?>
                             </div>
-                        <?php endwhile; ?>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        No candidates have been registered yet.
                     </div>
-                </div>
-                <hr class="my-5">
-            <?php 
-                endif;
-            endwhile; 
-            ?>
+                <?php endif; ?>
+            </div>
         </div>
     </section>
-     <!--footer-->
-     <footer class="footer mt-auto py-4 bg-navy text-white">
+    
+    
+    <!--footer-->
+    <footer class="footer mt-auto py-4 bg-navy text-white">
         <div class="container">
             <div class="row">
                 <div class="col-md-5 mb-1">
