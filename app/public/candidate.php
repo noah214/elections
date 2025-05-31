@@ -49,6 +49,9 @@ while ($candidate = $candidates->fetch_assoc()) {
             background-attachment: fixed;
             min-height: 100vh;
         }
+        div.container{
+            margin-top: 2.5%;
+        }
 
         .candidate-section { 
             padding: 4rem 0;
@@ -72,12 +75,13 @@ while ($candidate = $candidates->fetch_assoc()) {
             background: #fff;
             border-radius: 15px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            padding: 2rem;
+            padding: 4rem;
             margin-bottom: 2rem;
             max-width: 1000px;
             margin-left: auto;
             margin-right: auto;
             transition: all 0.3s ease;
+            
         }
 
         .form-card:hover {
@@ -87,9 +91,10 @@ while ($candidate = $candidates->fetch_assoc()) {
 
         .position-title {
             color: #000;
-            font-size: 2.5rem;
+            font-size: 1.75rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
+            margin-top: 2rem;
             padding-bottom: 0.5rem;
             border-bottom: 2px solid #ffc107;
         }
@@ -260,7 +265,7 @@ while ($candidate = $candidates->fetch_assoc()) {
         <div class="container">
             <div class="form-card">
                 
-                <h2 class="position-title text-center">Candidates</h2>
+                <h2 class="candidate-title text-center">Candidates</h2>
 
                 <p class="text-muted mb-4 text-center">Meet our candidates for the upcoming election</p>
 

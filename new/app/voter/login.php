@@ -1,5 +1,6 @@
 <?php
 ob_start(); // Start output buffering
+require_once "../php/functions.php";
 ?>
 <html lang="en">
   <head>
@@ -141,30 +142,30 @@ if (isset($_SESSION['registration_success'])) {
 
 // Handle login
 if (isset($_POST['sub'])){
-    $ppusername = $_POST['username'];
-    $pppassword = md5($_POST['pass']);
+    $username = $_POST['username'];
+    $password = md5($_POST['pass']);
 
-    $_SESSION['username'] = $ppusername;
+    $_SESSION['username'] = $username;
 
-    $pploginsql = "Select * from user_table WHERE username = '".$ppusername."' AND password = '".$pppassword."'";
-    $ppresult = $conn ->query($pploginsql);
+    $loginsql = "Select * from user_table WHERE username = '".$username."' AND password = '".$password."'";
+    $result = $conn ->query($loginsql);
 
-    if ($ppresult->num_rows == 1) {
-        $ppfielddata = $ppresult->fetch_assoc();
-        // print_r($ppfielddata);
+    if ($result->num_rows == 1) {
+        $fielddata = $result->fetch_assoc();
+        // print_r($fielddata);
         
         //Type of User
-        $pprole = $ppfielddata['role'];
-        $ppfullname = $ppfielddata['full_name'];
-        $ppemail = $ppfielddata['email'];
+        $role = $fielddata['role'];
+        $ppfullname = $fielddata['full_name'];
+        $ppemail = $fielddata['email'];
 
-        $_SESSION['username'] = $ppusername;
+        $_SESSION['username'] = $username;
         $_SESSION['fullname'] = $ppfullname;
-        $_SESSION['role'] = $pprole;
+        $_SESSION['role'] = $role;
         $_SESSION['email'] = $ppemail;
 
         // If user is a voter, get their voter information
-        if ($pprole == "Voter") {
+        if ($role == "Voter") {
             $voterQuery = "SELECT * FROM voter_table WHERE voter_name = '$ppfullname'";
             $voterResult = $conn->query($voterQuery);
             
@@ -180,10 +181,12 @@ if (isset($_POST['sub'])){
             }
         }
 
-       if ($pprole == "Admin" || $pprole == "Organizer") {
+       if ($role == "Admin" || $role == "Organizer") {
+            add_logs($conn, $fielddata['account_id'], "Logged In");
             header("location: ../admin/home.php");
             exit;
-        } elseif ($pprole == "Voter"){
+        } elseif ($role == "Voter"){
+            add_logs($conn, $fielddata['account_id'], "Logged In");
             ?> 
             <script>
                 window.location.href = "../public/home.php";

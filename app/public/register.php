@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once "db_conn.php";
-require_once "../public/logic/emailverification.php";
+require_once __DIR__ . "/logic/emailverification.php";
 require_once "../public/functions.php";
 
 if (!isset($_SESSION['register_stage'])) {
@@ -111,13 +111,16 @@ if (isset($_POST['register_submit'])) {
         
         if ($conn->query($insert_query)) {
             // Send OTP email using send_emailverification function
-            if(send_emailverification($fullname, $email, $otp)) {
+            if(send_emailverification($email, $otp)) {
                 $_SESSION['register_stage'] = 'otp';
                 $_SESSION['success_message'] = "OTP Sent! Please check your email for the verification code.";
                 header("Location: register.php");
                 exit();
             } else {
-                $_SESSION['error_message'] = "Failed to send OTP. Please try again.";
+                // If email sending fails, delete the user record
+                $delete_query = "DELETE FROM user_table WHERE email = '$email'";
+                $conn->query($delete_query);
+                $_SESSION['error_message'] = "Failed to send OTP. Please try again later.";
                 header("Location: register.php");
                 exit();
             }

@@ -40,7 +40,7 @@ if (isset($_POST['email_submit'])) {
         $conn->query($update_otp);
         
         // Send OTP via email
-        send_verification($user['full_name'], $email, $otp);
+        send_verification($email, $otp);
         
         $_SESSION['forgot_stage'] = 'otp';
         
@@ -165,29 +165,6 @@ if (isset($_POST['verify_otp'])) {
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg custom-navbar" id="mainNavbar">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="home.css">
-                <img src="" width="30" height="30" class="d-inline-block align-top me-2" alt="SSC Logo">
-                UST Supreme Student Council
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-                <div class="navbar-nav ms-auto">
-                    <a class="nav-item nav-link" href="home.php" aria-current="page">Home</a>
-                    <div class="vr mx-2 d-none d-lg-block"></div>
-                    <a class="nav-item nav-link" href="candidate.php">Candidates</a>
-                    <div class="vr mx-2 d-none d-lg-block"></div>
-                    <a class="nav-item nav-link" href="vote.php">Vote</a>
-                    <div class="vr mx-2 d-none d-lg-block"></div>
-                    <a class="nav-item nav-link active" href="account.php">Account</a>
-                </div>
-            </div>
-        </div>
-    </nav>
 
     <div class="container-fluid ust-bg">
         <div class="row h-100">
@@ -199,7 +176,7 @@ if (isset($_POST['verify_otp'])) {
                     <h2>Supreme Student Council:</h2>
                 </div>
                 <div class="text-white">
-                    <h2>BOTOmasino Elections</h2>
+                    <h2><span class="text-warning">BOTO</span>masino Elections</h2>
                 </div>
             </div>
             

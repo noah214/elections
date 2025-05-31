@@ -1,0 +1,10 @@
+<?php
+require_once '../connection/db_conn.php';
+
+//add logs to the logs_table
+function add_logs($conn, $user_id, $action)  {
+        $insert_sql = "INSERT INTO tbl_logs (user_id, action, datetime) values ('$user_id','$action',NOW())";
+        $conn->query($insert_sql);
+}
+
+?>

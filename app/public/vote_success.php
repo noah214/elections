@@ -215,64 +215,14 @@ if ($show_results == '1') {
             color: #000;
         }
 
-        .results-section {
-            margin-top: 3rem;
-            padding-top: 2rem;
-            border-top: 2px solid #ffc107;
-        }
-
-        .results-title {
-            color: #000;
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
-
-        .results-card {
-            background: #fff;
-            border: 2px solid #ffc107;
-            border-radius: 10px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .results-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .vote-count {
-            font-size: 1.2rem;
+        .view-results-btn {
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            margin: 2rem auto;
+            padding: 1rem;
+            font-size: 1.1rem;
             font-weight: 600;
-            color: #ffc107;
-        }
-
-        .vote-percentage {
-            font-size: 0.9rem;
-            color: #666;
-        }
-
-        .progress {
-            height: 8px;
-            background-color: #e9ecef;
-            margin-top: 0.5rem;
-        }
-
-        .progress-bar {
-            background-color: #ffc107;
-            transition: width 0.3s ease;
-        }
-
-        .winner-badge {
-            background-color: #ffc107;
-            color: #000;
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-left: 1rem;
         }
     </style>
 </head>
@@ -288,11 +238,11 @@ if ($show_results == '1') {
             </button>
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                 <div class="navbar-nav ms-auto">
-                    <a class="nav-item nav-link active" href="home.php" aria-current="page">Home</a>
+                    <a class="nav-item nav-link" href="home.php" aria-current="page">Home</a>
                     <div class="vr mx-2 d-none d-lg-block"></div>
                     <a class="nav-item nav-link" href="candidate.php">Candidates</a>
                     <div class="vr mx-2 d-none d-lg-block"></div>
-                    <a class="nav-item nav-link" href="vote.php">Vote</a>
+                    <a class="nav-item nav-link vote" href="vote.php">Vote</a>
                     <div class="vr mx-2 d-none d-lg-block"></div>
                     <a class="nav-item nav-link" href="Account.php">Account</a>
                 </div>
@@ -303,86 +253,35 @@ if ($show_results == '1') {
     <section class="summary-section">
         <div class="container">
             <div class="summary-card">
-                <div class="text-center mb-4">
+                <div class="text-center">
                     <i class="bi bi-check-circle-fill success-icon"></i>
-                    <h2 class="mb-3">Vote Submitted Successfully!</h2>
-                    <p class="text-muted">Thank you for participating in the election. Here's a summary of your votes:</p>
+                    <h1 class="mb-4">Your Vote Has Been Recorded!</h1>
+                    <p class="lead mb-4">Thank you for participating in the BOTOmasino Elections.</p>
                 </div>
 
+                <h2 class="position-title">Your Votes</h2>
+                
                 <?php while ($vote = $votes->fetch_assoc()): ?>
-                    <div class="mb-4">
-                        <h3 class="position-title"><?= htmlspecialchars($vote['position_name']) ?></h3>
-                        <div class="vote-card">
-                            <div class="candidate-info">
-                                <img src="../<?= htmlspecialchars($vote['img_path']) ?>" 
-                                     alt="<?= htmlspecialchars($vote['candidate_name']) ?>" 
-                                     class="candidate-image">
-                                <div class="candidate-details">
-                                    <h4 class="candidate-name"><?= htmlspecialchars($vote['candidate_name']) ?></h4>
-                                    <p class="candidate-position"><?= htmlspecialchars($vote['party_affiliation']) ?></p>
-                                    <p class="candidate-description"><?= htmlspecialchars($vote['college']) ?></p>
+                    <div class="vote-card">
+                        <div class="candidate-info">
+                            <img src="<?= htmlspecialchars($vote['img_path']) ?>" alt="Candidate" class="candidate-image">
+                            <div class="candidate-details">
+                                <div class="candidate-name"><?= htmlspecialchars($vote['candidate_name']) ?></div>
+                                <div class="candidate-position"><?= htmlspecialchars($vote['position_name']) ?></div>
+                                <div class="candidate-description">
+                                    <?= htmlspecialchars($vote['party_affiliation']) ?> - 
+                                    <?= htmlspecialchars($vote['college']) ?>
                                 </div>
-                            </div>
-                            <div class="vote-timestamp">
-                                <i class="bi bi-clock me-1"></i>
-                                <?= date('F j, Y g:i A', strtotime($vote['vote_timestamp'])) ?>
                             </div>
                         </div>
                     </div>
                 <?php endwhile; ?>
 
                 <?php if ($show_results == '1'): ?>
-                <div class="results-section">
-                    <h2 class="results-title">Election Results</h2>
-                    
-                    <?php foreach ($results as $position => $candidates): ?>
-                        <div class="mb-4">
-                            <h3 class="position-title"><?= htmlspecialchars($position) ?></h3>
-                            <?php 
-                            $max_votes = max(array_column($candidates, 'vote_count'));
-                            $total_voters = $candidates[0]['total_voters'];
-                            ?>
-                            
-                            <?php foreach ($candidates as $candidate): ?>
-                                <div class="results-card">
-                                    <div class="candidate-info">
-                                        <img src="../<?= htmlspecialchars($candidate['img_path']) ?>" 
-                                             alt="<?= htmlspecialchars($candidate['candidate_name']) ?>" 
-                                             class="candidate-image">
-                                        <div class="candidate-details">
-                                            <div class="d-flex align-items-center">
-                                                <h4 class="candidate-name mb-0"><?= htmlspecialchars($candidate['candidate_name']) ?></h4>
-                                                <?php if ($candidate['vote_count'] == $max_votes && $candidate['vote_count'] > 0): ?>
-                                                    <span class="winner-badge">Winner</span>
-                                                <?php endif; ?>
-                                            </div>
-                                            <p class="candidate-position"><?= htmlspecialchars($candidate['party_affiliation']) ?></p>
-                                            <p class="candidate-description"><?= htmlspecialchars($candidate['college']) ?></p>
-                                            <div class="vote-count">
-                                                <?= number_format($candidate['vote_count']) ?> votes
-                                                <span class="vote-percentage">
-                                                    (<?= $total_voters > 0 ? number_format(($candidate['vote_count'] / $total_voters) * 100, 1) : 0 ?>%)
-                                                </span>
-                                            </div>
-                                            <div class="progress">
-                                                <div class="progress-bar" role="progressbar" 
-                                                     style="width: <?= $total_voters > 0 ? ($candidate['vote_count'] / $total_voters) * 100 : 0 ?>%">
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-                <?php endif; ?>
-
-                <div class="text-center mt-4">
-                    <a href="home.php" class="btn btn-primary">
-                        <i class="bi bi-house-door me-2"></i>Return to Home
+                    <a href="election_results.php" class="btn btn-primary view-results-btn">
+                        <i class="bi bi-bar-chart-line-fill"></i> View Election Results
                     </a>
-                </div>
+                <?php endif; ?>
             </div>
         </div>
     </section>
