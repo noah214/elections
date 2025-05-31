@@ -163,7 +163,8 @@
     <!-- css stuff -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/global.css">    
+    <link rel="stylesheet" href="../css/candidateAdmin.css">
     
     <style>
         /* basic stuff */
@@ -409,21 +410,21 @@
             
             <div class="sidebar-category">User Management</div>
             <?php if (strtolower($role) !== 'organizer'): ?>
-                <a href="users.php"><i class="bi bi-people-fill"></i> Admin Users</a>
+                <a href="users.php"><i class="bi bi-people-fill"></i> Users</a>
             <?php endif; ?>
             <a href="voter.php"><i class="bi bi-person-check-fill"></i> Voter Accounts</a>
             
             <div class="sidebar-category">Election Management</div>
             <a href="candidates.php" class="sidebar-item active">
-                <i class="bi bi-person-badge-fill"></i> Candidates
+                <i class="bi bi-person-badge-fill"></i> Candidate List
             </a>
-            <a href="positions.php"><i class="bi bi-briefcase-fill"></i> Positions</a>
-            <a href="votes.php"><i class="bi bi-box-seam"></i> Votes</a>
+            <a href="positions.php"><i class="bi bi-briefcase-fill"></i> Position List</a>
+            <a href="votes.php"><i class="bi bi-box-seam"></i> Vote Records</a>
             
             <div class="sidebar-category">Reports</div>
-            <a href="votecount.php"><i class="bi bi-bar-chart-line-fill"></i> Vote Count</a>
+            <a href="votecount.php"><i class="bi bi-bar-chart-line-fill"></i> Vote Statistics</a>
             <?php if (strtolower($role) !== 'organizer'): ?>
-                <a href="logs.php"><i class="bi bi-journal-text"></i> Logs</a>
+                <a href="logs.php"><i class="bi bi-journal-text"></i> Activity Logs</a>
             <?php endif; ?>
 
             <div class="mt-auto">
@@ -499,91 +500,88 @@
                                         <td><?= $fieldname['party_affiliation']; ?></td>
                                         <td>
                                             <?php
-                                            $collegeClass = '';
+                                            $collegeBG = '';
                                             $collegeImage = '';
                                             switch(strtolower($fieldname['college'])) {
                                                 case 'college of accountancy':
-                                                    $collegeClass = 'bg-danger';
+                                                    $collegeBG = 'bg-accountancy';
                                                     $collegeImage = '../colleges/accountancy.png';
                                                     break;
                                                 case 'college of architecture':
-                                                    $collegeClass = 'bg-success';
+                                                    $collegeBG = 'bg-architecture';
                                                     $collegeImage = '../colleges/architecture.png';
                                                     break;
                                                 case 'faculty of arts and letters':
-                                                    $collegeClass = 'bg-info';
+                                                    $collegeBG = 'bg-artlets';
                                                     $collegeImage = '../colleges/artlets.png';
                                                     break;
                                                 case 'faculty of civil law':
-                                                    $collegeClass = 'bg-warning';
+                                                    $collegeBG = 'bg-law';
                                                     $collegeImage = '../colleges/civillaw.png';
                                                     break;
                                                 case 'college of commerce and business administration':
-                                                    $collegeClass = 'bg-primary';
+                                                    $collegeBG = 'bg-commerce';
                                                     $collegeImage = '../colleges/commerce.png';
                                                     break;
                                                 case 'college of education':
-                                                    $collegeClass = 'bg-danger';
+                                                    $collegeBG = 'bg-education';
                                                     $collegeImage = '../colleges/education.png';
                                                     break;
                                                 case 'faculty of engineering':
-                                                    $collegeClass = 'bg-success';
+                                                    $collegeBG = 'bg-engineering';
                                                     $collegeImage = '../colleges/engineering.png';
                                                     break;
                                                 case 'college of fine arts and design':
-                                                    $collegeClass = 'bg-info';
+                                                    $collegeBG = 'bg-finearts';
                                                     $collegeImage = '../colleges/finearts.png';
                                                     break;
                                                 case 'college of information and computing sciences':
-                                                    $collegeClass = 'bg-warning';
+                                                    $collegeBG = 'bg-cics';
                                                     $collegeImage = '../colleges/cics.png';
                                                     break;
                                                 case 'faculty of medicine and surgery':
-                                                    $collegeClass = 'bg-primary';
+                                                    $collegeBG = 'bg-medicine';
                                                     $collegeImage = '../colleges/medicine.png';
                                                     break;
                                                 case 'conservatory of music':
-                                                    $collegeClass = 'bg-danger';
+                                                    $collegeBG = 'bg-music';
                                                     $collegeImage = '../colleges/music.png';
                                                     break;
                                                 case 'college of nursing':
-                                                    $collegeClass = 'bg-success';
+                                                    $collegeBG = 'bg-nursing';
                                                     $collegeImage = '../colleges/nursing.png';
                                                     break;
                                                 case 'faculty of pharmacy':
-                                                    $collegeClass = 'bg-info';
+                                                    $collegeBG = 'bg-pharmacy';
                                                     $collegeImage = '../colleges/pharmacy.png';
                                                     break;
                                                 case 'institute of physical education and athletics':
-                                                    $collegeClass = 'bg-warning';
+                                                    $collegeBG = 'bg-ipea';
                                                     $collegeImage = '../colleges/ipea.png';
                                                     break;
                                                 case 'college of rehabilitation sciences':
-                                                    $collegeClass = 'bg-primary';
+                                                    $collegeBG = 'bg-rehab';
                                                     $collegeImage = '../colleges/rehab.png';
                                                     break;
                                                 case 'college of science':
-                                                    $collegeClass = 'bg-danger';
+                                                    $collegeBG = 'bg-science';
                                                     $collegeImage = '../colleges/science.png';
                                                     break;
                                                 case 'college of tourism and hospitality management':
-                                                    $collegeClass = 'bg-success';
+                                                    $collegeBG = 'bg-tourism';
                                                     $collegeImage = '../colleges/tourism.png';
                                                     break;
                                                 case 'faculty of philosophy':
-                                                    $collegeClass = 'bg-info';
+                                                    $collegeBG = 'bg-philosophy';
                                                     $collegeImage = '../colleges/philosophy.png';
                                                     break;
                                                 case 'faculty of sacred theology':
-                                                    $collegeClass = 'bg-warning';
+                                                    $collegeBG = 'bg-theology';
                                                     $collegeImage = '../colleges/theology.png';
                                                     break;
-                                                default:
-                                                    $collegeClass = 'bg-secondary';
-                                                    $collegeImage = '';
                                             }
                                             ?>
-                                            <span class="badge <?= $collegeClass; ?> d-inline-flex align-items-center">
+                                            <span class="badge <?= $collegeBG; ?> d-inline-flex align-items-center">
                                                 <?php if ($collegeImage && file_exists($collegeImage)): ?>
                                                     <img src="<?= $collegeImage ?>" alt="<?= $fieldname['college'] ?>" class="college-icon me-2" style="width: 20px; height: 20px; object-fit: contain;">
                                                 <?php endif; ?>

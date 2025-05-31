@@ -439,7 +439,7 @@
             <a href="home.php"><i class="bi bi-person-badge-fill"></i>Home</a>
             <div class="sidebar-category">User Management</div>
             <?php if (strtolower($role) !== 'organizer'): ?>
-                <a href="users.php" class="sidebar-item active"><i class="bi bi-people-fill"></i> Admin Users</a>
+                <a href="users.php" class="sidebar-item active"><i class="bi bi-people-fill"></i>Users</a>
             <?php endif; ?>
             <a href="voter.php"><i class="bi bi-person-check-fill"></i> Voter Accounts</a>
             

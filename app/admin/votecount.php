@@ -47,24 +47,6 @@
         GROUP BY c.candidate_id, c.candidate_name, c.party_affiliation, p.position_name
         ORDER BY p.position_id, vote_count DESC";
     $candidate_result = mysqli_query($conn, $candidate_query);
-
-    // Handle show/hide results toggle
-    if (isset($_POST['toggle_results'])) {
-        $current_setting = $conn->query("SELECT * FROM settings_table WHERE setting_name = 'show_results'");
-        if ($current_setting->num_rows > 0) {
-            $current_value = $current_setting->fetch_assoc()['setting_value'];
-            $new_value = $current_value == '1' ? '0' : '1';
-            $conn->query("UPDATE settings_table SET setting_value = '$new_value' WHERE setting_name = 'show_results'");
-        } else {
-            $conn->query("INSERT INTO settings_table (setting_name, setting_value) VALUES ('show_results', '1')");
-        }
-        header("Location: votecount.php");
-        exit();
-    }
-
-    // Get current results visibility setting
-    $results_setting = $conn->query("SELECT * FROM settings_table WHERE setting_name = 'show_results'");
-    $show_results = $results_setting->fetch_assoc()['setting_value'] ?? '0';
 ?>
 
 <!DOCTYPE html>
@@ -183,32 +165,6 @@
         .progress-bar {
             background-color: #ffc107;
         }
-
-        .toggle-results-btn {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            z-index: 1000;
-            padding: 1rem 2rem;
-            border-radius: 50px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            transition: all 0.3s ease;
-        }
-
-        .toggle-results-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
-        }
-
-        .toggle-results-btn.results-hidden {
-            background-color: #dc3545;
-            border-color: #dc3545;
-        }
-
-        .toggle-results-btn.results-visible {
-            background-color: #198754;
-            border-color: #198754;
-        }
     </style>
 </head>
 <body>
@@ -292,12 +248,11 @@
                             mysqli_data_seek($candidate_result, 0);
                             
                             // Calculate total votes for this position
-                            $position_total_votes = array_sum(array_column($candidates, 'vote_count'));
+                            $position_total = array_sum(array_column($candidates, 'vote_count'));
                             
-                            // Display candidates and their vote counts
+                            // Display candidates
                             foreach ($candidates as $candidate):
-                                $vote_percentage = $position_total_votes > 0 ? 
-                                    ($candidate['vote_count'] / $position_total_votes) * 100 : 0;
+                                $percentage = $position_total > 0 ? ($candidate['vote_count'] / $position_total) * 100 : 0;
                             ?>
                                 <div class="candidate-row">
                                     <div class="candidate-info">
@@ -305,12 +260,16 @@
                                         <div class="candidate-party"><?= htmlspecialchars($candidate['party_affiliation']) ?></div>
                                         <div class="progress">
                                             <div class="progress-bar" role="progressbar" 
-                                                 style="width: <?= $vote_percentage ?>%">
+                                                 style="width: <?= $percentage ?>%" 
+                                                 aria-valuenow="<?= $percentage ?>" 
+                                                 aria-valuemin="0" 
+                                                 aria-valuemax="100">
                                             </div>
                                         </div>
                                     </div>
                                     <div class="vote-count">
                                         <?= $candidate['vote_count'] ?> votes
+                                        <small class="text-muted">(<?= number_format($percentage, 1) ?>%)</small>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -321,16 +280,7 @@
         </div>
     </div>
 
-    <!-- Toggle Results Button -->
-    <form method="POST" action="" class="d-inline">
-        <button type="submit" name="toggle_results" 
-                class="btn btn-lg toggle-results-btn <?= $show_results == '1' ? 'results-visible' : 'results-hidden' ?>">
-            <i class="bi <?= $show_results == '1' ? 'bi-eye-fill' : 'bi-eye-slash-fill' ?> me-2"></i>
-            <?= $show_results == '1' ? 'Hide Election Results to Users' : 'Show Election Results to Users' ?>
-        </button>
-    </form>
-
-    <!-- Scripts -->
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

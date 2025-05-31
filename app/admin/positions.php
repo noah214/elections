@@ -113,24 +113,21 @@
     if(isset($_POST['search'])){
         $positionsearch = $_POST['searchinput'];
         
-        // search in name and description with candidate info
+        // search in name and description
         if(!empty($positionsearch)) {
-            $selectsql = "SELECT p.*, 
-                         GROUP_CONCAT(CONCAT(c.candidate_name, '|', c.party_affiliation, '|', c.college) SEPARATOR '||') as candidates
+            $selectsql = "SELECT p.*, COUNT(c.candidate_id) as candidate_count 
                          FROM position_table p 
                          LEFT JOIN candidate_table c ON p.position_id = c.position_id 
                          WHERE p.position_name LIKE '%$positionsearch%' OR p.position_description LIKE '%$positionsearch%'
                          GROUP BY p.position_id";
         } else {
-            $selectsql = "SELECT p.*, 
-                         GROUP_CONCAT(CONCAT(c.candidate_name, '|', c.party_affiliation, '|', c.college) SEPARATOR '||') as candidates
+            $selectsql = "SELECT p.*, COUNT(c.candidate_id) as candidate_count 
                          FROM position_table p 
                          LEFT JOIN candidate_table c ON p.position_id = c.position_id 
                          GROUP BY p.position_id";
         }
     } else {
-        $selectsql = "SELECT p.*, 
-                     GROUP_CONCAT(CONCAT(c.candidate_name, '|', c.party_affiliation, '|', c.college) SEPARATOR '||') as candidates
+        $selectsql = "SELECT p.*, COUNT(c.candidate_id) as candidate_count 
                      FROM position_table p 
                      LEFT JOIN candidate_table c ON p.position_id = c.position_id 
                      GROUP BY p.position_id";
@@ -411,19 +408,19 @@
             <a href="home.php"><i class="bi bi-person-badge-fill"></i>Home</a>
             <div class="sidebar-category">User Management</div>
             <?php if (strtolower($role) !== 'organizer'): ?>
-                <a href="users.php"><i class="bi bi-people-fill"></i> Admin Users</a>
+                <a href="users.php"><i class="bi bi-people-fill"></i> Users</a>
             <?php endif; ?>
             <a href="voter.php"><i class="bi bi-person-check-fill"></i> Voter Accounts</a>
             
             <div class="sidebar-category">Election Management</div>
-            <a href="candidates.php"><i class="bi bi-person-badge-fill"></i> Candidates</a>
-            <a href="positions.php" class="sidebar-item active"><i class="bi bi-briefcase-fill"></i> Positions</a>
-            <a href="votes.php"><i class="bi bi-box-seam"></i> Votes</a>
+            <a href="candidates.php"><i class="bi bi-person-badge-fill"></i> Candidate List</a>
+            <a href="positions.php" class="sidebar-item active"><i class="bi bi-briefcase-fill"></i> Position List</a>
+            <a href="votes.php"><i class="bi bi-box-seam"></i> Vote Records </a>
             
             <div class="sidebar-category">Reports</div>
-            <a href="votecount.php"><i class="bi bi-bar-chart-line-fill"></i> Vote Count</a>
+            <a href="votecount.php"><i class="bi bi-bar-chart-line-fill"></i> Vote Statistics</a>
             <?php if (strtolower($role) !== 'organizer'): ?>
-                <a href="logs.php"><i class="bi bi-journal-text"></i> Logs</a>
+                <a href="logs.php"><i class="bi bi-journal-text"></i> Activity Logs</a>
             <?php endif; ?>
 
             <div class="mt-auto">
@@ -472,51 +469,42 @@
                                     <th>Position ID</th>
                                     <th>Position Name</th>
                                     <th>Description</th>
-                                    <th>Assigned Candidates</th>
+                                    <th>Candidates</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php while($row = mysqli_fetch_assoc($result)) : ?>
-                                    <tr>
-                                        <td><?= $row['position_id'] ?></td>
-                                        <td><?= htmlspecialchars($row['position_name']) ?></td>
-                                        <td><?= htmlspecialchars($row['position_description']) ?></td>
+                                <?php foreach ($result as $position) : ?>
+                                    <tr class="position-row" data-id="<?= $position['position_id']; ?>" 
+                                        data-name="<?= htmlspecialchars($position['position_name']); ?>" 
+                                        data-description="<?= htmlspecialchars($position['position_description']); ?>"
+                                        onclick="showPositionDetails(
+                                            '<?= $position['position_id']; ?>', 
+                                            '<?= htmlspecialchars($position['position_name']); ?>', 
+                                            '<?= htmlspecialchars($position['position_description']); ?>'
+                                        )">
+                                        <td><?= $position['position_id']; ?></td>
+                                        <td><?= $position['position_name']; ?></td>
+                                        <td><?= $position['position_description']; ?></td>
                                         <td>
-                                            <?php if (!empty($row['candidates'])) : ?>
-                                                <ul class="candidate-list">
-                                                    <?php 
-                                                    $candidates = explode('||', $row['candidates']);
-                                                    foreach($candidates as $candidate) {
-                                                        list($name, $party, $college) = explode('|', $candidate);
-                                                    ?>
-                                                        <li class="candidate-item">
-                                                            <div class="candidate-info">
-                                                                <div class="candidate-name"><?= htmlspecialchars($name) ?></div>
-                                                                <div class="candidate-details">
-                                                                    <span class="party-badge"><?= htmlspecialchars($party) ?></span>
-                                                                    <span class="college-badge"><?= htmlspecialchars($college) ?></span>
-                                                                </div>
-                                                            </div>
-                                                        </li>
-                                                    <?php } ?>
-                                                </ul>
-                                            <?php else : ?>
-                                                <span class="text-muted">No candidates assigned</span>
+                                            <?php if($position['candidate_count'] > 0): ?>
+                                                <span class="badge bg-success"><?= $position['candidate_count']; ?> Candidates</span>
+                                            <?php else: ?>
+                                                <span class="badge bg-secondary">No Candidates</span>
                                             <?php endif; ?>
                                         </td>
                                         <td class="action-buttons">
                                             <button class="btn btn-warning btn-sm" 
-                                                onclick="editPosition('<?= $row['position_id'] ?>', '<?= htmlspecialchars($row['position_name']) ?>', '<?= htmlspecialchars($row['position_description']) ?>')">
+                                                onclick="editPosition('<?= $position['position_id']; ?>', '<?= $position['position_name']; ?>', '<?= $position['position_description']; ?>'); event.stopPropagation();">
                                                 <i class="bi bi-pencil"></i>
                                             </button>
                                             <button class="btn btn-danger btn-sm" 
-                                                onclick="deletePosition('<?= $row['position_id'] ?>', '<?= htmlspecialchars($row['position_name']) ?>')">
+                                                onclick="deletePosition('<?= $position['position_id']; ?>', '<?= $position['position_name']; ?>'); event.stopPropagation();">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </td>
                                     </tr>
-                                <?php endwhile; ?>
+                                <?php endforeach; ?>
                             </tbody>
                         </table>
                     </div>

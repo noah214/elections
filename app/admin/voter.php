@@ -388,19 +388,19 @@
 
             <div class="sidebar-category">User Management</div>
             <?php if (strtolower($role) !== 'organizer'): ?>
-                <a href="users.php"><i class="bi bi-people-fill"></i> Admin Users</a>
+                <a href="users.php"><i class="bi bi-people-fill"></i>Users</a>
             <?php endif; ?>
             <a href="voter.php" class="sidebar-item active"><i class="bi bi-person-check-fill"></i> Voter Accounts</a>
             
             <div class="sidebar-category">Election Management</div>
-            <a href="candidates.php"><i class="bi bi-person-badge-fill"></i> Candidates</a>
-            <a href="positions.php"><i class="bi bi-briefcase-fill"></i> Positions</a>
-            <a href="votes.php"><i class="bi bi-box-seam"></i> Votes</a>
+            <a href="candidates.php"><i class="bi bi-person-badge-fill"></i> Candidate List</a>
+            <a href="positions.php"><i class="bi bi-briefcase-fill"></i> Position List</a>
+            <a href="votes.php"><i class="bi bi-box-seam"></i> Vote Records</a>
             
             <div class="sidebar-category">Reports</div>
-            <a href="votecount.php"><i class="bi bi-bar-chart-line-fill"></i> Vote Count</a>
+            <a href="votecount.php"><i class="bi bi-bar-chart-line-fill"></i> Vote Statistics</a>
             <?php if (strtolower($role) !== 'organizer'): ?>
-                <a href="logs.php"><i class="bi bi-journal-text"></i> Logs</a>
+                <a href="logs.php"><i class="bi bi-journal-text"></i> Activity Logs</a>
             <?php endif; ?>
 
             <div class="mt-auto">

@@ -254,18 +254,18 @@ $position_votes_result = $conn->query($position_votes);
                                 </div>
                             <?php endwhile; ?>
                         <?php else: ?>
-                            <p class="text-muted text-center">No votes recorded yet</p>
+                            <p class="text-muted text-center">No positions found</p>
                         <?php endif; ?>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    </div>
 </div>
-</div>
-
-<!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
 </body>
 </html> 
