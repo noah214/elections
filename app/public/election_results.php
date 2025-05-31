@@ -1,7 +1,7 @@
 <?php
 session_start();
-require_once '../public/db_conn.php';
-require_once '../public/functions.php';
+require_once '../php/db_conn.php';
+require_once '../php/add_logs.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['voter_id'])) {

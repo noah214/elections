@@ -167,12 +167,8 @@ if (isset($_POST['sub'])) {
             $_SESSION['fullname'] = $row['full_name'];
             $_SESSION['role'] = $row['role'];
             $_SESSION['email'] = $row['email'];
-           
-            $select = "SELECT * FROM voter_table WHERE voter_name = '$fullname'";
-            $_SESSION['contact_information'] = $row['contact_information'];
-            $_SESSION['date_of_birth'] = $row['date_of_birth'];
-            $_SESSION['student_id'] = $row['student_id'];
-            $_SESSION['voter_id'] = $row['voter_id'];
+            $_SESSION['user_id'] = $row['user_id'];
+            
            
             
             // Log successful login
@@ -182,7 +178,16 @@ if (isset($_POST['sub'])) {
             if ($row['role'] == 'Admin' || $row['role'] == 'Organizer') {
                 header("Location: ../admin/home.php");
             } else if($row['role'] == 'Voter'){
-                $_SESSION['voter_id'] = $row['voter_id'];
+                 //get voter info for other pages
+            $select = "SELECT * FROM voter_table WHERE voter_name = '$fullname'";
+            $voter_result = mysqli_query($conn, $select);
+            $voter_row = mysqli_fetch_assoc($voter_result);
+            
+            $_SESSION['contact_information'] = $voter_row['contact_information'];
+            $_SESSION['date_of_birth'] = $voter_row['date_of_birth'];
+            $_SESSION['student_id'] = $voter_row['student_id'];
+            $_SESSION['voter_id'] = $voter_row['voter_id'];
+            $_SESSION['voter_name'] = $voter_row['voter_name'];
                 header("Location: home.php");
             }
         } else {

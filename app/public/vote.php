@@ -4,7 +4,6 @@ session_start();
 require_once "../php/db_conn.php";
 require_once "../php/add_logs.php";
 
-
 $voter_id = $_SESSION['voter_id'];
 
 // Check if user has already voted
@@ -72,6 +71,7 @@ if (isset($_POST['select_candidate'])) {
     }
 }
 
+//goes back here when user is done with vote  confirmation
 // Handle final vote submission
 if (isset($_POST['submit_votes'])) {
     $success = true;
@@ -90,8 +90,7 @@ if (isset($_POST['submit_votes'])) {
         }
         
         // Log the voting activity
-        $description = "Voter ID: $voter_id submitted votes for " . count($_SESSION['selected_candidates']) . " positions";
-        add_logs($conn, $voter_id, 'VOTE: ' . $description);
+        add_logs($conn, $voter_id, 'VOTE: ' );
         
         $conn->commit();
         
@@ -348,11 +347,11 @@ $candidates = $conn->query($candidates_query);
             </button>
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                 <div class="navbar-nav ms-auto">
-                    <a class="nav-item nav-link active" href="home.php" aria-current="page">Home</a>
+                    <a class="nav-item nav-link" href="home.php" aria-current="page">Home</a>
                     <div class="vr mx-2 d-none d-lg-block"></div>
                     <a class="nav-item nav-link" href="candidate.php">Candidates</a>
                     <div class="vr mx-2 d-none d-lg-block"></div>
-                    <a class="nav-item nav-link" href="vote.php">Vote</a>
+                    <a class="nav-item nav-link active" href="vote.php">Vote</a>
                     <div class="vr mx-2 d-none d-lg-block"></div>
                     <a class="nav-item nav-link" href="Account.php">Account</a>
                 </div>
