@@ -1,7 +1,7 @@
 <?php
 session_start();
-require_once "db_conn.php";
-require_once "../public/logic/emailverification.php";
+require_once "../php/db_conn.php";
+require_once "../php/emailverification.php";
 
 //activates if user clicks resend otp
 // Handle reset request

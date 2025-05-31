@@ -1,6 +1,7 @@
 <?php
 session_start();
-require_once '../public/db_conn.php';
+require_once '../php/db_conn.php';
+require_once '../php/add_logs.php';
 
 // Get all candidates with their positions
 $candidates_query = "SELECT c.*, p.position_name, p.position_description 
@@ -324,8 +325,8 @@ while ($candidate = $candidates->fetch_assoc()) {
                     <div class="row ">
                         <div class="col-6 d-flex flex-column justify-content-center align-items-center">
                             <ul class="list-unstyled">
-                            <li><a href="home.php" class="text-white text-decoration-none active">Home</a></li>
-                            <li><a href="candidate.php" class="text-white text-decoration-none">Candidates</a></li>
+                            <li><a href="home.php" class="text-white text-decoration-none">Home</a></li>
+                            <li><a href="candidate.php" class="text-white text-decoration-none active">Candidates</a></li>
                         </div>
                         <div class="col d-flex flex-column justify-content-center align-items-center">
                             <ul class="list-unstyled">

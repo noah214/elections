@@ -1,7 +1,8 @@
 <?php
     // start session n connect to db
     session_start();
-    require_once "db_conn.php";
+    require_once "../php/db_conn.php";
+    require_once "../php/add_logs.php";
 
     // Handle results visibility toggle
     if (isset($_POST['toggle_results'])) {

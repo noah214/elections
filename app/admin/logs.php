@@ -1,7 +1,8 @@
 <?php
     // start session n connect to db
     session_start();
-    require_once "../public/db_conn.php";
+    require_once "../php/db_conn.php";
+    require_once "../php/add_logs.php";
 
     // get current user stuff
     $username = $_SESSION['username'];

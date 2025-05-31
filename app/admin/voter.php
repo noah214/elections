@@ -1,7 +1,8 @@
 <?php
     // start session n connect to db
     session_start();
-    require_once "db_conn.php";
+    require_once "../php/db_conn.php";
+    require_once "../php/add_logs.php";
 
     // get current user stuff
     $username = $_SESSION['username'];
@@ -17,52 +18,43 @@
     if (isset($_POST['delete_voter'])) {
         $id = $_POST['delete_voter_id'];
         
-        // First get voter name to delete from user table
+        // Get voter info before deletion for logging
         $getVoterQuery = "SELECT voter_name FROM voter_table WHERE voter_id = $id";
         $voterResult = mysqli_query($conn, $getVoterQuery);
         $voterData = mysqli_fetch_assoc($voterResult);
         
-        if ($voterData) {
-            // Delete from user table first
-            $deleteUserQuery = "DELETE FROM user_table WHERE full_name = '".$voterData['voter_name']."' AND role = 'Voter'";
-            mysqli_query($conn, $deleteUserQuery);
-            
-            // Then delete from voter table
-            $deleteVoterQuery = "DELETE FROM voter_table WHERE voter_id = $id";
-            
-            if (mysqli_query($conn, $deleteVoterQuery)) {
-                echo "<script>alert('Voter deleted successfully!'); window.location.href=window.location.href;</script>";
-            } else {
-                echo "Error deleting record: " . mysqli_error($conn);
-            }
+        // First delete votes associated with this voter
+        $deleteVotesQuery = "DELETE FROM vote_table WHERE voter_id = $id";
+        mysqli_query($conn, $deleteVotesQuery);
+        
+        // Then delete from voter table
+        $deleteQuery = "DELETE FROM voter_table WHERE voter_id = $id";
+        
+        if (mysqli_query($conn, $deleteQuery)) {
+            // Log the deletion
+            $description = "Deleted voter: " . $voterData['voter_name'];
+            add_logs($conn, $username, 'DELETE: ' . $description);
+            echo "<script>alert('Voter deleted successfully!'); window.location.href=window.location.href;</script>";
+        } else {
+            echo "Error deleting record: " . mysqli_error($conn);
         }
     }
 
     // add new voter to db
     if (isset($_POST['add_voter'])) {
-        //User Table
-        $userName = $_POST['add_name'];
-        $userRole = "Voter";
-        $userUsername = $_POST['add_username'];
-        $userPassword = md5($_POST['add_password']); // hash it for security
-        $userEmail = $_POST['add_email'];
-
-        //Voter Table
-        $voterName = $_POST['add_name'];
-        $voterDate_birth = $_POST['date_birth'];
-        $voterGender = $_POST['gender'];
-        $voterContact = $_POST['contact'];
-        $voterStu_id = $_POST['stu_id'];
-
-        // insert user to user table
-        $insertUser = "INSERT INTO user_table (full_name, role, username, password, email) 
-                        VALUES ('$userName', '$userRole', '$userUsername', '$userPassword', '$userEmail')";
-                        
-        //Inserting data in VoterTable
-        $insertVoter = "INSERT INTO voter_table (voter_name, date_of_birth, gender, contact_information, student_id) 
-                        VALUES ('$voterName', '$voterDate_birth', '$voterGender', '$voterContact', '$voterStu_id')";
-                        
-        if (mysqli_query($conn, $insertUser) && mysqli_query($conn, $insertVoter)) {
+        $name = $_POST['add_name'];
+        $date_birth = $_POST['add_date_birth'];
+        $gender = $_POST['add_gender'];
+        $contact = $_POST['add_contact'];
+        $stu_id = $_POST['add_stu_id'];
+        
+        $insertQuery = "INSERT INTO voter_table (voter_name, date_of_birth, gender, contact_information, student_id) 
+                       VALUES ('$name', '$date_birth', '$gender', '$contact', '$stu_id')";
+        
+        if (mysqli_query($conn, $insertQuery)) {
+            // Log the addition
+            $description = "Added new voter: " . $name;
+            add_logs($conn, $username, 'CREATE: ' . $description);
             echo "<script>alert('Voter added successfully!');</script>";
         } else {
             echo "Error: " . mysqli_error($conn);
@@ -71,35 +63,31 @@
 
     // edit voter stuff
     if (isset($_POST['apply_edit'])) {
-        // get form data
-        $editVoterID = $_POST['edit_voter_id'];
-        $editName = $_POST['edit_name'];
-        $editBirth = $_POST['edit_birth'];
-        $editGender = $_POST['edit_gender'];
-        $editContact = $_POST['edit_contact'];
-        $editStu_id = $_POST['edit_stu_id'];
-
-        // Get old name first
-        $getOldNameQuery = "SELECT voter_name FROM voter_table WHERE voter_id = $editVoterID";
-        $oldNameResult = mysqli_query($conn, $getOldNameQuery);
-        $oldNameData = mysqli_fetch_assoc($oldNameResult);
-        $oldName = $oldNameData['voter_name'];
-
-        // update in db
-        $updateVoterQuery = "UPDATE voter_table 
-                        SET voter_name='$editName', 
-                            date_of_birth='$editBirth', 
-                            gender='$editGender', 
-                            contact_information='$editContact', 
-                            student_id='$editStu_id'
-                        WHERE voter_id=$editVoterID";
-
-        $updateUserQuery = "UPDATE user_table 
-                        SET full_name='$editName'
-                        WHERE full_name='$oldName' AND role='Voter'";
-
-                        
-        if (mysqli_query($conn, $updateVoterQuery) && mysqli_query($conn, $updateUserQuery)) {
+        $id = $_POST['edit_voter_id'];
+        $name = $_POST['edit_name'];
+        $date_birth = $_POST['edit_date_birth'];
+        $gender = $_POST['edit_gender'];
+        $contact = $_POST['edit_contact'];
+        $stu_id = $_POST['edit_stu_id'];
+        
+        // Get old voter data for logging
+        $getOldDataQuery = "SELECT voter_name FROM voter_table WHERE voter_id = $id";
+        $oldDataResult = mysqli_query($conn, $getOldDataQuery);
+        $oldData = mysqli_fetch_assoc($oldDataResult);
+        $oldName = $oldData['voter_name'];
+        
+        $updateQuery = "UPDATE voter_table 
+                       SET voter_name = '$name',
+                           date_of_birth = '$date_birth',
+                           gender = '$gender',
+                           contact_information = '$contact',
+                           student_id = '$stu_id'
+                       WHERE voter_id = $id";
+        
+        if (mysqli_query($conn, $updateQuery)) {
+            // Log the update
+            $description = "Updated voter from '$oldName' to '$name'";
+            add_logs($conn, $username, 'UPDATE: ' . $description);
             echo "<script>alert('Voter updated successfully!'); window.location.href=window.location.href;</script>";
         } else {
             echo "Error updating record: " . mysqli_error($conn);

@@ -10,7 +10,16 @@ ob_start(); // Start output buffering
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../css/global.css">
     <link rel="stylesheet" href="../css/login.css">
-    
+    <style>
+        .btn-navy {
+            background-color: #000080;
+            color: white;
+        }
+        .btn-navy:hover {
+            background-color: #000066;
+            color: white;
+        }
+    </style>
    </head>
   <body>
     
@@ -63,7 +72,7 @@ ob_start(); // Start output buffering
                             </div>
                             <div class="row mx-5 mt-5 mb-1">
                                 <div class="col">   
-                                    <input type="submit" name="sub" class="btn btn-primary btn-block w-100 fw-bold" value="Login" id=sub >
+                                    <input type="submit" name="sub" class="btn btn-navy btn-block w-100 fw-bold" value="Login" id=sub >
                                 </div>
                             </div>
                             <div class="row">
@@ -121,13 +130,14 @@ ob_start(); // Start output buffering
 
 <?php
 session_start();
-require_once "db_conn.php";
+require_once "../php/db_conn.php";
+require_once "../php/add_logs.php";
 
 // Show success message if redirected from registration
 if (isset($_SESSION['registration_success'])) {
     unset($_SESSION['registration_success']);
-    ?>
-    <script>
+        ?>
+            <script>
         Swal.fire({
             position: "center",
             icon: "success",
@@ -135,74 +145,55 @@ if (isset($_SESSION['registration_success'])) {
             showConfirmButton: false,
             timer: 1500
         });
-    </script>
-    <?php
+            </script>
+        <?php
 }
 
 // Handle login
-if (isset($_POST['sub'])){
-    $ppusername = $_POST['username'];
-    $pppassword = md5($_POST['pass']);
+if (isset($_POST['sub'])) {
+    $username = $_POST['username'];
+    $password = md5($_POST['pass']);
 
-    $_SESSION['username'] = $ppusername;
+    $select = "SELECT * FROM user_table WHERE username = '$username' AND password = '$password'";
+    $_SESSION['user_id'] = $row['user_id'];
+    $result = mysqli_query($conn, $select);
 
-    $pploginsql = "Select * from user_table WHERE username = '".$ppusername."' AND password = '".$pppassword."'";
-    $ppresult = $conn ->query($pploginsql);
-
-    if ($ppresult->num_rows == 1) {
-        $ppfielddata = $ppresult->fetch_assoc();
-        // print_r($ppfielddata);
+    if (mysqli_num_rows($result) > 0) {
+        $row = mysqli_fetch_assoc($result);
         
-        //Type of User
-        $pprole = $ppfielddata['role'];
-        $ppfullname = $ppfielddata['full_name'];
-        $ppemail = $ppfielddata['email'];
-
-        $_SESSION['username'] = $ppusername;
-        $_SESSION['fullname'] = $ppfullname;
-        $_SESSION['role'] = $pprole;
-        $_SESSION['email'] = $ppemail;
-
-        // If user is a voter, get their voter information
-        if ($pprole == "Voter") {
-            $voterQuery = "SELECT * FROM voter_table WHERE voter_name = '$ppfullname'";
-            $voterResult = $conn->query($voterQuery);
+        if ($row['status'] == 'Verified') {
+            $_SESSION['username'] = $row['username'];
+            $fullname = $row['full_name']; //for voter table
+            $_SESSION['fullname'] = $row['full_name'];
+            $_SESSION['role'] = $row['role'];
+            $_SESSION['email'] = $row['email'];
+           
+            $select = "SELECT * FROM voter_table WHERE voter_name = '$fullname'";
+            $_SESSION['contact_information'] = $row['contact_information'];
+            $_SESSION['date_of_birth'] = $row['date_of_birth'];
+            $_SESSION['student_id'] = $row['student_id'];
+            $_SESSION['voter_id'] = $row['voter_id'];
+           
             
-            if ($voterResult->num_rows == 1) {
-                $voterData = $voterResult->fetch_assoc();
-                
-                // Store voter information in session
-                $_SESSION['voter_id'] = $voterData['voter_id'];
-                $_SESSION['date_of_birth'] = $voterData['date_of_birth'];
-                $_SESSION['gender'] = $voterData['gender'];
-                $_SESSION['contact_information'] = $voterData['contact_information'];
-                $_SESSION['student_id'] = $voterData['student_id'];
+            // Log successful login
+            $description = "User logged in: " . $row['full_name'] . " (Role: " . $row['role'] . ")";
+            add_logs($conn, $row['username'], 'LOGIN: ' . $description);
+            
+            if ($row['role'] == 'Admin' || $row['role'] == 'Organizer') {
+                header("Location: ../admin/home.php");
+            } else if($row['role'] == 'Voter'){
+                $_SESSION['voter_id'] = $row['voter_id'];
+                header("Location: home.php");
             }
+        } else {
+            $error = "Please verify your account first!";
         }
-
-       if ($pprole == "Admin" || $pprole == "Organizer") {
-            header("location: ../admin/home.php");
-            exit;
-        } elseif ($pprole == "Voter"){
-            ?> 
-            <script>
-                window.location.href = "../public/home.php";
-            </script>
-            <?php
-        }
-
     } else {
-        ?>    
-        <script>
-            Swal.fire({
-            position: "center",
-            icon: "error",
-            title: "Invalid username or password",
-            showConfirmButton: false,
-            timer: 1500
-            });
-        </script>
-        <?php
+        // Log failed login attempt
+        $description = "Failed login attempt for username: " . $username;
+        add_logs($conn, $user_id, 'LOGIN_FAILED: ' . $description);
+        
+        $error = "Invalid username or password!";
     }
 }
 

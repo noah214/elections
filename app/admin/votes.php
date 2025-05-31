@@ -1,20 +1,14 @@
 <?php
     // start session n connect to db
     session_start();
-    require_once "db_conn.php";
+    require_once "../php/db_conn.php";
+    require_once "../php/add_logs.php";
 
-    // get current user stuff
-    $username = $_SESSION['username'];
+    // get current user 
     $fullname = $_SESSION['fullname'];
     $role = $_SESSION['role'];
 
-    // check if db is working lol
-    if (!$conn) {
-        die("Connection failed: " . mysqli_connect_error());
-    }
-
-    // delete user stuff
-    // delete user stuff
+    // delete user part
     if (isset($_POST['delete_user'])) {
         $id = $_POST['delete_user_id'];
         
@@ -33,6 +27,9 @@
         $deleteQuery = "DELETE FROM user_table WHERE user_id = $id";
         
         if (mysqli_query($conn, $deleteQuery)) {
+            // Log the deletion
+            $description = "Deleted user: " . $userData['full_name'];
+            add_logs($conn, $username, 'DELETE: ' . $description);
             echo "<script>alert('User deleted successfully!'); window.location.href=window.location.href;</script>";
         } else {
             echo "Error deleting record: " . mysqli_error($conn);
@@ -67,6 +64,9 @@
                 mysqli_query($conn, $insertVoterQuery);
             }
             
+            // Log the addition
+            $description = "Added user: " . $name;
+            add_logs($conn, $username, 'CREATE: ' . $description);
             echo "<script>alert('User added successfully!');</script>";
         } else {
             echo "Error: " . mysqli_error($conn);
@@ -132,6 +132,9 @@
                 mysqli_query($conn, $updateVoterQuery);
             }
             
+            // Log the update
+            $description = "Updated user: Changed " . $oldName . "'s role from " . $oldRole . " to " . $newRole;
+            add_logs($conn, $username, 'UPDATE: ' . $description);
             echo "<script>alert('User updated successfully!'); window.location.href=window.location.href;</script>";
         } else {
             echo "Error updating record: " . mysqli_error($conn);
@@ -166,6 +169,100 @@
 
     // get results
     $result = mysqli_query($conn, $selectsql);
+
+    // Delete vote stuff
+    if (isset($_POST['delete_vote'])) {
+        $id = $_POST['delete_vote_id'];
+        
+        // Get vote info before deletion for logging
+        $getVoteQuery = "SELECT v.voter_name, c.candidate_name, p.position_name 
+                        FROM vote_table vt 
+                        JOIN voter_table v ON vt.voter_id = v.voter_id 
+                        JOIN candidate_table c ON vt.candidate_id = c.candidate_id 
+                        JOIN position_table p ON c.position_id = p.position_id 
+                        WHERE vt.vote_id = $id";
+        $voteResult = mysqli_query($conn, $getVoteQuery);
+        $voteData = mysqli_fetch_assoc($voteResult);
+        
+        $deleteQuery = "DELETE FROM vote_table WHERE vote_id = $id";
+        
+        if (mysqli_query($conn, $deleteQuery)) {
+            // Log the deletion
+            $description = "Deleted vote: " . $voteData['voter_name'] . " voted for " . $voteData['candidate_name'] . " for " . $voteData['position_name'];
+            add_logs($conn, $username, 'DELETE: ' . $description);
+            echo "<script>alert('Vote deleted successfully!'); window.location.href=window.location.href;</script>";
+        } else {
+            echo "Error deleting record: " . mysqli_error($conn);
+        }
+    }
+
+    // Add new vote
+    if (isset($_POST['add_vote'])) {
+        $voter_id = $_POST['add_voter'];
+        $candidate_id = $_POST['add_candidate'];
+        
+        // Get voter and candidate info for logging
+        $getInfoQuery = "SELECT v.voter_name, c.candidate_name, p.position_name 
+                        FROM voter_table v 
+                        JOIN candidate_table c ON c.candidate_id = $candidate_id 
+                        JOIN position_table p ON c.position_id = p.position_id 
+                        WHERE v.voter_id = $voter_id";
+        $infoResult = mysqli_query($conn, $getInfoQuery);
+        $infoData = mysqli_fetch_assoc($infoResult);
+        
+        $insertQuery = "INSERT INTO vote_table (voter_id, candidate_id) VALUES ($voter_id, $candidate_id)";
+        
+        if (mysqli_query($conn, $insertQuery)) {
+            // Log the addition
+            $description = "Added vote: " . $infoData['voter_name'] . " voted for " . $infoData['candidate_name'] . " for " . $infoData['position_name'];
+            add_logs($conn, $username, 'CREATE: ' . $description);
+            echo "<script>alert('Vote added successfully!');</script>";
+        } else {
+            echo "Error: " . mysqli_error($conn);
+        }
+    }
+
+    // Edit vote
+    if (isset($_POST['apply_edit'])) {
+        $id = $_POST['edit_vote_id'];
+        $voter_id = $_POST['edit_voter'];
+        $candidate_id = $_POST['edit_candidate'];
+        
+        // Get old vote info for logging
+        $getOldInfoQuery = "SELECT v.voter_name, c.candidate_name, p.position_name 
+                           FROM vote_table vt 
+                           JOIN voter_table v ON vt.voter_id = v.voter_id 
+                           JOIN candidate_table c ON vt.candidate_id = c.candidate_id 
+                           JOIN position_table p ON c.position_id = p.position_id 
+                           WHERE vt.vote_id = $id";
+        $oldInfoResult = mysqli_query($conn, $getOldInfoQuery);
+        $oldInfoData = mysqli_fetch_assoc($oldInfoResult);
+        
+        // Get new vote info for logging
+        $getNewInfoQuery = "SELECT v.voter_name, c.candidate_name, p.position_name 
+                           FROM voter_table v 
+                           JOIN candidate_table c ON c.candidate_id = $candidate_id 
+                           JOIN position_table p ON c.position_id = p.position_id 
+                           WHERE v.voter_id = $voter_id";
+        $newInfoResult = mysqli_query($conn, $getNewInfoQuery);
+        $newInfoData = mysqli_fetch_assoc($newInfoResult);
+        
+        $updateQuery = "UPDATE vote_table 
+                       SET voter_id = $voter_id, 
+                           candidate_id = $candidate_id 
+                       WHERE vote_id = $id";
+        
+        if (mysqli_query($conn, $updateQuery)) {
+            // Log the update
+            $description = "Updated vote: Changed " . $oldInfoData['voter_name'] . "'s vote from " . 
+                          $oldInfoData['candidate_name'] . " to " . $newInfoData['candidate_name'] . 
+                          " for " . $newInfoData['position_name'];
+            add_logs($conn, $username, 'UPDATE: ' . $description);
+            echo "<script>alert('Vote updated successfully!'); window.location.href=window.location.href;</script>";
+        } else {
+            echo "Error updating record: " . mysqli_error($conn);
+        }
+    }
 ?>
 
 

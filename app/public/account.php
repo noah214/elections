@@ -2,13 +2,10 @@
 
 session_start();
 
-// Check if user is logged in
-if (!isset($_SESSION['voter_id'])) {
-    header("Location: login.php");
-    exit();
-}
+require_once '../php/db_conn.php';
+require_once '../php/add_logs.php';
 
-require_once '../public/db_conn.php';
+
 
 // Get voter information
 $voter_id = $_SESSION['voter_id'];
@@ -20,9 +17,11 @@ $voter = $voter_result->fetch_assoc();
 $username = $_SESSION['username'];
 $fullname = $_SESSION['fullname'];
 $email = $_SESSION['email'];
-$contactinfo = $_SESSION['contact_information'] ??'';
-$date_of_birth = $_SESSION['date_of_birth'] ?? '';
-$student_id = $_SESSION['student_id'] ?? '';
+
+$contactinfo = $_SESSION['contact_information'];
+$date_of_birth = $_SESSION['date_of_birth'];
+$student_id = $_SESSION['student_id'];
+
 
 ?>
 

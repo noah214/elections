@@ -3,14 +3,10 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 session_start();
-require_once '../public/db_conn.php';
-require_once '../public/functions.php';
+require_once '../php/db_conn.php';
+require_once '../php/add_logs.php';
 
-// Check if user is logged in
-if (!isset($_SESSION['voter_id'])) {
-    header("Location: login.php");
-    exit();
-}
+
 
 $voter_id = $_SESSION['voter_id'];
 
@@ -226,29 +222,7 @@ if ($show_results == '1') {
         }
     </style>
 </head>
-<body> <!--navbar-->
-    <nav class="navbar navbar-expand-lg custom-navbar" id="mainNavbar">
-        <div class="container-fluid px-5">
-            <a class="navbar-brand d-flex align-items-center" href="home.php">
-                <img src="../images/USTLogo.png" width="40" height="40" class="d-inline-block me-2" alt="SSC Logo">
-                <span class="text-yellow">UST</span>&nbsp;Supreme Student Council
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-                <div class="navbar-nav ms-auto">
-                    <a class="nav-item nav-link" href="home.php" aria-current="page">Home</a>
-                    <div class="vr mx-2 d-none d-lg-block"></div>
-                    <a class="nav-item nav-link" href="candidate.php">Candidates</a>
-                    <div class="vr mx-2 d-none d-lg-block"></div>
-                    <a class="nav-item nav-link vote" href="vote.php">Vote</a>
-                    <div class="vr mx-2 d-none d-lg-block"></div>
-                    <a class="nav-item nav-link" href="Account.php">Account</a>
-                </div>
-            </div>
-        </div>
-    </nav>
+<body>
 
     <section class="summary-section">
         <div class="container">

@@ -4,7 +4,7 @@ use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
 //Load Composer's autoloader
-require_once dirname(__DIR__, 3) . '/vendor/autoload.php';
+require_once dirname(__DIR__, 2) . '/vendor/autoload.php';
 
 function send_verification($email, $code) {
     $mail = new PHPMailer(true);
@@ -17,13 +17,13 @@ function send_verification($email, $code) {
         $mail->isSMTP();                                      // Set mailer to use SMTP
         $mail->Host = 'smtp.gmail.com';  // Specify main and backup SMTP servers
         $mail->SMTPAuth = true;                               // Enable SMTP authentication
-        $mail->Username = 'leonardpanergo@gmail.com';                 // SMTP username
-        $mail->Password = 'smkm ntiu nsqs fmou';                           // SMTP password
+        $mail->Username = 'noreply.botomasino@gmail.com';                 // SMTP username
+        $mail->Password = 'qrbk cklx anjx ffyh';                           // SMTP password
         $mail->SMTPSecure = 'tls';                            // Enable TLS encryption, ssl also accepted
         $mail->Port = 587;                                    // TCP port to connect to
         
         //Recipients
-        $mail->setFrom('leonardpanergo@gmail.com','Admin of Act5'); 
+        $mail->setFrom('noreply.botomasino@gmail.com','BOTOmasino Elections'); 
         $mail->addAddress($email);     // Add a recipient
         //Content
         $mail->isHTML(true);  // Set email format to HTML
@@ -179,13 +179,13 @@ function send_emailverification($email, $code) {
         $mail->isSMTP();                                      // Set mailer to use SMTP
         $mail->Host = 'smtp.gmail.com';  // Specify main and backup SMTP servers
         $mail->SMTPAuth = true;                               // Enable SMTP authentication
-        $mail->Username = 'leonardpanergo@gmail.com';                 // SMTP username
-        $mail->Password = 'smkm ntiu nsqs fmou';                           // SMTP password
+        $mail->Username = 'noreply.botomasino@gmail.com';                 // SMTP username
+        $mail->Password = 'qrbk cklx anjx ffyh';                           // SMTP password
         $mail->SMTPSecure = 'tls';                            // Enable TLS encryption, ssl also accepted
         $mail->Port = 587;                                    // TCP port to connect to
         
         //Recipients
-        $mail->setFrom('leonardpanergo@gmail.com', 'BOTOmasino Elections'); 
+        $mail->setFrom('noreply.botomasino@gmail.com', 'BOTOmasino Elections'); 
         $mail->addAddress($email);     // Add a recipient
         //Content
         $mail->isHTML(true);  // Set email format to HTML
@@ -312,9 +312,7 @@ function send_emailverification($email, $code) {
                         <div class="code">' . $code . '</div>
                     </div>
 
-                    <div style="text-align: center;">
-                        <a href="http://localhost/elections/app/public/verify.php" class="button">Verify Email</a>
-                    </div>
+                    <p class="message">Please enter this verification code in the form to complete your registration.</p>
 
                     <p class="message">If you did not create an account with BOTOmasino Elections, please ignore this email.</p>
                 </div>

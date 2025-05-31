@@ -1,16 +1,10 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-session_start();
-require_once '../public/db_conn.php';
-require_once '../public/functions.php';
 
-// Check if user is logged in
-if (!isset($_SESSION['voter_id'])) {
-    header("Location: login.php");
-    exit();
-}
+session_start();
+require_once '../php/db_conn.php';
+require_once '../php/add_logs.php';
+
+
 
 // Check if user has selected candidates
 if (!isset($_SESSION['selected_candidates']) || empty($_SESSION['selected_candidates'])) {
@@ -190,29 +184,7 @@ foreach ($_SESSION['selected_candidates'] as $position_id => $candidate_id) {
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg custom-navbar" id="mainNavbar">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="home.php">
-                <img src="../assets/images/logo.png" width="30" height="30" class="d-inline-block align-top me-2" alt="SSC Logo">
-                UST Supreme Student Council
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-                <div class="navbar-nav ms-auto">
-                    <a class="nav-item nav-link" href="home.php">Home</a>
-                    <div class="vr mx-2 d-none d-lg-block"></div>
-                    <a class="nav-item nav-link" href="candidate.php">Candidates</a>
-                    <div class="vr mx-2 d-none d-lg-block"></div>
-                    <a class="nav-item nav-link active" href="vote.php" aria-current="page">Vote</a>
-                    <div class="vr mx-2 d-none d-lg-block"></div>
-                    <a class="nav-item nav-link" href="account.php">Account</a>
-                </div>
-            </div>
-        </div>
-    </nav>
+    
 
     <section class="confirm-section">
         <div class="container">

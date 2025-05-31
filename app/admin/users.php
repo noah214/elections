@@ -1,14 +1,19 @@
 <?php
     // start session n connect to db
     session_start();
-    require_once "db_conn.php";
-    require_once "../public/functions.php";
+    require_once "../php/db_conn.php";
+    require_once "../php/add_logs.php";
 
     // get current user stuff
     $username = $_SESSION['username'];
     $fullname = $_SESSION['fullname'];
     $role = $_SESSION['role'];
 
+    $row = "Select * FROM user_table where username = '".$username."'";
+    $result = mysqli_query($conn, $row);
+    $row = $result->fetch_assoc();
+    $user_id = $row['user_id'];
+    
     // check if db is working lol
     if (!$conn) {
         die("Connection failed: " . mysqli_connect_error());
@@ -47,7 +52,9 @@
             // Log before deletion only if we have user data
             if ($userData) {
                 $description = "User deleted: " . $userData['full_name'];
-                logActivity($conn, $_SESSION['username'], 'DELETE', $description);
+
+            //logs
+              add_logs($conn, $user_id, 'DELETE');
             }
             
             echo "<script>alert('User deleted successfully!'); window.location.href=window.location.href;</script>";
@@ -151,7 +158,7 @@
             
             // Log the modification
             $description = "User modified: $username (Role: $newRole)";
-            logActivity($conn, $_SESSION['username'], 'MODIFY', $description);
+            add_logs($conn, $_SESSION[''], 'MODIFY: ' . $description);
             
             echo "<script>alert('User updated successfully!'); window.location.href=window.location.href;</script>";
         } else {

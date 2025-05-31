@@ -1,15 +1,9 @@
 <?php
 
 session_start();
-    require_once "db_conn.php";
+    require_once "../php/db_conn.php";
+    require_once "../php/add_logs.php";
 
-    // get current user stuff
-    $username = $_SESSION['username'];
-    $fullname = $_SESSION['fullname'];
-    $email = $_SESSION['email'];
-    $contactinfo = $_SESSION['contact_information'] ??'';
-    $date_of_birth = $_SESSION['date_of_birth'] ?? '';
-    $student_id = $_SESSION['student_id'] ?? '';
 
 ?>
 
@@ -85,7 +79,7 @@ session_start();
                     <div class="col">
                         <div class="content-wrapper mx-5 mt-3 bg-semiblack p-4">
                             <h3 class="text-yellow fw-bold mb-4 d-flex justify-content-center align-items-center">Make your Vote Count!</h3>
-                            <p class="justified-text fw-bold fs-5 text-white">Your vote matters. Take part in shaping the future of UST by joining the Central Student Council elections. 
+                            <p class="justified-text fw-bold fs-5 text-white">Your vote matters. Take part in shaping the future of UST by joining the Supreme Student Council elections. 
                                 Be the Thomasian who chooses to lead change—vote and be heard.</p>
                         </div>
                         <div class="row mt-4">

@@ -1,7 +1,8 @@
 <?php
     // Start session and connect to database
     session_start();
-    require_once "db_conn.php";
+    require_once "../php/db_conn.php";
+    require_once "../php/add_logs.php";
 
     // get current user stuff
     $username = $_SESSION['username'];
@@ -25,11 +26,20 @@
         if($row['count'] > 0) {
             $error_message = 'Cannot delete position: It is being used by candidates!';
         } else {
+            // Get position name before deleting for logging
+            $getPositionQuery = "SELECT position_name FROM position_table WHERE position_id = $id";
+            $positionResult = mysqli_query($conn, $getPositionQuery);
+            $positionData = mysqli_fetch_assoc($positionResult);
+            $positionName = $positionData['position_name'];
+
             // Delete position from database
             $deleteQuery = "DELETE FROM position_table WHERE position_id = $id";
         
             if (mysqli_query($conn, $deleteQuery)) {
                 $success_message = 'Position deleted successfully!';
+                // Log the deletion
+                $description = "Deleted position: " . $positionName;
+                add_logs($conn, $username, 'DELETE: ' . $description);
             } else {
                 $error_message = "Error deleting record: " . mysqli_error($conn);
             }
@@ -60,6 +70,9 @@
                         
                 if (mysqli_query($conn, $insertQuery)) {
                     $success_message = 'Position added successfully!';
+                    // Log the addition
+                    $description = "Added new position: " . $name;
+                    add_logs($conn, $username, 'CREATE: ' . $description);
                 } else {
                     $error_message = "Error: " . mysqli_error($conn);
                 }
@@ -78,6 +91,12 @@
         if(empty($name) || empty($description)) {
             $error_message = 'Please fill in all fields!';
         } else {
+            // Get old position data for logging
+            $getOldDataQuery = "SELECT position_name FROM position_table WHERE position_id = $id";
+            $oldDataResult = mysqli_query($conn, $getOldDataQuery);
+            $oldData = mysqli_fetch_assoc($oldDataResult);
+            $oldName = $oldData['position_name'];
+
             // Check if position name already exists (excluding current position)
             $checkQuery = "SELECT COUNT(*) as count FROM position_table WHERE position_name = '$name' AND position_id != $id";
             $checkResult = mysqli_query($conn, $checkQuery);
@@ -94,6 +113,9 @@
                         
                 if (mysqli_query($conn, $updateQuery)) {
                     $success_message = 'Position updated successfully!';
+                    // Log the update
+                    $description = "Updated position from '$oldName' to '$name'";
+                    add_logs($conn, $username, 'UPDATE: ' . $description);
                 } else {
                     $error_message = "Error updating record: " . mysqli_error($conn);
                 }
@@ -108,6 +130,9 @@
         
         if($result_sql) {
             $success_message = 'SQL command executed successfully!';
+            // Log the SQL execution
+            $description = "Executed SQL command: " . substr($sql_command, 0, 100) . "...";
+            add_logs($conn, $username, 'SQL: ' . $description);
         } else {
             $error_message = 'Error executing SQL command: ' . mysqli_error($conn);
         }
@@ -119,19 +144,25 @@
         
         // search in name and description
         if(!empty($positionsearch)) {
-            $selectsql = "SELECT p.*, COUNT(c.candidate_id) as candidate_count 
+            $selectsql = "SELECT p.*, 
+                         GROUP_CONCAT(c.candidate_name SEPARATOR ', ') as candidate_names,
+                         COUNT(c.candidate_id) as candidate_count 
                          FROM position_table p 
                          LEFT JOIN candidate_table c ON p.position_id = c.position_id 
                          WHERE p.position_name LIKE '%$positionsearch%' OR p.position_description LIKE '%$positionsearch%'
                          GROUP BY p.position_id";
         } else {
-            $selectsql = "SELECT p.*, COUNT(c.candidate_id) as candidate_count 
+            $selectsql = "SELECT p.*, 
+                         GROUP_CONCAT(c.candidate_name SEPARATOR ', ') as candidate_names,
+                         COUNT(c.candidate_id) as candidate_count 
                          FROM position_table p 
                          LEFT JOIN candidate_table c ON p.position_id = c.position_id 
                          GROUP BY p.position_id";
         }
     } else {
-        $selectsql = "SELECT p.*, COUNT(c.candidate_id) as candidate_count 
+        $selectsql = "SELECT p.*, 
+                     GROUP_CONCAT(c.candidate_name SEPARATOR ', ') as candidate_names,
+                     COUNT(c.candidate_id) as candidate_count 
                      FROM position_table p 
                      LEFT JOIN candidate_table c ON p.position_id = c.position_id 
                      GROUP BY p.position_id";
@@ -494,6 +525,9 @@
                                         <td>
                                             <?php if($position['candidate_count'] > 0): ?>
                                                 <span class="badge bg-success"><?= $position['candidate_count']; ?> Candidates</span>
+                                                <div class="small text-muted mt-1">
+                                                    <?= $position['candidate_names'] ? htmlspecialchars($position['candidate_names']) : 'No candidates assigned' ?>
+                                                </div>
                                             <?php else: ?>
                                                 <span class="badge bg-secondary">No Candidates</span>
                                             <?php endif; ?>

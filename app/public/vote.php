@@ -1,16 +1,9 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-session_start();
-require_once '../public/db_conn.php';
-require_once '../public/functions.php';
 
-// Check if user is logged in
-if (!isset($_SESSION['voter_id'])) {
-    header("Location: login.php");
-    exit();
-}
+session_start();
+require_once "../php/db_conn.php";
+require_once "../php/add_logs.php";
+
 
 $voter_id = $_SESSION['voter_id'];
 
@@ -98,7 +91,7 @@ if (isset($_POST['submit_votes'])) {
         
         // Log the voting activity
         $description = "Voter ID: $voter_id submitted votes for " . count($_SESSION['selected_candidates']) . " positions";
-        logActivity($conn, $voter_id, 'VOTE', $description);
+        add_logs($conn, $voter_id, 'VOTE: ' . $description);
         
         $conn->commit();
         

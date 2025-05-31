@@ -1,7 +1,8 @@
 <?php
     // Start session and connect to database
     session_start();
-    require_once "db_conn.php";
+    require_once "../php/db_conn.php";
+    require_once "../php/add_logs.php";
 
     // get current user stuff
     $username = $_SESSION['username'];
@@ -17,12 +18,24 @@
     if (isset($_POST['delete_candidate'])) {
         $id = $_POST['delete_candidate_id'];
         
-        $deleteQuery = "DELETE FROM candidate_table WHERE candidate_id = $id";
+        // Get candidate info before deletion for logging
+        $getCandidateQuery = "SELECT candidate_name FROM candidate_table WHERE candidate_id = $id";
+        $candidateResult = mysqli_query($conn, $getCandidateQuery);
+        $candidateData = mysqli_fetch_assoc($candidateResult);
         
-        if (mysqli_query($conn, $deleteQuery)) {
-            echo "<script>alert('Candidate deleted successfully!'); window.location.href=window.location.href;</script>";
+        if ($candidateData) {
+            $deleteQuery = "DELETE FROM candidate_table WHERE candidate_id = $id";
+            
+            if (mysqli_query($conn, $deleteQuery)) {
+                // Log the deletion
+                $description = "Deleted candidate: " . $candidateData['candidate_name'];
+                add_logs($conn, $username, 'DELETE: ' . $description);
+                echo "<script>alert('Candidate deleted successfully!'); window.location.href=window.location.href;</script>";
+            } else {
+                echo "Error deleting record: " . mysqli_error($conn);
+            }
         } else {
-            echo "Error deleting record: " . mysqli_error($conn);
+            echo "<script>alert('Candidate not found!'); window.location.href=window.location.href;</script>";
         }
     }
 
@@ -72,6 +85,9 @@
                             VALUES ('$name', '$party', '$college', '$imagepath', '$position_id')";
                             
             if (mysqli_query($conn, $insertQuery)) {
+                // Log the addition
+                $description = "Added new candidate: " . $name;
+                add_logs($conn, $username, 'CREATE: ' . $description);
                 echo "<script>alert('Candidate added successfully!');</script>";
             } else {
                 echo "Error: " . mysqli_error($conn);
@@ -91,6 +107,12 @@
         $party = mysqli_real_escape_string($conn, $_POST['edit_party']);
         $college = mysqli_real_escape_string($conn, $_POST['edit_college']);
         $position_id = (int)$_POST['edit_position'];
+
+        // Get old candidate data for logging
+        $getOldDataQuery = "SELECT candidate_name FROM candidate_table WHERE candidate_id = $id";
+        $oldDataResult = mysqli_query($conn, $getOldDataQuery);
+        $oldData = mysqli_fetch_assoc($oldDataResult);
+        $oldName = $oldData['candidate_name'];
 
         // Handle image upload if a new image is provided
         if (!empty($_FILES['edit_img']['name'])) {
@@ -114,6 +136,9 @@
                         WHERE candidate_id = $id";
                         
         if (mysqli_query($conn, $updateQuery)) {
+            // Log the update
+            $description = "Updated candidate from '$oldName' to '$name'";
+            add_logs($conn, $username, 'UPDATE: ' . $description);
             echo "<script>alert('Candidate updated successfully!'); window.location.href=window.location.href;</script>";
         } else {
             echo "Error updating record: " . mysqli_error($conn);
