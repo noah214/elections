@@ -26,17 +26,8 @@ if (isset($_POST['verify_otp'])) {
         
         // Get the registration data
         if (!isset($_SESSION['register_data'])) {
-            ?>
-            <script>
-                Swal.fire({
-                    position: "center",
-                    icon: "error",
-                    title: "Registration Error",
-                    showConfirmButton: false,
-                    timer: 1500
-                });
-            </script>
-            <?php
+            $_SESSION['error_message'] = "Registration Error";
+            header("Location: register.php");
             exit();
         }
         
@@ -65,30 +56,14 @@ if (isset($_POST['verify_otp'])) {
             header("Location: login.php");
             exit();
         } else {
-            ?>
-            <script>
-                Swal.fire({
-                    position: "center",
-                    icon: "error",
-                    title: "Registration Failed",
-                    showConfirmButton: false,
-                    timer: 1500
-                });
-            </script>
-            <?php
+            $_SESSION['error_message'] = "Registration Failed";
+            header("Location: register.php");
+            exit();
         }
     } else {
-        ?>
-        <script>
-            Swal.fire({
-                position: "center",
-                icon: "error",
-                title: "Invalid OTP",
-                showConfirmButton: false,
-                timer: 1500
-            });
-        </script>
-        <?php
+        $_SESSION['error_message'] = "Invalid OTP";
+        header("Location: register.php");
+        exit();
     }
 }
 
@@ -101,14 +76,9 @@ if (isset($_POST['register_submit'])) {
     $check_result = $conn->query($check_query);
     
     if ($check_result->num_rows > 0) {
-        echo "<script>
-            Swal.fire({
-                icon: 'error',
-                title: 'Email Already Exists',
-                text: 'This email is already registered. Please use a different email or login.',
-                confirmButtonColor: '#ffc107'
-            });
-        </script>";
+        $_SESSION['error_message'] = "Email Already Exists";
+        header("Location: register.php");
+        exit();
     } else {
         // Store all form data in session for later use
         $_SESSION['register_data'] = array(
@@ -143,36 +113,29 @@ if (isset($_POST['register_submit'])) {
             // Send OTP email using send_emailverification function
             if(send_emailverification($fullname, $email, $otp)) {
                 $_SESSION['register_stage'] = 'otp';
-                echo "<script>
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'OTP Sent!',
-                        text: 'Please check your email for the verification code.',
-                        confirmButtonColor: '#ffc107'
-                    });
-                </script>";
+                $_SESSION['success_message'] = "OTP Sent! Please check your email for the verification code.";
+                header("Location: register.php");
+                exit();
             } else {
-                echo "<script>
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Email Error',
-                        text: 'Failed to send OTP. Please try again.',
-                        confirmButtonColor: '#ffc107'
-                    });
-                </script>";
+                $_SESSION['error_message'] = "Failed to send OTP. Please try again.";
+                header("Location: register.php");
+                exit();
             }
         } else {
-            echo "<script>
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Registration Failed',
-                    text: 'An error occurred. Please try again.',
-                    confirmButtonColor: '#ffc107'
-                });
-            </script>";
+            $_SESSION['error_message'] = "Registration Failed. Please try again.";
+            header("Location: register.php");
+            exit();
         }
     }
 }
+
+// Add this before the HTML output
+$success_message = isset($_SESSION['success_message']) ? $_SESSION['success_message'] : null;
+$error_message = isset($_SESSION['error_message']) ? $_SESSION['error_message'] : null;
+
+// Clear the messages after retrieving them
+unset($_SESSION['success_message']);
+unset($_SESSION['error_message']);
 ?>
 
 <!doctype html>
@@ -393,5 +356,29 @@ if (isset($_POST['register_submit'])) {
                 })
         })()
     </script>
+
+    <?php if ($success_message): ?>
+    <script>
+        Swal.fire({
+            position: "center",
+            icon: "success",
+            title: "<?= $success_message ?>",
+            showConfirmButton: false,
+            timer: 1500
+        });
+    </script>
+    <?php endif; ?>
+
+    <?php if ($error_message): ?>
+    <script>
+        Swal.fire({
+            position: "center",
+            icon: "error",
+            title: "<?= $error_message ?>",
+            showConfirmButton: false,
+            timer: 1500
+        });
+    </script>
+    <?php endif; ?>
   </body>
 </html>

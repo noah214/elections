@@ -51,18 +51,18 @@ $show_results = $results_setting->fetch_assoc()['setting_value'] ?? '0';
 $results = [];
 if ($show_results == '1') {
     $results_query = "SELECT 
-                        p.position_name,
-                        c.candidate_name,
-                        c.party_affiliation,
-                        c.college,
-                        c.img_path,
-                        COUNT(v.vote_id) as vote_count,
-                        (SELECT COUNT(*) FROM vote_table) as total_votes
-                    FROM position_table p
-                    LEFT JOIN candidate_table c ON p.position_id = c.position_id
-                    LEFT JOIN vote_table v ON c.candidate_id = v.candidate_id
-                    GROUP BY p.position_id, c.candidate_id
-                    ORDER BY p.position_id, vote_count DESC";
+        p.position_name,
+        c.candidate_name,
+        c.party_affiliation,
+        c.college,
+        c.img_path,
+        COUNT(v.vote_id) as vote_count,
+        (SELECT COUNT(DISTINCT voter_id) FROM vote_table) as total_voters
+    FROM position_table p
+    LEFT JOIN candidate_table c ON p.position_id = c.position_id
+    LEFT JOIN vote_table v ON c.candidate_id = v.candidate_id
+    GROUP BY p.position_id, c.candidate_id, c.candidate_name, c.party_affiliation, c.college, c.img_path
+    ORDER BY p.position_id, vote_count DESC";
     $results_result = $conn->query($results_query);
     
     while ($row = $results_result->fetch_assoc()) {
@@ -340,7 +340,7 @@ if ($show_results == '1') {
                             <h3 class="position-title"><?= htmlspecialchars($position) ?></h3>
                             <?php 
                             $max_votes = max(array_column($candidates, 'vote_count'));
-                            $total_votes = $candidates[0]['total_votes'];
+                            $total_voters = $candidates[0]['total_voters'];
                             ?>
                             
                             <?php foreach ($candidates as $candidate): ?>
@@ -361,12 +361,12 @@ if ($show_results == '1') {
                                             <div class="vote-count">
                                                 <?= number_format($candidate['vote_count']) ?> votes
                                                 <span class="vote-percentage">
-                                                    (<?= $total_votes > 0 ? number_format(($candidate['vote_count'] / $total_votes) * 100, 1) : 0 ?>%)
+                                                    (<?= $total_voters > 0 ? number_format(($candidate['vote_count'] / $total_voters) * 100, 1) : 0 ?>%)
                                                 </span>
                                             </div>
                                             <div class="progress">
                                                 <div class="progress-bar" role="progressbar" 
-                                                     style="width: <?= $total_votes > 0 ? ($candidate['vote_count'] / $total_votes) * 100 : 0 ?>%">
+                                                     style="width: <?= $total_voters > 0 ? ($candidate['vote_count'] / $total_voters) * 100 : 0 ?>%">
                                                 </div>
                                             </div>
                                         </div>

@@ -13,14 +13,6 @@
         die("Connection failed: " . mysqli_connect_error());
     }
 
-    // Get all positions for dropdown
-    $positionsQuery = "SELECT position_id, position_name FROM position_table ORDER BY position_name";
-    $positionsResult = mysqli_query($conn, $positionsQuery);
-    $positions = array();
-    while($row = mysqli_fetch_assoc($positionsResult)) {
-        $positions[] = $row;
-    }
-
     // Delete position stuff
     if (isset($_POST['delete_position'])) {
         $id = $_POST['delete_position_id'];
@@ -31,15 +23,15 @@
         $row = mysqli_fetch_assoc($checkResult);
         
         if($row['count'] > 0) {
-            echo "<script>alert('Cannot delete position: It is being used by candidates!');</script>";
+            $error_message = 'Cannot delete position: It is being used by candidates!';
         } else {
             // Delete position from database
             $deleteQuery = "DELETE FROM position_table WHERE position_id = $id";
         
-        if (mysqli_query($conn, $deleteQuery)) {
-                echo "<script>alert('Position deleted successfully!'); window.location.href=window.location.href;</script>";
-        } else {
-            echo "Error deleting record: " . mysqli_error($conn);
+            if (mysqli_query($conn, $deleteQuery)) {
+                $success_message = 'Position deleted successfully!';
+            } else {
+                $error_message = "Error deleting record: " . mysqli_error($conn);
             }
         }
     }
@@ -52,7 +44,7 @@
 
         // basic validation
         if(empty($name) || empty($description)) {
-            echo "<script>alert('Please fill in all fields!');</script>";
+            $error_message = 'Please fill in all fields!';
         } else {
             // Check if position name already exists
             $checkQuery = "SELECT COUNT(*) as count FROM position_table WHERE position_name = '$name'";
@@ -60,16 +52,16 @@
             $row = mysqli_fetch_assoc($checkResult);
             
             if($row['count'] > 0) {
-                echo "<script>alert('Position name already exists!');</script>";
+                $error_message = 'Position name already exists!';
             } else {
                 // insert into position table
                 $insertQuery = "INSERT INTO position_table (position_name, position_description) 
                                 VALUES ('$name', '$description')";
                         
-        if (mysqli_query($conn, $insertQuery)) {
-                    echo "<script>alert('Position added successfully!');</script>";
-        } else {
-            echo "Error: " . mysqli_error($conn);
+                if (mysqli_query($conn, $insertQuery)) {
+                    $success_message = 'Position added successfully!';
+                } else {
+                    $error_message = "Error: " . mysqli_error($conn);
                 }
             }
         }
@@ -84,7 +76,7 @@
 
         // basic validation
         if(empty($name) || empty($description)) {
-            echo "<script>alert('Please fill in all fields!');</script>";
+            $error_message = 'Please fill in all fields!';
         } else {
             // Check if position name already exists (excluding current position)
             $checkQuery = "SELECT COUNT(*) as count FROM position_table WHERE position_name = '$name' AND position_id != $id";
@@ -92,7 +84,7 @@
             $row = mysqli_fetch_assoc($checkResult);
             
             if($row['count'] > 0) {
-                echo "<script>alert('Position name already exists!');</script>";
+                $error_message = 'Position name already exists!';
             } else {
                 // update position table
                 $updateQuery = "UPDATE position_table 
@@ -100,12 +92,24 @@
                                     position_description='$description'
                                 WHERE position_id=$id";
                         
-        if (mysqli_query($conn, $updateQuery)) {
-                    echo "<script>alert('Position updated successfully!'); window.location.href=window.location.href;</script>";
-        } else {
-            echo "Error updating record: " . mysqli_error($conn);
+                if (mysqli_query($conn, $updateQuery)) {
+                    $success_message = 'Position updated successfully!';
+                } else {
+                    $error_message = "Error updating record: " . mysqli_error($conn);
                 }
             }
+        }
+    }
+
+    // Handle SQL command execution
+    if(isset($_POST['execute_sql'])) {
+        $sql_command = $_POST['sql_command'];
+        $result_sql = mysqli_query($conn, $sql_command);
+        
+        if($result_sql) {
+            $success_message = 'SQL command executed successfully!';
+        } else {
+            $error_message = 'Error executing SQL command: ' . mysqli_error($conn);
         }
     }
 
@@ -156,6 +160,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
     <style>
         /* basic stuff */
         body { 
@@ -729,19 +734,29 @@
                 </div>
             </div>
 
-            <?php
-            // Handle SQL command execution
-            if(isset($_POST['execute_sql'])) {
-                $sql_command = $_POST['sql_command'];
-                $result_sql = mysqli_query($conn, $sql_command);
-                
-                if($result_sql) {
-                    echo "<script>alert('SQL command executed successfully!');</script>";
-                } else {
-                    echo "<script>alert('Error executing SQL command: " . mysqli_error($conn) . "');</script>";
-                }
-            }
-            ?>
+            <?php if (isset($success_message)): ?>
+                <script>
+                Swal.fire({
+                    position: "center",
+                    icon: "success",
+                    title: "<?= $success_message ?>",
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                </script>
+            <?php endif; ?>
+
+            <?php if (isset($error_message)): ?>
+                <script>
+                Swal.fire({
+                    position: "center",
+                    icon: "error",
+                    title: "<?= $error_message ?>",
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                </script>
+            <?php endif; ?>
 
         </main>
     </div>
@@ -749,6 +764,7 @@
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
 
 <script>
 // Show position details when clicked

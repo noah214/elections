@@ -3,6 +3,30 @@
     session_start();
     require_once "db_conn.php";
 
+    // Handle results visibility toggle
+    if (isset($_POST['toggle_results'])) {
+        $current_value = isset($_POST['current_value']) ? $_POST['current_value'] : '0';
+        $new_value = $current_value === '1' ? '0' : '1';
+        
+        $update_query = "INSERT INTO settings_table (setting_name, setting_value) 
+                        VALUES ('show_results', '$new_value') 
+                        ON DUPLICATE KEY UPDATE setting_value = '$new_value'";
+        
+        if ($conn->query($update_query)) {
+            $_SESSION['success_message'] = "Results visibility updated successfully";
+        } else {
+            $_SESSION['error_message'] = "Failed to update results visibility";
+        }
+        
+        header("Location: votecount.php");
+        exit();
+    }
+
+    // Get current results visibility setting
+    $results_query = "SELECT setting_value FROM settings_table WHERE setting_name = 'show_results'";
+    $results_setting = $conn->query($results_query);
+    $show_results = $results_setting->fetch_assoc()['setting_value'] ?? '0';
+
     // get current user stuff
     $username = $_SESSION['username'];
     $fullname = $_SESSION['fullname'];
@@ -210,6 +234,32 @@
                 <div class="container-fluid">
                     <h1 class="mb-4">Vote Count</h1>
                     
+                    <!-- Results Visibility Toggle -->
+                    <div class="row mb-4">
+                        <div class="col">
+                            <div class="card">
+                                <div class="card-body">
+                                    <form method="POST" action="" class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <h5 class="card-title mb-0">Election Results Visibility</h5>
+                                            <p class="text-muted mb-0">Control whether voters can see the election results</p>
+                                        </div>
+                                        <div class="form-check form-switch">
+                                            <input type="hidden" name="current_value" value="<?= $show_results ?>">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="resultsToggle" 
+                                                   <?= $show_results === '1' ? 'checked' : '' ?> 
+                                                   onchange="this.form.submit()">
+                                            <input type="hidden" name="toggle_results" value="1">
+                                            <label class="form-check-label" for="resultsToggle">
+                                                <?= $show_results === '1' ? 'Results are visible' : 'Results are hidden' ?>
+                                            </label>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Overall Statistics -->
                     <div class="row mb-4">
                         <div class="col-md-6">
@@ -282,5 +332,30 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <?php if (isset($_SESSION['success_message'])): ?>
+    <script>
+        Swal.fire({
+            position: "center",
+            icon: "success",
+            title: "<?= $_SESSION['success_message'] ?>",
+            showConfirmButton: false,
+            timer: 1500
+        });
+    </script>
+    <?php unset($_SESSION['success_message']); endif; ?>
+
+    <?php if (isset($_SESSION['error_message'])): ?>
+    <script>
+        Swal.fire({
+            position: "center",
+            icon: "error",
+            title: "<?= $_SESSION['error_message'] ?>",
+            showConfirmButton: false,
+            timer: 1500
+        });
+    </script>
+    <?php unset($_SESSION['error_message']); endif; ?>
 </body>
 </html>
