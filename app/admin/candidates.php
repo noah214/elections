@@ -109,11 +109,7 @@
         $college = mysqli_real_escape_string($conn, $_POST['edit_college']);
         $position_id = (int)$_POST['edit_position'];
 
-        // Get old candidate data for logging
-        $getOldDataQuery = "SELECT candidate_name FROM candidate_table WHERE candidate_id = $id";
-        $oldDataResult = mysqli_query($conn, $getOldDataQuery);
-        $oldData = mysqli_fetch_assoc($oldDataResult);
-        $oldName = $oldData['candidate_name'];
+       
 
         // Handle image upload if a new image is provided
         if (!empty($_FILES['edit_img']['name'])) {

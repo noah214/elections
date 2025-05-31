@@ -371,54 +371,48 @@
                         <div class="container">
                             <div class="row">
                                 <div class="col">
-                                    <?php
-                                    if ($result && $result->num_rows > 0) {
-                                        while ($log = $result->fetch_assoc()) {
-                                            $type_class = strtolower($log['action']);
-                                            ?>
-                                            <div class="log-card">
-                                                <div class="log-header d-flex justify-content-between align-items-center">
-                                                    <span class="log-type <?php echo $type_class; ?>">
-                                                        <?php echo htmlspecialchars($log['action']); ?>
-                                                    </span>
-                                                    <small class="text-muted">
-                                                        <?php echo date('F j, Y g:i A', strtotime($log['DateTime'])); ?>
-                                                    </small>
-                                                </div>
-                                                <div class="log-footer">
-                                                    <small>
-                                                        <strong>User:</strong> <?php echo htmlspecialchars($log['username']); ?>
-                                                    </small>
-                                                </div>
-                                            </div>
-                                            <?php
-                                        }
-                                    } else {
-                                        echo '<div class="alert alert-info">No logs found.</div>';
+                                <?php
+                                if ($result && $result->num_rows > 0) {
+                                while ($log = $result->fetch_assoc()) {
+                                    $type_class = strtolower($log['action']);
+                                    ?>
+                                    <div class="log-card">
+                                        <div class="log-header d-flex justify-content-between align-items-center">
+                                            <span class="log-type <?php echo $type_class; ?>">
+                                                <?php echo htmlspecialchars($log['action']); ?>
+                                            </span>
+                                            <small class="text-muted">
+                                                <?php echo date('F j, Y g:i A', strtotime($log['DateTime'])); ?>
+                                            </small>
+                                        </div>
+                                        <div class="log-footer">
+                                            <small>
+                                                <strong>User:</strong> <?php echo htmlspecialchars($log['username']); ?>
+                                            </small>
+                                        </div>
+                                    </div>
+                                <?php
                                     }
+
+                                } else {
+                                    echo '<div class="alert alert-info">No logs found.</div>';
+                                 }
                                     ?>
                                 </div>
                             </div>
+
+
                         </div>
                     </section>
                 </div>
             </main>
+
         </div>
     </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
-    <script>
-        // Navbar scroll effect
-        window.addEventListener('scroll', function() {
-            const navbar = document.querySelector('.custom-navbar');
-            if (window.scrollY > 50) {
-                navbar.classList.add('scrolled');
-            } else {
-                navbar.classList.remove('scrolled');
-            }
-        });
-    </script>
+
 </body>
 </html>

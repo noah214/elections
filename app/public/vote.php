@@ -26,10 +26,6 @@ if (!isset($_SESSION['selected_candidates'])) {
 // Get current position index from session or set to 0
 $current_position_index = isset($_SESSION['current_position_index']) ? $_SESSION['current_position_index'] : 0;
 
-// Debug: Check database connection
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
-}
 
 // Get all positions
 $positions_query = "SELECT * FROM position_table ORDER BY position_id";
@@ -105,7 +101,7 @@ if (isset($_POST['submit_votes'])) {
 // Get current position
 $current_position = $positions_array[$current_position_index];
 
-// Get candidates for current position
+// Get candidates for every position
 $candidates_query = "SELECT * FROM candidate_table WHERE position_id = '" . $current_position['position_id'] . "'";
 $candidates = $conn->query($candidates_query);
 ?>
@@ -433,22 +429,22 @@ $candidates = $conn->query($candidates_query);
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
     <script>
-        // Add visual feedback for radio selection
-        document.querySelectorAll('.candidate-card').forEach(card => {
-            card.addEventListener('click', function() {
-                const radio = this.querySelector('input[type="radio"]');
-                const step = this.closest('.candidates-list');
-                
-                // Remove selected class from all cards
-                step.querySelectorAll('.candidate-card').forEach(c => {
-                    c.classList.remove('selected');
-                });
-                
-                // Add selected class to this card and check the radio
-                this.classList.add('selected');
-                radio.checked = true;
+        // design for radio selection
+    document.querySelectorAll('.candidate-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const radio = this.querySelector('input[type="radio"]');
+            const form = this.closest('form'); 
+            
+            
+            form.querySelectorAll('.candidate-card').forEach(c => {
+                c.classList.remove('selected');
             });
+            
+            
+            this.classList.add('selected');
+            radio.checked = true;
         });
+    });
     </script>
 </body>
 </html>

@@ -8,6 +8,7 @@
     $username = $_SESSION['username'];
     $fullname = $_SESSION['fullname'];
     $role = $_SESSION['role'];
+    $user_id = $_SESSION['user_id'];
 
     // check if db is working lol
     if (!$conn) {
@@ -43,7 +44,7 @@
     // add new voter to db
     if (isset($_POST['add_voter'])) {
         $name = $_POST['add_name'];
-        $date_birth = $_POST['add_date_birth'];
+        $date_birth = $_POST['date_birth'];
         $gender = $_POST['add_gender'];
         $contact = $_POST['add_contact'];
         $stu_id = $_POST['add_stu_id'];
@@ -65,16 +66,12 @@
     if (isset($_POST['apply_edit'])) {
         $id = $_POST['edit_voter_id'];
         $name = $_POST['edit_name'];
-        $date_birth = $_POST['edit_date_birth'];
+        $date_birth = $_POST['edit_birth'];
         $gender = $_POST['edit_gender'];
         $contact = $_POST['edit_contact'];
         $stu_id = $_POST['edit_stu_id'];
         
-        // Get old voter data for logging
-        $getOldDataQuery = "SELECT voter_name FROM voter_table WHERE voter_id = $id";
-        $oldDataResult = mysqli_query($conn, $getOldDataQuery);
-        $oldData = mysqli_fetch_assoc($oldDataResult);
-        $oldName = $oldData['voter_name'];
+       
         
         $updateQuery = "UPDATE voter_table 
                        SET voter_name = '$name',
@@ -86,7 +83,7 @@
         
         if (mysqli_query($conn, $updateQuery)) {
             // Log the update
-            $description = "Updated voter from '$oldName' to '$name'";
+           
             add_logs($conn, $user_id, 'UPDATE: ');
             echo "<script>alert('Voter updated successfully!'); window.location.href=window.location.href;</script>";
         } else {
