@@ -238,7 +238,7 @@ if ($show_results == '1') {
                 <?php while ($vote = $votes->fetch_assoc()): ?>
                     <div class="vote-card">
                         <div class="candidate-info">
-                            <img src="<?= htmlspecialchars($vote['img_path']) ?>" alt="Candidate" class="candidate-image">
+                            <img src="../<?= htmlspecialchars($vote['img_path']) ?>" alt="Candidate" class="candidate-image">
                             <div class="candidate-details">
                                 <div class="candidate-name"><?= htmlspecialchars($vote['candidate_name']) ?></div>
                                 <div class="candidate-position"><?= htmlspecialchars($vote['position_name']) ?></div>

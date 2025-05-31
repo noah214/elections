@@ -4,6 +4,7 @@ session_start();
 require_once "../php/db_conn.php";
 require_once "../php/add_logs.php";
 
+$user_id = $_SESSION['user_id'];
 $voter_id = $_SESSION['voter_id'];
 
 // Check if user has already voted
@@ -34,32 +35,25 @@ if (!$conn) {
 $positions_query = "SELECT * FROM position_table ORDER BY position_id";
 $positions = $conn->query($positions_query);
 
-// Debug: Check if positions query worked
-if (!$positions) {
-    die("Error in positions query: " . $conn->error);
-}
-
-// Debug: Check number of positions
-$positions_count = $positions->num_rows;
-echo "<!-- Debug: Number of positions found: " . $positions_count . " -->";
 
 $positions_array = [];
 while ($position = $positions->fetch_assoc()) {
     $positions_array[] = $position;
 }
 
-// Debug: Print positions array
-echo "<!-- Debug: Positions array: " . print_r($positions_array, true) . " -->";
 
-// Handle candidate selection
+// Handle candidate selection logic
+
 if (isset($_POST['select_candidate'])) {
     $position_id = $_POST['position_id'];
     $candidate_id = $_POST['candidate_id'];
     
-    // Store the selection in session
+    // Store the selected positon
+
+
     $_SESSION['selected_candidates'][$position_id] = $candidate_id;
     
-    // Move to next position if not last
+    // Move to next positionn
     if ($current_position_index < count($positions_array) - 1) {
         $_SESSION['current_position_index'] = $current_position_index + 1;
         header("Location: vote.php");
@@ -90,7 +84,7 @@ if (isset($_POST['submit_votes'])) {
         }
         
         // Log the voting activity
-        add_logs($conn, $voter_id, 'VOTE: ' );
+        add_logs($conn, $user_id, 'VOTE' );
         
         $conn->commit();
         

@@ -8,6 +8,7 @@
     $username = $_SESSION['username'];
     $fullname = $_SESSION['fullname'];
     $role = $_SESSION['role'];
+    $user_id = $_SESSION['user_id'];
 
     $row = "Select * FROM user_table where username = '".$username."'";
     $result = mysqli_query($conn, $row);
@@ -77,7 +78,8 @@
         // insert into user table
         $insertQuery = "INSERT INTO user_table (full_name, role, username, password, email, otp, status) 
                         VALUES ('$name', '$role', '$username', '$password', '$email', NULL, '$status')";
-                        
+        add_logs($conn, $user_id, 'ADD');
+
         if (mysqli_query($conn, $insertQuery)) {
             // If user role is voter, also add to voter table with additional fields
             if (strtolower($role) === 'voter') {
@@ -89,6 +91,8 @@
                 $insertVoterQuery = "INSERT INTO voter_table (voter_name, date_of_birth, gender, contact_information, student_id) 
                                    VALUES ('$name', '$voterDateBirth', '$voterGender', '$voterContact', '$voterStuId')";
                 mysqli_query($conn, $insertVoterQuery);
+
+                
             }
             
             echo "<script>alert('User added successfully!');</script>";
@@ -158,7 +162,7 @@
             
             // Log the modification
             $description = "User modified: $username (Role: $newRole)";
-            add_logs($conn, $_SESSION[''], 'MODIFY: ' . $description);
+            add_logs($conn, $user_id, 'MODIFY');
             
             echo "<script>alert('User updated successfully!'); window.location.href=window.location.href;</script>";
         } else {

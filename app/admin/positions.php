@@ -5,6 +5,7 @@
     require_once "../php/add_logs.php";
 
     // get current user stuff
+    $user_id = $_SESSION['user_id'];
     $username = $_SESSION['username'];
     $fullname = $_SESSION['fullname'];
     $role = $_SESSION['role'];
@@ -39,7 +40,7 @@
                 $success_message = 'Position deleted successfully!';
                 // Log the deletion
                 $description = "Deleted position: " . $positionName;
-                add_logs($conn, $username, 'DELETE: ' . $description);
+                add_logs($conn, $user_id, 'DELETE');
             } else {
                 $error_message = "Error deleting record: " . mysqli_error($conn);
             }
@@ -72,7 +73,7 @@
                     $success_message = 'Position added successfully!';
                     // Log the addition
                     $description = "Added new position: " . $name;
-                    add_logs($conn, $username, 'CREATE: ' . $description);
+                    add_logs($conn, $user_id, 'CREATE');
                 } else {
                     $error_message = "Error: " . mysqli_error($conn);
                 }
@@ -115,7 +116,7 @@
                     $success_message = 'Position updated successfully!';
                     // Log the update
                     $description = "Updated position from '$oldName' to '$name'";
-                    add_logs($conn, $username, 'UPDATE: ' . $description);
+                    add_logs($conn, $user_id, 'UPDATE' );
                 } else {
                     $error_message = "Error updating record: " . mysqli_error($conn);
                 }

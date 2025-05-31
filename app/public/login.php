@@ -155,25 +155,27 @@ if (isset($_POST['sub'])) {
     $password = md5($_POST['pass']);
 
     $select = "SELECT * FROM user_table WHERE username = '$username' AND password = '$password'";
-    $_SESSION['user_id'] = $row['user_id'];
+    
     $result = mysqli_query($conn, $select);
 
     if (mysqli_num_rows($result) > 0) {
         $row = mysqli_fetch_assoc($result);
         
         if ($row['status'] == 'Verified') {
+            
             $_SESSION['username'] = $row['username'];
             $fullname = $row['full_name']; //for voter table
             $_SESSION['fullname'] = $row['full_name'];
             $_SESSION['role'] = $row['role'];
             $_SESSION['email'] = $row['email'];
             $_SESSION['user_id'] = $row['user_id'];
+            $user_id = $_SESSION['user_id']; //for logs
             
            
             
             // Log successful login
             $description = "User logged in: " . $row['full_name'] . " (Role: " . $row['role'] . ")";
-            add_logs($conn, $row['username'], 'LOGIN: ' . $description);
+            add_logs($conn, $user_id, 'LOGIN');
             
             if ($row['role'] == 'Admin' || $row['role'] == 'Organizer') {
                 header("Location: ../admin/home.php");
@@ -191,14 +193,31 @@ if (isset($_POST['sub'])) {
                 header("Location: home.php");
             }
         } else {
-            $error = "Please verify your account first!";
+            ?>
+            <script>
+            Swal.fire({
+                position: "center",
+                icon: "error",
+                title: "Please verify your account first!",
+                showConfirmButton: false,
+                timer: 1500
+            });
+            </script>
+            <?php
         }
-    } else {
-        // Log failed login attempt
-        $description = "Failed login attempt for username: " . $username;
-        add_logs($conn, $user_id, 'LOGIN_FAILED: ' . $description);
-        
-        $error = "Invalid username or password!";
+    }else{
+        ?>
+        <script>
+        Swal.fire({
+            position: "center",
+            icon: "error",
+            title: "Invalid username or password!",
+            showConfirmButton: false,
+            timer: 1500
+        });
+        </script>
+        <?php
     }
-}
 
+}
+?>

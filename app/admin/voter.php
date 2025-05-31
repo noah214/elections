@@ -33,7 +33,7 @@
         if (mysqli_query($conn, $deleteQuery)) {
             // Log the deletion
             $description = "Deleted voter: " . $voterData['voter_name'];
-            add_logs($conn, $username, 'DELETE: ' . $description);
+            add_logs($conn, $user_id, 'DELETE: ');
             echo "<script>alert('Voter deleted successfully!'); window.location.href=window.location.href;</script>";
         } else {
             echo "Error deleting record: " . mysqli_error($conn);
@@ -54,7 +54,7 @@
         if (mysqli_query($conn, $insertQuery)) {
             // Log the addition
             $description = "Added new voter: " . $name;
-            add_logs($conn, $username, 'CREATE: ' . $description);
+            add_logs($conn, $user_id, 'ADD');
             echo "<script>alert('Voter added successfully!');</script>";
         } else {
             echo "Error: " . mysqli_error($conn);
@@ -87,7 +87,7 @@
         if (mysqli_query($conn, $updateQuery)) {
             // Log the update
             $description = "Updated voter from '$oldName' to '$name'";
-            add_logs($conn, $username, 'UPDATE: ' . $description);
+            add_logs($conn, $user_id, 'UPDATE: ');
             echo "<script>alert('Voter updated successfully!'); window.location.href=window.location.href;</script>";
         } else {
             echo "Error updating record: " . mysqli_error($conn);

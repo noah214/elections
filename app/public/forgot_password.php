@@ -2,6 +2,9 @@
 session_start();
 require_once "../php/db_conn.php";
 require_once "../php/emailverification.php";
+require_once "../php/add_logs.php";
+
+
 
 //activates if user clicks resend otp
 // Handle reset request
@@ -31,7 +34,7 @@ if (isset($_POST['email_submit'])) {
         $user = $result->fetch_assoc();
         $_SESSION['user_id'] = $user['user_id'];
         $_SESSION['reset_email'] = $email;
-        
+        $user_id = $_SESSION['user_id'];
         // Generate OTP
         $otp = rand(000000, 999999);
         
@@ -40,8 +43,11 @@ if (isset($_POST['email_submit'])) {
         $conn->query($update_otp);
         
         // Send OTP via email
+        //log the otp sent
         send_verification($email, $otp);
-        
+        add_logs($conn, $user_id, 'OTP_SENT');
+
+        //set stage to otp to verify stage
         $_SESSION['forgot_stage'] = 'otp';
         
         ?>
@@ -78,10 +84,12 @@ if (isset($_POST['verify_otp'])) {
     // Verify OTP
     $verify_sql = "SELECT * FROM user_table WHERE email = '$email' AND otp = '$otp'";
     $result = $conn->query($verify_sql);
+    $user_id = $_SESSION['user_id'];
     
     if($result->num_rows > 0) {
         $_SESSION['verified_email'] = $email;
         $_SESSION['forgot_stage'] = 'reset';
+        add_logs($conn, $user_id, 'OTP VERIFIED');
         ?>
         <script>
             Swal.fire({
@@ -94,6 +102,7 @@ if (isset($_POST['verify_otp'])) {
         </script>
         <?php
     } else {
+        add_logs($conn, $user_id, 'OTP FAILED');
         ?>
         <script>
             Swal.fire({
@@ -316,7 +325,7 @@ if (isset($_POST['reset_password'])) {
     $new_password = $_POST['new_password'];
     $confirm_password = $_POST['confirm_password'];
     $email = $_SESSION['verified_email'];
-
+    $user_id = $_SESSION['user_id'];
     if ($new_password === $confirm_password) {
         // Update password in database
         $hashed_password = md5($new_password);
@@ -324,10 +333,13 @@ if (isset($_POST['reset_password'])) {
         
         if ($conn->query($update_password)) {
             // Clear session data
+            
             unset($_SESSION['forgot_stage']);
             unset($_SESSION['reset_email']);
             unset($_SESSION['verified_email']);
-            
+            unset($_SESSION['user_id']);
+
+           
             ?>
             <script>
                 Swal.fire({
@@ -344,6 +356,7 @@ if (isset($_POST['reset_password'])) {
         } else {
             ?>
             <script>
+                add_logs($conn, $user_id, 'PASSWORD RESET FAILED');
                 Swal.fire({
                     position: "center",
                     icon: "error",

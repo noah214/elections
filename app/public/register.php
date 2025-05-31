@@ -55,7 +55,7 @@ if (isset($_POST['verify_otp'])) {
             $_SESSION['registration_success'] = true;
             
             // Log account verification
-            add_logs($conn, $user_id, 'VERIFY');
+            add_logs($conn, $user_id, 'ACCOUNT VERIFIED');
             
             header("Location: login.php");
             exit();
@@ -118,14 +118,14 @@ if (isset($_POST['register_submit'])) {
             $user_id = $conn->insert_id;
             
             // Log successful registration
-            add_logs($conn, $user_id, 'REGISTER');
+            add_logs($conn, $user_id, 'ACCOUNT REGISTERED');
             
             // Send OTP for email verification
             $result = send_emailverification($email, $otp);
             
             if ($result) {
                 // Log OTP sent
-                add_logs($conn, $user_id, 'OTP_SENT');
+                add_logs($conn, $user_id, 'OTP SENT');
                 
                 $_SESSION['success'] = "OTP Sent! Please check your email for the verification code.";
                 $_SESSION['email'] = $email;
@@ -144,7 +144,7 @@ if (isset($_POST['register_submit'])) {
                 <?php
             } else {
                 // Log OTP send failure
-                add_logs($conn, $user_id, 'OTP_FAILED');
+                add_logs($conn, $user_id, 'OTP FAILED');
                 
                 // Delete the user record since email verification failed
                 $delete = mysqli_query($conn, "DELETE FROM user_table WHERE email = '$email'");
@@ -154,7 +154,7 @@ if (isset($_POST['register_submit'])) {
             }
         } else {
             // Log registration failure
-            add_logs($conn, 0, 'REGISTER_FAILED');
+            add_logs($conn, 0, 'REGISTER FAILED');
             
             $_SESSION['error'] = "Registration failed. Please try again.";
             header("Location: register.php");

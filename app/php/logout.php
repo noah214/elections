@@ -1,5 +1,5 @@
 <?php
-require_once "../php/add_logs.php";
+require_once "add_logs.php";
 // Start the session
 session_start();
 $user_id = $_SESSION['user_id'];

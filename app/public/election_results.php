@@ -195,7 +195,7 @@ while ($row = $results_result->fetch_assoc()) {
                 ?>
                     <div class="candidate-card">
                         <div class="candidate-info">
-                            <img src="<?= htmlspecialchars($candidate['img_path']) ?>" alt="Candidate" class="candidate-image">
+                            <img src="../<?= htmlspecialchars($candidate['img_path']) ?>" alt="Candidate" class="candidate-image">
                             <div class="candidate-details">
                                 <div class="candidate-name"><?= htmlspecialchars($candidate['candidate_name']) ?></div>
                                 <div class="candidate-party">

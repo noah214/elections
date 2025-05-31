@@ -113,7 +113,7 @@ $student_id = $_SESSION['student_id'];
                         </div>
                         <div class="row mt-4">
                             <div class="col text-center">
-                                <a href="login.php" class="btn btn-danger">
+                                <a href="../php/logout.php" class="btn btn-danger">
                                     <i class="bi bi-box-arrow-right me-2"></i>Logout
                                 </a>
                             </div>

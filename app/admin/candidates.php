@@ -5,6 +5,7 @@
     require_once "../php/add_logs.php";
 
     // get current user stuff
+    $user_id = $_SESSION['user_id'];
     $username = $_SESSION['username'];
     $fullname = $_SESSION['fullname'];
     $role = $_SESSION['role'];
@@ -29,7 +30,7 @@
             if (mysqli_query($conn, $deleteQuery)) {
                 // Log the deletion
                 $description = "Deleted candidate: " . $candidateData['candidate_name'];
-                add_logs($conn, $username, 'DELETE: ' . $description);
+                add_logs($conn, $user_id, 'DELETE');
                 echo "<script>alert('Candidate deleted successfully!'); window.location.href=window.location.href;</script>";
             } else {
                 echo "Error deleting record: " . mysqli_error($conn);
@@ -87,7 +88,7 @@
             if (mysqli_query($conn, $insertQuery)) {
                 // Log the addition
                 $description = "Added new candidate: " . $name;
-                add_logs($conn, $username, 'CREATE: ' . $description);
+                add_logs($conn, $user_id, 'CREATE');
                 echo "<script>alert('Candidate added successfully!');</script>";
             } else {
                 echo "Error: " . mysqli_error($conn);
@@ -116,7 +117,7 @@
 
         // Handle image upload if a new image is provided
         if (!empty($_FILES['edit_img']['name'])) {
-            $imagepath = "candidate_imgs/".basename($_FILES["edit_img"]["name"]);
+            $imagepath = "../candidate_imgs/".basename($_FILES["edit_img"]["name"]);
             move_uploaded_file($_FILES['edit_img']['tmp_name'], "../../".$imagepath);
         } else {
             // Keep existing image path if no new image is uploaded
@@ -138,7 +139,7 @@
         if (mysqli_query($conn, $updateQuery)) {
             // Log the update
             $description = "Updated candidate from '$oldName' to '$name'";
-            add_logs($conn, $username, 'UPDATE: ' . $description);
+            add_logs($conn, $user_id, 'UPDATE');
             echo "<script>alert('Candidate updated successfully!'); window.location.href=window.location.href;</script>";
         } else {
             echo "Error updating record: " . mysqli_error($conn);
