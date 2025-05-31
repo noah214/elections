@@ -259,7 +259,6 @@ if (isset($_POST['verify_otp'])) {
                     <!-- OTP Verification Form -->
                     <form action="" method="post">
                         <div class="row">
-                            <div class="col bg-warning block"></div>
                         </div>
                         <div class="row mx-5 mt-3">
                             <div class="col">
@@ -288,15 +287,12 @@ if (isset($_POST['verify_otp'])) {
                     </form>
 
                     <?php elseif ($_SESSION['forgot_stage'] == 'reset'): ?>
-                    <!-- Password Reset Form -->
+                    <!-- Reset Password Form -->
                     <form action="" method="post">
-                        <div class="row">
-                            <div class="col bg-warning block"></div>
-                        </div>
                         <div class="row mx-5 mt-3">
                             <div class="col">
                                 <h1>Reset Password</h1>
-                                <p class="text-muted">Create a new password for your account</p>
+                                <p class="text-muted">Enter your new password</p>
                             </div>
                         </div>
                         <div class="row mx-5 mt-3">
@@ -320,12 +316,6 @@ if (isset($_POST['verify_otp'])) {
                                 <input type="submit" name="reset_password" class="btn btn-primary btn-block w-100 fw-bold" value="Reset Password">
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col d-flex justify-content-center">
-                                <p>Remember your password? <a href="login.php">Login Here!</a></p>
-                            </div>
-                        </div>
-                        
                     </form>
                     <?php endif; ?>
                     <!--Dark block design !-->
@@ -344,34 +334,32 @@ if (isset($_POST['verify_otp'])) {
 </html>
 
 <?php
-//stage 3 - Reset Password and direct to login
-
-
+// Handle password reset
 if (isset($_POST['reset_password'])) {
-    $new_password = md5($_POST['new_password']);
-    $confirm_password = md5($_POST['confirm_password']);
+    $new_password = $_POST['new_password'];
+    $confirm_password = $_POST['confirm_password'];
     $email = $_SESSION['verified_email'];
-    
-    if($new_password === $confirm_password) {
+
+    if ($new_password === $confirm_password) {
         // Update password in database
-        $update_sql = "UPDATE user_table SET password = '$new_password', otp = NULL WHERE email = '$email'";
-        $result = $conn->query($update_sql);
+        $hashed_password = md5($new_password);
+        $update_password = "UPDATE user_table SET password = '$hashed_password', otp = NULL WHERE email = '$email'";
         
-        if($result) {
-            // Clear sessions
+        if ($conn->query($update_password)) {
+            // Clear session data
+            unset($_SESSION['forgot_stage']);
             unset($_SESSION['reset_email']);
             unset($_SESSION['verified_email']);
-            unset($_SESSION['forgot_stage']);
             
             ?>
             <script>
                 Swal.fire({
                     position: "center",
                     icon: "success",
-                    title: "Password Reset Successful!",
+                    title: "Password reset successful!",
                     showConfirmButton: false,
                     timer: 1500
-                }).then(() => {
+                }).then(function() {
                     window.location.href = "login.php";
                 });
             </script>
@@ -382,7 +370,7 @@ if (isset($_POST['reset_password'])) {
                 Swal.fire({
                     position: "center",
                     icon: "error",
-                    title: "Something went wrong!",
+                    title: "Password reset failed!",
                     showConfirmButton: false,
                     timer: 1500
                 });
@@ -403,5 +391,4 @@ if (isset($_POST['reset_password'])) {
         <?php
     }
 }
-
 ?> 

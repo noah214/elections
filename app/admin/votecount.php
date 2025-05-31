@@ -226,19 +226,19 @@
                 <a href="home.php"><i class="bi bi-person-badge-fill"></i>Home</a>
                 <div class="sidebar-category">User Management</div>
                 <?php if (strtolower($role) !== 'organizer'): ?>
-                    <a href="users.php"><i class="bi bi-people-fill"></i> Admin Users</a>
+                    <a href="users.php"><i class="bi bi-people-fill"></i> Users</a>
                 <?php endif; ?>
                 <a href="voter.php"><i class="bi bi-person-check-fill"></i> Voter Accounts</a>
                 
                 <div class="sidebar-category">Election Management</div>
-                <a href="candidates.php"><i class="bi bi-person-badge-fill"></i> Candidates</a>
-                <a href="positions.php"><i class="bi bi-briefcase-fill"></i> Positions</a>
-                <a href="votes.php"><i class="bi bi-box-seam"></i> Votes</a>
+                <a href="candidates.php"><i class="bi bi-person-badge-fill"></i> Candidate List</a>
+                <a href="positions.php"><i class="bi bi-briefcase-fill"></i> Position List</a>
+                <a href="votes.php"><i class="bi bi-box-seam"></i> Vote Records</a>
                 
                 <div class="sidebar-category">Reports</div>
-                <a href="votecount.php" class="sidebar-item active"><i class="bi bi-bar-chart-line-fill"></i> Vote Count</a>
+                <a href="votecount.php" class="sidebar-item active"><i class="bi bi-bar-chart-line-fill"></i> Vote Statistics</a>
                 <?php if (strtolower($role) !== 'organizer'): ?>
-                    <a href="logs.php"><i class="bi bi-journal-text"></i> Logs</a>
+                    <a href="logs.php"><i class="bi bi-journal-text"></i> Activity Logs</a>
                 <?php endif; ?>
 
                 <div class="mt-auto">
@@ -292,11 +292,12 @@
                             mysqli_data_seek($candidate_result, 0);
                             
                             // Calculate total votes for this position
-                            $position_total = array_sum(array_column($candidates, 'vote_count'));
+                            $position_total_votes = array_sum(array_column($candidates, 'vote_count'));
                             
-                            // Display candidates
+                            // Display candidates and their vote counts
                             foreach ($candidates as $candidate):
-                                $percentage = $position_total > 0 ? ($candidate['vote_count'] / $position_total) * 100 : 0;
+                                $vote_percentage = $position_total_votes > 0 ? 
+                                    ($candidate['vote_count'] / $position_total_votes) * 100 : 0;
                             ?>
                                 <div class="candidate-row">
                                     <div class="candidate-info">
@@ -304,16 +305,12 @@
                                         <div class="candidate-party"><?= htmlspecialchars($candidate['party_affiliation']) ?></div>
                                         <div class="progress">
                                             <div class="progress-bar" role="progressbar" 
-                                                 style="width: <?= $percentage ?>%" 
-                                                 aria-valuenow="<?= $percentage ?>" 
-                                                 aria-valuemin="0" 
-                                                 aria-valuemax="100">
+                                                 style="width: <?= $vote_percentage ?>%">
                                             </div>
                                         </div>
                                     </div>
                                     <div class="vote-count">
                                         <?= $candidate['vote_count'] ?> votes
-                                        <small class="text-muted">(<?= number_format($percentage, 1) ?>%)</small>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -333,7 +330,7 @@
         </button>
     </form>
 
-    <!-- Bootstrap JS -->
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

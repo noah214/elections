@@ -52,13 +52,13 @@ $student_id = $_SESSION['student_id'] ?? '';
             </button>
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                 <div class="navbar-nav ms-auto">
-                    <a class="nav-item nav-link active" href="home.php" aria-current="page">Home</a>
+                    <a class="nav-item nav-link" href="home.php">Home</a>
                     <div class="vr mx-2 d-none d-lg-block"></div>
                     <a class="nav-item nav-link" href="candidate.php">Candidates</a>
                     <div class="vr mx-2 d-none d-lg-block"></div>
                     <a class="nav-item nav-link" href="vote.php">Vote</a>
                     <div class="vr mx-2 d-none d-lg-block"></div>
-                    <a class="nav-item nav-link" href="Account.php">Account</a>
+                    <a class="nav-item nav-link active" href="Account.php" aria-current="page">Account</a>
                 </div>
             </div>
         </div>

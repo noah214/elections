@@ -102,6 +102,8 @@ $position_votes_result = $conn->query($position_votes);
     </style>
 </head>
 <body>
+<div class="container-fluid">
+    <div class="row">
     <!-- Sidebar -->
     <nav class="col-md-3 col-lg-2 d-md-block sidebar">
         <div class="sidebar-header">
@@ -119,9 +121,9 @@ $position_votes_result = $conn->query($position_votes);
         <a href="voter.php"><i class="bi bi-person-check-fill"></i> Voter Accounts</a>
         
         <div class="sidebar-category">Election Management</div>
-        <a href="candidates.php"><i class="bi bi-person-badge-fill"></i> Candidates</a>
-        <a href="positions.php"><i class="bi bi-briefcase-fill"></i> Positions</a>
-        <a href="votes.php"><i class="bi bi-box-seam"></i> Votes</a>
+        <a href="candidates.php"><i class="bi bi-person-badge-fill"></i> Candidate List</a>
+        <a href="positions.php"><i class="bi bi-briefcase-fill"></i> Position List</a>
+        <a href="votes.php"><i class="bi bi-box-seam"></i> Vote Records</a>
         
         <div class="sidebar-category">Reports</div>
         <a href="votecount.php"><i class="bi bi-bar-chart-line-fill"></i> Vote Statistics</a>
@@ -252,16 +254,18 @@ $position_votes_result = $conn->query($position_votes);
                                 </div>
                             <?php endwhile; ?>
                         <?php else: ?>
-                            <p class="text-muted text-center">No positions found</p>
+                            <p class="text-muted text-center">No votes recorded yet</p>
                         <?php endif; ?>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
+</div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html> 

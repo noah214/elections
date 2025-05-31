@@ -259,7 +259,9 @@ while ($candidate = $candidates->fetch_assoc()) {
     <section class="candidate-section">
         <div class="container">
             <div class="form-card">
+                
                 <h2 class="position-title text-center">Candidates</h2>
+
                 <p class="text-muted mb-4 text-center">Meet our candidates for the upcoming election</p>
 
                 <?php if (!empty($candidates_by_position)): ?>

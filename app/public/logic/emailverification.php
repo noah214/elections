@@ -3,7 +3,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 //Load Composer's autoloader
-require_once __DIR__ . '/../../../vendor/autoload.php';
+require_once dirname(__DIR__, 3) . '/vendor/autoload.php';
 
 function send_verification($fullname, $email, $otp) {
     $mail = new PHPMailer(true);
@@ -40,10 +40,8 @@ function send_verification($fullname, $email, $otp) {
         $mail->send();
         return true;
     } catch (Exception $e) {
-        error_log("Email sending failed: " . $mail->ErrorInfo);
         return false;
     }
-    
 }
 
 function send_emailverification($fullname, $email, $otp) {
@@ -81,7 +79,6 @@ function send_emailverification($fullname, $email, $otp) {
         $mail->send();
         return true;
     } catch (Exception $e) {
-        error_log("Email sending failed: " . $mail->ErrorInfo);
         return false;
     }
 }

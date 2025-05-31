@@ -13,21 +13,13 @@ if (isset($_POST['verify_otp'])) {
     $entered_otp = $_POST['otp'];
     $user_email = $_SESSION['email'];
     
-    // Debug information
-    error_log("OTP Verification Attempt - Email: " . $user_email . ", Entered OTP: " . $entered_otp);
-    error_log("Current register_stage: " . $_SESSION['register_stage']);
-    
     $verify_query = "SELECT * FROM user_table WHERE email = '$user_email' AND otp = '$entered_otp'";
     $verify_result = $conn->query($verify_query);
     
     if ($verify_result->num_rows > 0) {
-        error_log("OTP verification successful");
-        
         // OTP is valid, update the user status and clear the OTP
         $updateQuery = "UPDATE user_table SET otp = NULL, status = 'Verified' WHERE email = '$user_email'";
-        if (!$conn->query($updateQuery)) {
-            error_log("Database error: " . $conn->error);
-        }
+        $conn->query($updateQuery);
         
         // Set register stage to completed
         $_SESSION['register_stage'] = 'completed';
@@ -104,14 +96,11 @@ if (isset($_POST['verify_otp'])) {
 if (isset($_POST['register_submit'])) {
     $email = $_POST['email'];
     
-    error_log("Initial registration attempt for email: " . $email);
-    
     // Check if email already exists
     $check_query = "SELECT * FROM user_table WHERE email = '$email'";
     $check_result = $conn->query($check_query);
     
     if ($check_result->num_rows > 0) {
-        error_log("Email already exists: " . $email);
         echo "<script>
             Swal.fire({
                 icon: 'error',
@@ -121,8 +110,6 @@ if (isset($_POST['register_submit'])) {
             });
         </script>";
     } else {
-        error_log("Email is new, proceeding with registration");
-        
         // Store all form data in session for later use
         $_SESSION['register_data'] = array(
             'stu_id' => $_POST['stu_id'],
@@ -137,8 +124,6 @@ if (isset($_POST['register_submit'])) {
             'password' => md5($_POST['pass'])
         );
         
-        error_log("Registration data stored in session");
-        
         // Generate OTP
         $otp = rand(100000, 999999);
         
@@ -146,22 +131,17 @@ if (isset($_POST['register_submit'])) {
         $_SESSION['email'] = $email;
         $_SESSION['otp'] = $otp;
         
-        error_log("OTP generated and stored: " . $otp);
-        
         // Insert into database with Pending status and all user data
         $fullname = $_POST['fname'] . " " . $_POST['mname'] . " " . $_POST['lname'];
         $username = $_POST['username'];
         $password = md5($_POST['pass']);
         
-        $insert_query = "INSERT INTO user_table (full_name, username, password, email, otp, status, role) 
-                        VALUES ('$fullname', '$username', '$password', '$email', '$otp', 'Pending', 'Voter')";
+        $insert_query = "INSERT INTO user_table (full_name, role, username, password, email, otp, status) 
+                        VALUES ('$fullname', 'Voter', '$username', '$password', '$email', '$otp', 'Pending')";
         
         if ($conn->query($insert_query)) {
-            error_log("Initial user record created successfully");
-            
             // Send OTP email using send_emailverification function
             if(send_emailverification($fullname, $email, $otp)) {
-                error_log("OTP email sent successfully");
                 $_SESSION['register_stage'] = 'otp';
                 echo "<script>
                     Swal.fire({
@@ -172,7 +152,6 @@ if (isset($_POST['register_submit'])) {
                     });
                 </script>";
             } else {
-                error_log("Failed to send OTP email");
                 echo "<script>
                     Swal.fire({
                         icon: 'error',
@@ -183,7 +162,6 @@ if (isset($_POST['register_submit'])) {
                 </script>";
             }
         } else {
-            error_log("Failed to create initial user record: " . $conn->error);
             echo "<script>
                 Swal.fire({
                     icon: 'error',
@@ -193,53 +171,6 @@ if (isset($_POST['register_submit'])) {
                 });
             </script>";
         }
-    }
-}
-
-// Handle final registration after OTP verification
-if (isset($_POST['verify_otp']) && $_SESSION['register_stage'] == 'completed') {
-    $register_data = $_SESSION['register_data'];
-    
-    // Insert into user_table
-    $fullname = $register_data['fname'] . " " . $register_data['mname'] . " " . $register_data['lname'];
-    $insert_user = "INSERT INTO user_table (full_name, username, password, email, status) 
-                    VALUES ('$fullname', '{$register_data['username']}', '{$register_data['password']}', '{$register_data['email']}', 'Verified')";
-    
-    // Insert into voter_table
-    $insert_voter = "INSERT INTO voter_table (voter_name, date_of_birth, gender, contact_information, student_id) 
-                     VALUES ('$fullname', '{$register_data['date_birth']}', '{$register_data['gender']}', '{$register_data['contact']}', '{$register_data['stu_id']}')";
-    
-    if ($conn->query($insert_user) && $conn->query($insert_voter)) {
-        // Clear session data
-        unset($_SESSION['register_data']);
-        unset($_SESSION['register_stage']);
-        unset($_SESSION['email']);
-        unset($_SESSION['otp']);
-        
-        // Log account verification
-        $description = "Account verified for user: " . $register_data['username'];
-        logActivity($conn, $register_data['username'], 'VERIFY', $description);
-        
-        echo "<script>
-            Swal.fire({
-                icon: 'success',
-                title: 'Registration Complete!',
-                text: 'Your account has been created successfully.',
-                showConfirmButton: false,
-                timer: 1500
-            }).then(function() {
-                window.location.href = 'login.php';
-            });
-        </script>";
-    } else {
-        echo "<script>
-            Swal.fire({
-                icon: 'error',
-                title: 'Registration Failed',
-                text: 'An error occurred while creating your account.',
-                confirmButtonColor: '#ffc107'
-            });
-        </script>";
     }
 }
 ?>
@@ -298,9 +229,9 @@ if (isset($_POST['verify_otp']) && $_SESSION['register_stage'] == 'completed') {
     </style>
   </head>
   <body>
-    <div class="container-fluid">
+    <div class="container-fluid ust-bg">
         <div class="row">
-            <div class="col-6 border">
+            <div class="col-6 border bg-white">
             <div class="row">
                             <div class="col bg-warning block mb-4">
                                 <!--Yellow Block at Top -->
@@ -317,179 +248,150 @@ if (isset($_POST['verify_otp']) && $_SESSION['register_stage'] == 'completed') {
                         2
                         <div class="step-line <?php echo $_SESSION['register_stage'] == 'reset' ? 'completed' : ''; ?>"></div>
                     </div>
+                    <div class="step <?php echo $_SESSION['register_stage'] == 'completed' ? 'active' : ''; ?>">
+                        3
+                    </div>
                 </div>
-            
-                <!-- Registration Form -->
-                <?php if ($_SESSION['register_stage'] == 'register_account'){ ?>
-                    <form action="" method="post">
-                      
 
-                        <div class="row mt-4 mb-1">
-                            <div class="col d-flex justify-content-center">
-                                <h1>Register</h1>
+                <?php if ($_SESSION['register_stage'] == 'register_account') { ?>
+                    <!-- Registration Form -->
+                    <form method="POST" action="" class="needs-validation" novalidate>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="fname" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="fname" name="fname" required>
+                                <div class="invalid-feedback">
+                                    Please enter your first name.
+                                </div>
                             </div>
-                        </div>
-
-                        <div class="row mb-5">
-                            <div class="col d-flex justify-content-center">
-                                <h6>Be a voter today!</h6>
+                            <div class="col-md-4 mb-3">
+                                <label for="mname" class="form-label">Middle Name</label>
+                                <input type="text" class="form-control" id="mname" name="mname" required>
+                                <div class="invalid-feedback">
+                                    Please enter your middle name.
+                                </div>
                             </div>
-                        </div>
-                    <hr>
-                        <div class="row mx-5 mt-3">
-                            <div class="col">
-                                <div class="form-floating">
-                                    <input type="tel" name="stu_id" id="stu_id" class="form-control" placeholder=" "
-                                    pattern="^\d{10}$" required> <!-- only accepts 10 digit student id -->
-                                    <label for="stu_id" class="form-label">Student ID</label>
+                            <div class="col-md-4 mb-3">
+                                <label for="lname" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="lname" name="lname" required>
+                                <div class="invalid-feedback">
+                                    Please enter your last name.
                                 </div>
                             </div>
                         </div>
 
-                        <div class="row mx-5 mt-3">
-                            <div class="col-8">
-                                <div class="form-floating">
-                                    <input type="text" name="fname" id="fname" class="form-control" placeholder=" " required>
-                                    <label for="fname" class="form-label">First Name</label>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="stu_id" class="form-label">Student ID</label>
+                                <input type="text" class="form-control" id="stu_id" name="stu_id" required>
+                                <div class="invalid-feedback">
+                                    Please enter your student ID.
                                 </div>
                             </div>
-                            <div class="col">
-                                <div class="form-floating">
-                                    <input type="text" name="mname" id="mname" class="form-control" placeholder=" ">
-                                    <label for="mname" class="form-label">Middle Name</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mx-5 mt-3">
-                            <div class="col">
-                                <div class="form-floating">
-                                    <input type="text" name="lname" id="lname" class="form-control" placeholder=" " required>
-                                    <label for="lname" class="form-label">Last Name</label>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                                <div class="invalid-feedback">
+                                    Please enter a valid email address.
                                 </div>
                             </div>
                         </div>
 
-                        <div class="row mx-5 mt-3">
-                            <div class="col">
-                                <div class="form-floating">
-                                    <input type="email" name="email" id="email" class="form-control" placeholder=" " 
-                                    pattern="^[a-z]+\.[a-z]+\.[a-z]+@ust\.edu\.ph$" required> <!-- only accepts ust formatted emails -->
-                                    <label for="email" class="form-label">Email</label>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="date_birth" class="form-label">Date of Birth</label>
+                                <input type="date" class="form-control" id="date_birth" name="date_birth" required>
+                                <div class="invalid-feedback">
+                                    Please enter your date of birth.
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="row mx-5 mt-3">
-                            <div class="col">
-                                <div class="form-floating">
-                                    <input type="date" name="date_birth" id="date_birth" class="form-control" placeholder=" " required>
-                                    <label for="date_birth" class="form-label">Date of Birth</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mx-5 mt-3">
-                            <div class="col-6">
-                                <select name="gender" class="form-select" id="gender" required>
-                                    <option disabled selected>Gender</option>
-                                    <option value="male">Male</option>
-                                    <option value="female">Female</option>
+                            <div class="col-md-6 mb-3">
+                                <label for="gender" class="form-label">Gender</label>
+                                <select class="form-select" id="gender" name="gender" required>
+                                    <option value="">Select gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
                                 </select>
-                            </div>
-                            <div class="col">
-                                <div class="form-floating">
-                                    <input type="tel" name="contact" id="contact" class="form-control" placeholder=" "
-                                    pattern="^[0-9]{11}$" required>
-                                    <label for="contact" class="form-label">Contact Information</label>
+                                <div class="invalid-feedback">
+                                    Please select your gender.
                                 </div>
                             </div>
                         </div>
 
-                        <div class="row mx-5 mt-3">
-                            <div class="col">
-                                <div class="form-floating">
-                                    <input type="text" name="username" id="username" class="form-control" placeholder=" " required>
-                                    <label for="username" class="form-label">Username</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mx-5 mt-3 mb-5">
-                            <div class="col">
-                                <div class="form-floating">
-                                    <input type="password" name="pass" id="pass" class="form-control" placeholder=" " required>
-                                    <label for="pass" class="form-label">Password</label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row mx-5 my-5">
-                            <div class="col">   
-                                <input type="submit" name="register_submit" class="btn btn-primary btn-block w-100 fw-bold" value="Register User" id="sub">
+                        <div class="mb-3">
+                            <label for="contact" class="form-label">Contact Information</label>
+                            <input type="tel" class="form-control" id="contact" name="contact" required>
+                            <div class="invalid-feedback">
+                                Please enter your contact information.
                             </div>
                         </div>
 
                         <div class="row">
-                            <div class="col bg-dark block">
-                                <!-- Footer Section Black -->
+                            <div class="col-md-6 mb-3">
+                                <label for="username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" name="username" required>
+                                <div class="invalid-feedback">
+                                    Please choose a username.
+                                </div>
                             </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="pass" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="pass" name="pass" required>
+                                <div class="invalid-feedback">
+                                    Please enter a password.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-warning" type="submit" name="register_submit">Register</button>
                         </div>
                     </form>
-                <?php
-                    } elseif ($_SESSION['register_stage'] == 'otp' || isset($_GET['reset'])) { 
-                ?>
-                    <!--Send OTP Form -->
-                    <form action="" method="post">
-                        
-                        <div class="row mx-5 mt-3">
-                            <div class="col">
-                                <h1>Verify OTP</h1>
-                                <p class="text-muted">Enter the verification code sent to your email</p>
+                <?php } else if ($_SESSION['register_stage'] == 'otp') { ?>
+                    <!-- OTP Verification Form -->
+                    <form method="POST" action="" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="otp" class="form-label">Enter OTP</label>
+                            <input type="text" class="form-control" id="otp" name="otp" required>
+                            <div class="invalid-feedback">
+                                Please enter the OTP sent to your email.
                             </div>
                         </div>
-                        <div class="row mx-5 mt-3">
-                            <div class="col">
-                                <div class="form-floating">
-                                    <input type="text" name="otp" id="otp" class="form-control border-secondary" placeholder=" " required>
-                                    <label for="otp" class="form-label">Enter OTP</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mx-5 mt-5 mb-1">
-                            <div class="col">   
-                                <input type="submit" name="verify_otp" class="btn btn-primary btn-block w-100 fw-bold" value="Verify OTP">
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col d-flex justify-content-center">
-                                <p>Didn't receive OTP? <a href="?reset=1">Try Again</a></p>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col bg-dark block"></div>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-warning" type="submit" name="verify_otp">Verify OTP</button>
                         </div>
                     </form>
-                <?php
-                    }  //End of Register Stages
-                ?>
+                <?php } ?>
             </div>
-            <div class="col d-flex justify-content-center flex-column align-items-center">
-                <div>
-                    <h1 class="text-warning">University of Santo Tomas</h1>
+            <div class="col-6 d-flex align-items-center justify-content-center">
+                <div class="text-center text-white">
+                    <h1 class="display-4 fw-bold mb-4">Welcome to <span class="text-yellow">BOTO</span>masino Elections</h1>
+                    <p class="lead">Join us in shaping the future of UST through democratic elections.</p>
+                    <a href="login.php" class="btn btn-warning mt-3">Already have an account? Login</a>
                 </div>
-                <div>
-                    <h3>Supreme Student Council:</h3>
-                </div>
-                <div>
-                    <h3>BOTOmasino Elections</h3>
-                </div>
-            </div>  
+            </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    </body>
+    <script>
+        // Form validation
+        (function () {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+            Array.prototype.slice.call(forms)
+                .forEach(function (form) {
+                    form.addEventListener('submit', function (event) {
+                        if (!form.checkValidity()) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                        }
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
+    </script>
+  </body>
 </html>
