@@ -19,13 +19,13 @@ ob_start(); // Start output buffering
             <div class="row h-100">
                 <div class="col-5 d-flex justify-content-center flex-column align-items-center">
                     <div>
-                        <h1 class="text-warning display-5 fw-bold">University of Santo Tomas</h1>
+                        <h1 class="text-yellow display-5 fw-bold">University of Santo Tomas</h1>
                     </div>
                     <div class="text-white">
                         <h2>Supreme Student Council:</h2>
                     </div>
                     <div class="text-white">
-                        <h2>BOTOmasino Elections</h2>
+                        <h2><span class="text-yellow">BOTO</span>masino Elections</h2>
                     </div>
                 </div>
                 <div class="col d-flex align-items-center">
@@ -181,7 +181,7 @@ if (isset($_POST['sub'])){
         }
 
        if ($pprole == "Admin" || $pprole == "Organizer") {
-            header("location: ../admin/users.php");
+            header("location: ../admin/home.php");
             exit;
         } elseif ($pprole == "Voter"){
             ?> 
